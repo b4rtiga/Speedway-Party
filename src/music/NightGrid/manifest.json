@@ -1,0 +1,23 @@
+{
+  "title": "Night Grid",
+  "target": "Amiga 1200 PAL",
+  "format": "signed 8-bit PCM, mono, headerless",
+  "bytes": 438226,
+  "pal_clock_hz": 3546895,
+  "pal_period": 222,
+  "pal_rate_hz": 15977.004504504504,
+  "ntsc_period": 224,
+  "loop_start_byte": 0,
+  "loop_end_byte_exclusive": 438226,
+  "duration_seconds_pal": 27.42854581260511,
+  "nominal_bpm": 140,
+  "bars": 16,
+  "raw_sha256": "d1c333d2fd082916174c07beb9bbd87bbdc5a44a3f35d1f48ffffb3978542192",
+  "validation": {
+    "raw_equals_c_array": true,
+    "even_byte_count": true,
+    "loop_boundary_same_sample": true,
+    "target_playback_tested": false,
+    "c_compiled": false
+  }
+}

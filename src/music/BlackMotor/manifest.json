@@ -1,0 +1,23 @@
+{
+  "title": "Black Motor",
+  "target": "Amiga 1200 PAL",
+  "format": "signed 8-bit PCM, mono, headerless",
+  "bytes": 213026,
+  "pal_clock_hz": 3546895,
+  "pal_period": 222,
+  "pal_rate_hz": 15977.004504504504,
+  "ntsc_period": 224,
+  "loop_start_byte": 0,
+  "loop_end_byte_exclusive": 213026,
+  "duration_seconds_pal": 13.333287847539891,
+  "nominal_bpm": 144,
+  "bars": 8,
+  "raw_sha256": "ed71d4b17df910aa877092410b0b5fcd084ef30137f6da0b48deda57d9b25498",
+  "validation": {
+    "raw_equals_c_array": true,
+    "even_byte_count": true,
+    "loop_boundary_same_sample": true,
+    "target_playback_tested": false,
+    "c_compiled": false
+  }
+}

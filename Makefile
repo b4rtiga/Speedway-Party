@@ -1,6 +1,10 @@
 # Speedway Party - Amiga 1200 AGA
 # Bebbo GCC: https://github.com/bebbo/amiga-gcc  (NDK 3.9 dolaczony do toolchaina)
 
+# ustawienia budowania (np. wybor muzyki) - patrz build.cfg
+-include build.cfg
+MUSIC ?= BlackMotor
+
 CC      = m68k-amigaos-gcc
 CFLAGS  = -m68020 -mtune=68020 -O2 -fomit-frame-pointer -noixemul -Wall -Wno-pointer-sign
 LDFLAGS = -noixemul -s
@@ -17,13 +21,32 @@ SpeedwayParty: $(OBJ)
 src/%.o: src/%.c src/*.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-DATA = data/track0.pal data/track0.bpl data/title.bpl data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw data/music.raw
+DATA = data/track0.pal data/track0.bpl data/title.bpl data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw
+
+# Muzyka w menu: miks z src/music/$(MUSIC)/ kopiowany jako data/music.raw (MUSIC=BRAK - bez muzyki).
+# Plik jest odtwarzany przy kazdej zmianie build.cfg albo wybranego utworu.
+MUSIC_RAW = $(wildcard src/music/$(MUSIC)/*_s8.raw)
+ifneq ($(MUSIC),BRAK)
+ifeq ($(MUSIC_RAW),)
+$(error Brak utworu src/music/$(MUSIC)/*_s8.raw - sprawdz MUSIC w build.cfg)
+endif
+DATA += data/music.raw
+endif
+
+data/music.raw: $(MUSIC_RAW) build.cfg .music-$(MUSIC)
+	cp $(MUSIC_RAW) $@
+
+# znacznik wybranego utworu: zmiana MUSIC z linii polecen tez wymusza ponowne skopiowanie
+.music-$(MUSIC):
+	rm -f .music-*
+	touch $@
 
 # Katalog gotowy do podpiecia w WinUAE jako dysk startowy (bez Workbencha):
 # Kickstart 3.x uruchamia s/startup-sequence, a ta od razu gre.
 dist: SpeedwayParty $(DATA)
 	mkdir -p dist/data dist/s
 	cp SpeedwayParty dist/
+	rm -f dist/data/music.raw
 	cp $(DATA) dist/data/
 	echo SpeedwayParty > dist/s/startup-sequence
 
@@ -46,6 +69,6 @@ sim:
 
 clean:
 	rm -f $(OBJ) SpeedwayParty
-	rm -rf dist
+	rm -rf dist data/music.raw .music-*
 
 .PHONY: clean dist release assets check sim

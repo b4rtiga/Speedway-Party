@@ -146,6 +146,20 @@ dist/s/startup-sequence     uruchamia grę od razu po starcie Amigi
 
 Gotowe dane (`data/`) są w repozytorium. Do budowania nie potrzebujesz Pythona.
 
+**Muzyka w menu** jest wybierana przed kompilacją w pliku [build.cfg](build.cfg):
+
+```
+MUSIC = BlackMotor
+```
+
+| Wartość | Utwór |
+|---|---|
+| `BlackMotor` | „Black Motor”, 13,3 s, 208 KiB (domyślnie) |
+| `NightGrid` | „Night Grid”, 27,4 s, 428 KiB |
+| `BRAK` | gra bez muzyki, oszczędza Chip RAM |
+
+Utwory leżą w `src/music/<nazwa>/` jako gotowe miksy `*_s8.raw` (PCM 8 bit mono, ~16 kHz PAL). `make dist` kopiuje wybrany do `data/music.raw`. Jednorazowo możesz też podać utwór w poleceniu: `make dist MUSIC=NightGrid`. Nowy utwór to nowy katalog w `src/music/` z plikiem `*_s8.raw`.
+
 ---
 
 ## Uruchomienie w WinUAE
@@ -251,7 +265,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS) przy stałych 50 FPS: plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu.
 - **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
 - Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
-- Gra zajmuje ok. 1,4 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i 428 KiB muzyki), więc potrzebuje A1200 z 2 MB Chip. Na Amidze z Fast RAM muzyka ląduje w Fast RAM.
+- Gra zajmuje ok. 1,2–1,4 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka: 208 KiB „Black Motor” albo 428 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Na Amidze z Fast RAM muzyka ląduje w Fast RAM.
 
 ### Znane ograniczenia
 - **Silniki słychać tylko dwa naraz** (lidera i drugiego zawodnika): Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty.
@@ -268,7 +282,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - [x] bieg dodatkowy przy remisie o miejsce na podium
 - [x] tabela rekordów (najlepsze czasy biegu i okrążenia na każdym torze) zapisywana na dysk
 - [ ] tryb treningu: pojedynczy bieg albo jazda na czas
-- [x] muzyka w menu: utwór „Night Grid” na planszy tytułowej i w ustawieniach (opcja MUZYKA: TAK/NIE)
+- [x] muzyka w menu na planszy tytułowej i w ustawieniach (opcja MUZYKA: TAK/NIE), utwór wybierany w `build.cfg`
 - [ ] więcej torów i stadionów
 - [ ] prawdziwe nagranie silnika żużlowego (z licencją)
 

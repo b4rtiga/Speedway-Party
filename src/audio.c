@@ -10,8 +10,8 @@
  * probki Paula "zapetli" juz tylko cisze.
  * Probki generuje tools/genaudio.py; bez plikow gra jest po prostu cicha.
  *
- * Muzyka "Night Grid" (plansza tytulowa i ustawienia): gotowy miks PCM signed 8 bit mono,
- * ~16 kHz (PAL, okres 222), data/music.raw, 428 KiB. Zrodlo wczytywane przed przejeciem
+ * Muzyka (plansza tytulowa i ustawienia): gotowy miks PCM signed 8 bit mono, ~16 kHz
+ * (PAL, okres 222), data/music.raw - utwor wybierany przed kompilacja w build.cfg. Zrodlo wczytywane przed przejeciem
  * sprzetu do dowolnej pamieci (Fast RAM, jesli jest), a Paula gra z dwoch buforow po
  * 8 KiB w Chip RAM. Para kanalow silnikow (0 lewy + 1 prawy, te same dane, start jednym
  * zapisem do DMACON) = mono na srodku; w menu silniki milcza.

@@ -21,5 +21,8 @@ Thumbs.db
 .vscode/
 *.uaem
 
-# paczka zrodlowa muzyki (do gry trafia data/music.raw)
-/src/music/
+# muzyka: w repo zostaja gotowe miksy *_s8.raw i opisy; wybrany utwor kopiuje make (build.cfg)
+/src/music/*/*_data.c
+/src/music/*/*.wav
+/data/music.raw
+/.music-*

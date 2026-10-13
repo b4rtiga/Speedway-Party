@@ -796,8 +796,8 @@ static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
 
 /* stan okienka: SW_NONE albo (klatka odlotu << 2) | lampka (0 zgaszona, 1 czerwona, 2 zielona); 3 = awaria */
 #define SW_FLY   16                /* klatki odlotu tasmy w okienku (0.32 s) - okienko znika po nich */
-#define SW_TAPE_REST (SW_Y + 40)   /* tasma w spoczynku */
-#define SW_TAPE_H 3                /* wysokosc wstegi */
+#define SW_TAPE_REST (SW_Y + 38)   /* tasma w spoczynku */
+#define SW_TAPE_H 7                /* dwie wstegi po 2 px + 3 px przerwy z tasiemkami */
 #define SW_TAPE_X0 (SW_X + 11)     /* miedzy slupkami maszyny */
 #define SW_TAPE_X1 (SW_X + SW_W - 11)
 static WORD tape_prev[2][SW_W];    /* gorna krawedz wstegi w kolumnie (na bufor), -1 = brak */
@@ -876,7 +876,7 @@ static void draw_lamp(UBYTE *b, UBYTE lamp)
         for (x = SW_X + 52; x < SW_X + 60; x++) plot(b, x, y, startwin_px(x, y, lamp));
 }
 
-/* Wstega tasmy w klatce odlotu t (0 = spoczynek): konce unosza ramiona maszyny coraz
+/* Tasma (dwie wstegi z tasiemkami) w klatce odlotu t (0 = spoczynek): konce unosza ramiona maszyny coraz
  * szybciej (t^2), srodek zostaje troche w tyle i wygina sie lukiem w dol.
  * Rysujemy tylko roznice: zamazujemy poprzednia wstege i kladziemy nowa. */
 static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t, UBYTE lamp)
@@ -896,9 +896,13 @@ static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t, UBYTE lamp)
             }
         for (r = 0; r < SW_TAPE_H; r++) {
             WORD py = (WORD)(yy + r);
-            /* biala wstega z delikatnymi pionowymi paskami co 4 px */
-            if (py >= SW_Y + 3 && py < SW_Y + SW_H - 6)
-                plot(b, x, py, ((x - SW_TAPE_X0) & 3) == 0 ? U_SILVER : U_WHITE);
+            UBYTE c;
+            if (py < SW_Y + 3 || py >= SW_Y + SW_H - 6) continue;
+            /* dwie biale wstegi (wiersze 0-1 i 5-6), miedzy nimi co 8 px cienka tasiemka */
+            if (r < 2 || r >= SW_TAPE_H - 2) c = U_WHITE;
+            else if (((x - SW_TAPE_X0) & 7) == 3) c = U_SILVER;
+            else continue;                                   /* przerwa - widac tlo */
+            plot(b, x, py, c);
         }
         *prev = yy;
     }
