@@ -130,6 +130,26 @@ static void hline_thick(WORD x0, WORD y0, WORD x1, WORD y1, UBYTE c)
 
 #define ABSW(v) ((v) < 0 ? -(v) : (v))
 
+/* najdalej jadacy zawodnik (dystans liczony od tasmy: okrazenia * dlugosc + pozycja) */
+static LONG leader_distance(void)
+{
+    LONG lead = 0;
+    UBYTE i;
+    for (i = 0; i < MAX_RIDERS; i++) {
+        const Bike *b = &g_tour.bikes[i];
+        if (b->state == BIKE_EXCLUDED || b->empty) continue;
+        if (b->race_distance > lead) lead = b->race_distance;
+    }
+    return lead;
+}
+
+/* dystans, na ktorym lider jadacy okrazenie (lap - 1) wjezdza na prosta startowa (wyjscie z ostatniego luku) */
+static LONG straight_entry(UBYTE lap)
+{
+    const Track *t = &g_tour.track;
+    return (LONG)(lap - 1) * t->lap_length + (t->lap_length - t->tape_s);
+}
+
 /* "Kosa" (zolta flaga z czarnym krzyzem, ostatnie okrazenie): sedzia macha nia od chwili,
  * gdy prowadzacy na 3. okrazeniu wjezdza na prosta startowa (wyjscie z ostatniego luku),
  * do 2 s po tym, jak ostatni jadacy zawodnik przetnie linie konczaca 3. okrazenie. */
@@ -264,8 +284,9 @@ void hud_update(void)
         /* czerwona: przerwanie biegu; potem czarna, jesli tasma skonczyla sie wykluczeniem */
         BOOL excl = h->false_starter < MAX_RIDERS && g_tour.bikes[h->false_starter].state == BIKE_EXCLUDED;
         flag = (excl && h->phase_timer > 75) ? FLAG_BLACK : FLAG_RED;
-    } else if (h->finished_count) {
-        flag = FLAG_CHECKERED;
+    } else if (h->finished_count ||
+               ((h->phase == HEAT_RACING || h->phase == HEAT_FINISHED) && leader_distance() >= straight_entry(LAPS_PER_HEAT + 1))) {
+        flag = FLAG_CHECKERED;                       /* od wjazdu lidera na ostatnia prosta do konca biegu */
     } else if (h->danger_timer) {
         flag = FLAG_YELLOW;
     } else if (h->phase == HEAT_RACING || h->phase == HEAT_TAPE_UP) {
