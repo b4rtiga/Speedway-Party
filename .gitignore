@@ -26,3 +26,17 @@ Thumbs.db
 /src/music/*/*.wav
 /data/music.raw
 /.music-*
+
+# podglady z generatorow, nieuzywane w README ani w grze (make assets / narzedzia je odtwarzaja)
+/art/*.wav
+/art/mockup_*.png
+/art/*_sheet.png
+/art/referee.png
+/art/track_*.png
+/art/sim_wear.png
+/art/screen_04b_tape_up.png
+/art/screen_09_gate_pick.png
+/art/screen_11_bakalar.png
+/art/screen_12_piasek.png
+/art/screen_14_dodatkowy.png
+/art/screen_15_dodatkowy_wynik.png
