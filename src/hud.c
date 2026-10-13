@@ -38,24 +38,35 @@ static void hrect(WORD x, WORD y, WORD w, WORD h, UBYTE c)
 
 /* cyfry 3x5 + '/', skalowane x3 */
 static const UWORD font3x5[11] = {
-    0x7B6F, 0x2492, 0x73E7, 0x73CF, 0x5BC9, 0x79CF, 0x79EF, 0x7249, 0x7BEF, 0x7BCF, 0x12A4
+    0x7B6F, 0x2C97, 0x73E7, 0x73CF, 0x5BC9, 0x79CF, 0x79EF, 0x7249, 0x7BEF, 0x7BCF, 0x12A4
 };
 
-static void hglyph(WORD x, WORD y, UBYTE g, UBYTE c)
+/* cyfra 3x5 powiekszona scale razy, na tle bg */
+static void hglyph_s(WORD x, WORD y, UBYTE g, UBYTE c, WORD scale, UBYTE bg)
 {
     WORD r, k;
     for (r = 0; r < 5; r++)
         for (k = 0; k < 3; k++)
-            hrect(x + k * 3, y + r * 3, 3, 3, (font3x5[g] >> (14 - r * 3 - k)) & 1 ? c : H_BG);
+            hrect(x + k * scale, y + r * scale, scale, scale, (font3x5[g] >> (14 - r * 3 - k)) & 1 ? c : bg);
 }
+
+static void hglyph(WORD x, WORD y, UBYTE g, UBYTE c) { hglyph_s(x, y, g, c, 3, H_BG); }
 
 static void draw_order(void)
 {
     UBYTE i;
+    /* shown.order: kolor kasku (pole) w bitach 0-3, numer zawodnika w bitach 4-7 */
     for (i = 0; i < 4; i++) {
-        UBYTE gate = shown.order[i];
+        UBYTE v = shown.order[i];
+        UBYTE gate = (UBYTE)(v & 0x0F), rider = (UBYTE)(v >> 4);
         hrect(8 + i * 22, HUD_TOP + 8, 18, 18, H_FRAME);
-        hrect(10 + i * 22, HUD_TOP + 10, 14, 14, gate < 4 ? (UBYTE)(H_HELMET + gate) : H_BG);
+        if (v == 0xFF) { hrect(10 + i * 22, HUD_TOP + 10, 14, 14, H_BG); continue; }
+        {
+            UBYTE helmet = (UBYTE)(H_HELMET + gate);
+            UBYTE ink = gate >= 2 ? H_FLAG_K : H_WHITE;      /* bialy/zolty kask: czarna cyfra */
+            hrect(10 + i * 22, HUD_TOP + 10, 14, 14, helmet);
+            hglyph_s(14 + i * 22, HUD_TOP + 12, (UBYTE)(rider + 1), ink, 2, helmet);
+        }
     }
 }
 
@@ -130,14 +141,13 @@ static void draw_referee(void)
         }
 }
 
-/* poza biegiem: sam sedzia bez flagi (kolejnosc, okrazenie i swiatla nie maja sensu) */
+/* poza biegiem: pusty HUD (sam gradient tla) */
 static void enter_menu_mode(void)
 {
-    hrect(0, 0, 224, HUD_H, H_BG);
+    hrect(0, 0, SCREEN_W, HUD_H, H_BG);
     shown.menu = 1;
     shown.flag = FLAG_NONE;
     shown.wave = 0;
-    draw_referee();
 }
 
 /* wartosci niemozliwe -> hud_update narysuje wszystko od nowa */
@@ -172,7 +182,7 @@ void hud_update(void)
     for (i = 0; i < MAX_RIDERS; i++) {
         Bike *b = &g_tour.bikes[i];
         if (b->state == BIKE_EXCLUDED) continue;
-        order[b->position] = b->gate;
+        order[b->position] = (UBYTE)(b->gate | (b->rider << 4));   /* kask + numer zawodnika */
         if (b->position == 0) lap = b->lap;
     }
     if (lap < 1) lap = 1;
