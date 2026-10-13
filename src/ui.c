@@ -352,15 +352,18 @@ static void draw_table(UBYTE *b)
     UBYTE hn = g_tour.current_heat, g;
     char s[48], *p;
 
-    p = text_cat(s, "BIEG ");
-    text_uint(p, (ULONG)(hn + 1), 1);
+    if (hn == RUNOFF_HEAT) text_cat(s, "BIEG DODATKOWY");
+    else { p = text_cat(s, "BIEG "); text_uint(p, (ULONG)(hn + 1), 1); }
     text_draw_big_center(b, 10, s, U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 36, hn >= FIXED_HEATS ? "BIEG NOMINOWANY" : "PROGRAM ZAWODÓW", U_GOLD, 0);
+    text_draw_center(b, 36, hn == RUNOFF_HEAT ? "REMIS - O MIEJSCE NA PODIUM"
+                          : hn >= FIXED_HEATS ? "BIEG NOMINOWANY" : "PROGRAM ZAWODÓW", U_GOLD, 0);
 
     panel(b, 48, 52, 224, 64, U_PANEL, U_BORDER);
     for (g = 0; g < 4; g++) {
-        Rider *r = &g_tour.riders[g_tour.heat_table[hn][g]];
+        Rider *r;
         WORD y = (WORD)(57 + g * 14);
+        if (g_tour.heat_table[hn][g] == 0xFF) continue;          /* puste pole (bieg dodatkowy) */
+        r = &g_tour.riders[g_tour.heat_table[hn][g]];
         helmet_box(b, 64, y, g);
         s[0] = gate_letter[g]; s[1] = 0;
         text_draw(b, 88, y + 1, s, U_GREY, 0);
@@ -534,8 +537,8 @@ static void draw_result(UBYTE *b)
     char s[48], *p;
 
     panel(b, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, U_PANEL, U_BORDER);
-    p = text_cat(s, "WYNIK BIEGU ");
-    text_uint(p, h->number, 1);
+    if (g_tour.current_heat == RUNOFF_HEAT) text_cat(s, "BIEG DODATKOWY");
+    else { p = text_cat(s, "WYNIK BIEGU "); text_uint(p, h->number, 1); }
     text_draw_center(b, PANEL_Y + 6, s, U_GOLD, U_SHADOW);
 
     /* najpierw meta (finish_order), potem nieukonczeni (NU) i wykluczeni (W) */
@@ -545,6 +548,7 @@ static void draw_result(UBYTE *b)
             for (g = 0; g < 4; g++) if (g_tour.bikes[g].rider == h->finish_order[i]) list[n++] = g;
         for (g = 0; g < 4; g++) {
             BOOL listed = FALSE;
+            if (g_tour.bikes[g].empty) continue;
             for (k = 0; k < n; k++) if (list[k] == g) listed = TRUE;
             if (!listed) list[n++] = g;
         }
@@ -558,8 +562,9 @@ static void draw_result(UBYTE *b)
             helmet_box(b, 80, y, bk->gate);
             name_trunc(s, g_tour.riders[bk->rider].name, 10);
             text_draw(b, 104, y + 1, s, U_WHITE, U_SHADOW);
-            text_draw(b, 200, y + 1, fin ? pts_txt[line] : bk->state == BIKE_EXCLUDED ? "W" : "NU",
-                      line == 0 && fin ? U_GOLD : U_WHITE, U_SHADOW);
+            if (g_tour.current_heat != RUNOFF_HEAT || !fin)     /* bieg dodatkowy: bez punktow */
+                text_draw(b, 200, y + 1, fin ? pts_txt[line] : bk->state == BIKE_EXCLUDED ? "W" : "NU",
+                          line == 0 && fin ? U_GOLD : U_WHITE, U_SHADOW);
         }
     }
     if (h->finished_count) {

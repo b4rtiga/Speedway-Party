@@ -40,6 +40,8 @@ void race_init_heat(void)
     for (g = 0; g < 4; g++) {
         Bike *b = &g_tour.bikes[g];
         UBYTE r = h->gate_rider[g];
+        b->empty = (UBYTE)(r == 0xFF);                    /* puste pole (bieg dodatkowy) */
+        if (b->empty) r = 0;
         b->rider = r;
         b->gate = g;
         b->hw_sprite = (UBYTE)(g * 2);
@@ -60,7 +62,7 @@ void race_init_heat(void)
         b->ai_timer = 0;
         b->launch_timer = 0;
         b->position = g;
-        b->state = g_tour.riders[r].warnings >= 2 ? BIKE_EXCLUDED : BIKE_AT_GATE;
+        b->state = (b->empty || g_tour.riders[r].warnings >= 2) ? BIKE_EXCLUDED : BIKE_AT_GATE;
     }
 }
 

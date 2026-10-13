@@ -101,6 +101,31 @@ int main(int argc, char **argv)
         else track_dry_step();
     }
 
+    /* remis o podium -> bieg(i) dodatkowy(e), jak w grze */
+    {
+        int guard = 0;
+        while (heats == NUM_HEATS && tournament_prepare_runoff() && guard++ < 4) {
+            Heat *ht = &g_tour.heat;
+            int frame = 0, k;
+            g_tour.current_heat = RUNOFF_HEAT;
+            ht->number = RUNOFF_HEAT + 1;
+            ht->restarts = 0;
+            for (i = 0; i < 4; i++) ht->gate_rider[i] = g_tour.heat_table[RUNOFF_HEAT][i];
+            start_begin();
+            while (ht->phase != HEAT_FINISHED && frame < 20000) {
+                start_update();
+                if (ht->phase == HEAT_TAPE_UP || ht->phase == HEAT_RACING) race_update();
+                frame++;
+            }
+            tournament_award_points();
+            printf("BIEG DODATKOWY (remis po %d pkt):", g_tour.riders[g_tour.heat_table[RUNOFF_HEAT][0]].points);
+            for (k = 0; k < ht->finished_count; k++) printf(" %d.%s", k + 1, g_tour.riders[ht->finish_order[k]].name);
+            for (i = 0; i < 4; i++)
+                if (g_tour.bikes[i].empty) printf(" [pole %c puste]", 'A' + i);
+            printf("\n");
+        }
+    }
+
     printf("\nKLASYFIKACJA KOŃCOWA\n");
     {
         UBYTE order[4];

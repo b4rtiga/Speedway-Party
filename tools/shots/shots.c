@@ -226,6 +226,22 @@ int main(void)
         nominate_all();
         run_heat((UBYTE)i);
     }
+    /* remis o 2. miejsce -> program biegu dodatkowego */
+    {
+        UBYTE order[MAX_RIDERS], k;
+        tournament_sort(order);
+        g_tour.riders[order[2]].points = g_tour.riders[order[1]].points;
+        for (k = 0; k < MAX_RIDERS; k++) g_tour.runoff_rank[k] = RUNOFF_NONE;
+        if (tournament_prepare_runoff()) {
+            g_tour.current_heat = RUNOFF_HEAT;
+            g_tour.state = GS_TABLE; render(); shot("14_dodatkowy", FALSE);
+            begin(RUNOFF_HEAT);
+            g_tour.state = GS_HEAT;
+            while (g_tour.heat.phase != HEAT_FINISHED) step();
+            tournament_award_points();
+            g_tour.state = GS_HEAT_RESULT; render(); shot("15_dodatkowy_wynik", FALSE);
+        }
+    }
     g_tour.state = GS_PODIUM; render(); shot("10_podium", FALSE);
 
     /* pozostale tory: bieg w trakcie */

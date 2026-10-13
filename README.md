@@ -46,6 +46,8 @@ Kolor kasku zdradza pole startowe: czerwony wewnątrz, potem niebieski, biały i
 
 Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, a reszta bierze to, co zostało.
 
+Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko zawodnicy z remisu, a pola startowe są losowane. Nie ma liczenia zwycięstw ani kombinowania, decyduje tor.
+
 Puste miejsca przy kanapie zajmują boty:
 - **Amator** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.
 - **Profi** ma refleks i nie zawaha się „zamknąć płotu”, gdy próbujesz go minąć po wewnętrznej.
@@ -243,14 +245,14 @@ tools/          generatory, sprawdzanie kodu, symulator
 - **Dźwięk silnika jest syntetyczny.** Prawdziwe nagranie można zamienić w pętlę dla Pauli narzędziem `tools/import_engine.py`, ale potrzebna jest licencja na nagranie.
 - **Mysz w porcie 0:** menu jej nie czyta, ale gracz 2 ustawiony na „JOY 0” z myszą zamiast joysticka będzie „jechał” ruchami myszy.
 - **Adapter 4 graczy na porcie równoległym** nie był testowany. Przypisanie bitów w `src/input.c` może wymagać poprawki.
-- **Remis punktowy** rozstrzygają zwycięstwa biegów, bez biegu dodatkowego.
+- **Remis punktowy poza podium** (o 4. miejsce) rozstrzygają zwycięstwa biegów. O podium zawsze rozstrzyga bieg dodatkowy.
 - **Boty** jeżdżą głównie wewnętrzną połową toru. Szeroka linia pod bandą to szansa dla ludzi.
 - Tylko **PAL** (50 Hz).
 
 ### Pomysły na dalsze wersje
 - [ ] obraz dyskietki **ADF** do Gotka i emulatorów
 - [x] widoczne wyjeżdżone ścieżki (tor ciemnieje tam, gdzie jeździ stawka)
-- [ ] bieg dodatkowy przy remisie o miejsce na podium
+- [x] bieg dodatkowy przy remisie o miejsce na podium
 - [ ] tabela rekordów (najlepsze czasy biegu i okrążenia na każdym torze) zapisywana na dysk
 - [ ] tryb treningu: pojedynczy bieg albo jazda na czas
 - [ ] muzyka w menu (moduł Protrackera)

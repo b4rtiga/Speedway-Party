@@ -8,6 +8,8 @@
 #define MAX_RIDERS      4
 #define NUM_HEATS       15
 #define FIXED_HEATS     13        /* biegi 1-13 z tabeli, 14-15 nominowane */
+#define RUNOFF_HEAT     NUM_HEATS /* indeks biegu dodatkowego (remis o podium) */
+#define RUNOFF_NONE     0xFF
 #define LAPS_PER_HEAT   4
 #define NAME_LEN        16
 #define FPS             50
@@ -102,6 +104,7 @@ typedef struct Bike {
     UBYTE   sprite_frame;     /* 0..31 (11.25 st.) */
     UBYTE   skid_frame;       /* 0 = brak, 1..N klatki uslizgu */
     UBYTE   hw_sprite;        /* para duszkow sprzetowych (0,2,4,6) */
+    UBYTE   empty;            /* puste pole startowe (bieg dodatkowy) - motocykla nie ma */
 
     /* AI */
     WORD    ai_reaction;      /* klatki od zielonego do puszczenia; <0 = antycypacja (tasma!) */
@@ -192,7 +195,8 @@ typedef enum {
 typedef struct Tournament {
     Rider     riders[MAX_RIDERS];
     UBYTE     num_humans;
-    UBYTE     heat_table[NUM_HEATS][4];    /* [bieg][pole] -> zawodnik */
+    UBYTE     heat_table[NUM_HEATS + 1][4];/* [bieg][pole] -> zawodnik (0xFF = puste pole); +1 = bieg dodatkowy */
+    UBYTE     runoff_rank[MAX_RIDERS];     /* miejsce w biegu dodatkowym (RUNOFF_NONE = nie jechal) */
     UBYTE     current_heat;                /* 0..14 */
     UBYTE     pick_order[MAX_RIDERS];      /* kolejnosc wyboru pol (14,15) */
     UBYTE     pick_index;
@@ -210,7 +214,8 @@ extern Tournament g_tour;
 /* tournament.c */
 void tournament_defaults(void);                  /* nazwiska, AI - raz przy starcie programu */
 void tournament_reset(void);                     /* punkty i tabela - przed kazdym turniejem */
-void tournament_sort(UBYTE order[MAX_RIDERS]);   /* wg punktow, potem zwyciestw */
+void tournament_sort(UBYTE order[MAX_RIDERS]);   /* wg punktow, biegu dodatkowego, zwyciestw */
+BOOL tournament_prepare_runoff(void);            /* remis o podium -> bieg dodatkowy (TRUE) */
 #define HP_NONE     0xFF                         /* bieg jeszcze nie jechany */
 #define HP_EXCLUDED 0xFE                         /* wykluczony (W) */
 void tournament_award_points(void);

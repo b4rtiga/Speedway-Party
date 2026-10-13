@@ -110,7 +110,12 @@ static void update_heat(void)
 static void next_heat(void)
 {
     g_tour.current_heat++;
-    if (g_tour.current_heat >= NUM_HEATS) { enter(GS_PODIUM); return; }
+    if (g_tour.current_heat >= NUM_HEATS) {
+        /* remis o podium -> bieg dodatkowy (moze byc kilka po kolei), potem podium */
+        if (tournament_prepare_runoff()) { g_tour.current_heat = RUNOFF_HEAT; enter(GS_TABLE); }
+        else enter(GS_PODIUM);
+        return;
+    }
     if (g_tour.current_heat >= FIXED_HEATS) {
         tournament_prepare_nominated();
         enter(GS_GATE_PICK);

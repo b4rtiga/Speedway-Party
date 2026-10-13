@@ -44,9 +44,10 @@ void tournament_reset(void)
     for (i = 0; i < FIXED_HEATS; i++)
         for (j = 0; j < 4; j++)
             g_tour.heat_table[i][j] = fixed_table[i][j];
-    for (i = FIXED_HEATS; i < NUM_HEATS; i++)
+    for (i = FIXED_HEATS; i <= NUM_HEATS; i++)
         for (j = 0; j < 4; j++)
-            g_tour.heat_table[i][j] = 0xFF;      /* ustalane przy wyborze pol */
+            g_tour.heat_table[i][j] = 0xFF;      /* ustalane przy wyborze pol / biegu dodatkowym */
+    for (i = 0; i < MAX_RIDERS; i++) g_tour.runoff_rank[i] = RUNOFF_NONE;
     g_tour.current_heat = 0;
     g_tour.heat.restarts = 0;
 }
@@ -56,6 +57,17 @@ void tournament_award_points(void)
     static const UBYTE pts[4] = { 3, 2, 1, 0 };
     Heat *h = &g_tour.heat;
     UBYTE i, hn = g_tour.current_heat;
+
+    if (hn == RUNOFF_HEAT) {
+        /* bieg dodatkowy: bez punktow, tylko kolejnosc; nieukonczeni i wykluczeni na koncu */
+        for (i = 0; i < MAX_RIDERS; i++) {
+            const Bike *b = &g_tour.bikes[i];
+            if (!b->empty) g_tour.runoff_rank[b->rider] = (UBYTE)(b->state == BIKE_EXCLUDED ? 20 : 10);
+        }
+        for (i = 0; i < h->finished_count; i++) g_tour.runoff_rank[h->finish_order[i]] = i;
+        for (i = 0; i < MAX_RIDERS; i++) g_tour.riders[i].warnings = 0;
+        return;
+    }
 
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
@@ -89,10 +101,43 @@ void tournament_sort(UBYTE order[MAX_RIDERS])
         for (j = i; j > 0; j--) {
             Rider *a = &g_tour.riders[order[j - 1]];
             Rider *b = &g_tour.riders[order[j]];
-            if (b->points > a->points || (b->points == a->points && b->wins > a->wins)) {
-                UBYTE t = order[j]; order[j] = order[j - 1]; order[j - 1] = t;
-            }
+            UBYTE ra = g_tour.runoff_rank[order[j - 1]], rb = g_tour.runoff_rank[order[j]];
+            BOOL swap;
+            if (b->points != a->points) swap = b->points > a->points;
+            else if (ra != RUNOFF_NONE && rb != RUNOFF_NONE) swap = rb < ra;   /* rozstrzygnal bieg dodatkowy */
+            else swap = b->wins > a->wins;
+            if (swap) { UBYTE t = order[j]; order[j] = order[j - 1]; order[j - 1] = t; }
         }
+}
+
+/* Remis punktowy obejmujacy miejsca 1-3 i jeszcze nierozstrzygniety biegiem dodatkowym
+ * -> zawodnicy z remisu jada bieg dodatkowy, pola startowe losowane. */
+BOOL tournament_prepare_runoff(void)
+{
+    UBYTE order[MAX_RIDERS], p, i, n;
+    UBYTE *row = g_tour.heat_table[RUNOFF_HEAT];
+    tournament_sort(order);
+    for (p = 0; p < 3; p++) {
+        UBYTE pts = g_tour.riders[order[p]].points, group[MAX_RIDERS];
+        BOOL open = FALSE;
+        n = 0;
+        for (i = 0; i < MAX_RIDERS; i++)
+            if (g_tour.riders[order[i]].points == pts) {
+                group[n++] = order[i];
+                if (g_tour.runoff_rank[order[i]] == RUNOFF_NONE) open = TRUE;
+            }
+        if (n < 2 || !open) continue;
+        /* nowy bieg dodatkowy dla calej grupy: kasujemy ich stare miejsca */
+        for (i = 0; i < n; i++) g_tour.runoff_rank[group[i]] = RUNOFF_NONE;
+        for (i = 0; i < 4; i++) row[i] = 0xFF;
+        for (i = n; i > 1; i--) {                             /* losowanie pol */
+            UBYTE k = (UBYTE)rng_range(0, (UWORD)(i - 1)), t = group[k];
+            group[k] = group[i - 1]; group[i - 1] = t;
+        }
+        for (i = 0; i < n; i++) row[i] = group[i];
+        return TRUE;
+    }
+    return FALSE;
 }
 
 /* Kolejnosc wyboru pol w biegach nominowanych = ranking. */
