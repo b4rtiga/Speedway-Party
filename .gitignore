@@ -8,6 +8,7 @@
 *.pdb
 *.ilk
 /tools/sim/trace.csv
+/tools/sim/wear.csv
 /tools/shots/out/
 
 # Python
