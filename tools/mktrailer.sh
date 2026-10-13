@@ -1,7 +1,7 @@
 #!/bin/sh
 # Trailer gry: art/trailer.mp4 (1280x1024, 50 fps, podklad "Black Motor").
 # Klatki rysuje prawdziwy kod gry skompilowany na PC (tools/shots, tryb "trailer"):
-# plansza tytulowa, ustawienia, program zawodow, bieg 1 do konca 2. okrazenia,
+# plansza tytulowa, ustawienia, program zawodow, bieg 1 do polowy 2. okrazenia,
 # potem przejscie z efektem pikselizacji do samej ilustracji tytulowej (bez napisow)
 # na 5 s i wyciszenie. Wymaga: pip install ziglang, ffmpeg w PATH.
 cd "$(dirname "$0")/.." || exit 1
@@ -11,7 +11,7 @@ TITLE=art/title_art.png              # ilustracja bez napisow (tools/gentitle.py
 XF=1.2                               # dlugosc przejscia (s)
 HOLD=5                               # ilustracja po przejsciu (s)
 
-TRAILER_LAPS=2 ./tools/shots/shots.exe trailer \
+TRAILER_LAPS=1.5 ./tools/shots/shots.exe trailer \
   | ffmpeg -v error -y -f rawvideo -pix_fmt rgb24 -s 320x256 -r 50 -i - -c:v libx264rgb -crf 0 -preset veryfast "$TMP" || exit 1
 D=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$TMP")
 read OFF TOTAL FO AO <<EOF

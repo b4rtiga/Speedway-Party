@@ -221,18 +221,20 @@ static int trailer(void)
     tenter(GS_HEAT);
     last = g_tour.heat.phase;
     {
-        /* TRAILER_LAPS=n: nagranie konczy sie pol sekundy po tym, jak prowadzacy skonczy n okrazen */
+        /* TRAILER_LAPS=x: nagranie konczy sie, gdy prowadzacy przejedzie x okrazen (np. 1.5 = polowa 2.) */
         const char *env = getenv("TRAILER_LAPS");
-        int laps = env ? atoi(env) : 0, after = -1;
+        double laps = env ? atof(env) : 0.0;
         while (g_tour.heat.phase != HEAT_FINISHED && trailer_frames < 20000) {
-            UBYTE i, lead = 0;
+            UBYTE i;
+            LONG lead = 0;
             step();
             if (g_tour.heat.phase != last) { last = g_tour.heat.phase; ui_invalidate(); }
             tframe(TRUE);
-            for (i = 0; i < MAX_RIDERS; i++) if (g_tour.bikes[i].lap > lead) lead = g_tour.bikes[i].lap;
-            if (laps && after < 0 && lead > laps) after = FPS / 2;
-            if (after >= 0 && after-- == 0) {
-                fprintf(stderr, "trailer: %ld klatek (%.1f s), koniec po %d okr.\n", trailer_frames, trailer_frames / 50.0, laps);
+            for (i = 0; i < MAX_RIDERS; i++)
+                if (g_tour.bikes[i].race_distance > lead) lead = g_tour.bikes[i].race_distance;
+            /* dystans liczony od linii: 1. okrazenie zaczyna sie przy 1 * dlugosc */
+            if (laps > 0 && lead >= (LONG)((1.0 + laps) * g_tour.track.lap_length)) {
+                fprintf(stderr, "trailer: %ld klatek (%.1f s), koniec po %.1f okr.\n", trailer_frames, trailer_frames / 50.0, laps);
                 return 0;
             }
         }
