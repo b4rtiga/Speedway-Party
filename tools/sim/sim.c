@@ -1,0 +1,106 @@
+/* sim.c - symulator turnieju bez grafiki: te same pliki logiki co gra (race/start/ai/
+ * tournament/track/roost). 4 boty, 15 biegow, statystyki + slad biegu 1 do CSV.
+ * Budowanie i uruchomienie: sh tools/sim/run.sh */
+#include <stdio.h>
+#include <stdlib.h>
+#include "game.h"
+
+void stubs_init(void);
+
+static const char *lvl_name[3] = { "AMATOR", "PROFI ", "MISTRZ" };
+
+int main(int argc, char **argv)
+{
+    int heats = argc > 1 ? atoi(argv[1]) : NUM_HEATS;
+    FILE *trace = fopen("tools/sim/trace.csv", "w");
+    int h, i;
+    long total_frames = 0;
+
+    stubs_init();
+    fixmath_init();
+    g_rng = argc > 2 ? (ULONG)atol(argv[2]) : 12345;
+    tournament_defaults();
+    g_tour.num_humans = 0;
+    tournament_reset();
+    g_tour.riders[0].ai_level = AI_AMATEUR;
+    g_tour.riders[1].ai_level = AI_PRO;
+    g_tour.riders[2].ai_level = AI_MASTER;
+    g_tour.riders[3].ai_level = AI_PRO;
+    track_init();
+    fprintf(trace, "frame,bike,gate,x,y,speed,drift,lap,state\n");
+
+    for (h = 0; h < heats; h++) {
+        Heat *ht = &g_tour.heat;
+        int frame = 0, wall[4] = {0}, roost[4] = {0}, falsestarts = 0;
+        long dsum[4] = {0}, ssum[4] = {0}, n[4] = {0};
+        fix16 prev[4];
+
+        g_tour.current_heat = (UBYTE)h;
+        if (h >= FIXED_HEATS) {
+            tournament_prepare_nominated();
+            for (i = 0; i < 4; i++) {
+                UBYTE r = g_tour.pick_order[i];
+                tournament_assign_gate(r, tournament_ai_choose_gate(r));
+            }
+        }
+        ht->number = (UBYTE)(h + 1);
+        ht->restarts = 0;
+        for (i = 0; i < 4; i++) ht->gate_rider[i] = g_tour.heat_table[h][i];
+        start_begin();
+        for (i = 0; i < 4; i++) prev[i] = 0;
+
+        while (ht->phase != HEAT_FINISHED && frame < 20000) {
+            HeatPhase before = ht->phase;
+            start_update();
+            if (ht->phase == HEAT_FALSE_START && before != HEAT_FALSE_START) falsestarts++;
+            if (ht->phase == HEAT_TAPE_UP || ht->phase == HEAT_RACING) race_update();
+            for (i = 0; i < 4; i++) {
+                Bike *b = &g_tour.bikes[i];
+                if (b->state == BIKE_RACING) {
+                    if (prev[i] && b->speed < prev[i] - prev[i] / 6) wall[i]++;
+                    if (b->in_roost) roost[i]++;
+                    dsum[i] += b->drift < 0 ? -b->drift : b->drift;
+                    ssum[i] += b->speed;
+                    n[i]++;
+                }
+                prev[i] = b->speed;
+                if (h == 0 && (frame & 1) == 0)
+                    fprintf(trace, "%d,%d,%d,%d,%d,%.3f,%d,%d,%d\n", frame, i, b->gate,
+                            FIX2INT(b->x), FIX2INT(b->y), b->speed / 65536.0, b->drift, b->lap, b->state);
+            }
+            frame++;
+        }
+        total_frames += frame;
+        tournament_award_points();
+
+        printf("Bieg %2d  (taśmy: %d, czas %5.1f s, wilgotność %3d)\n", h + 1, falsestarts,
+               ht->race_frames / 50.0, g_tour.track.wetness);
+        for (i = 0; i < 4; i++) {
+            Bike *b = &g_tour.bikes[i];
+            Rider *r = &g_tour.riders[b->rider];
+            int place = -1, k;
+            for (k = 0; k < ht->finished_count; k++) if (ht->finish_order[k] == b->rider) place = k + 1;
+            printf("   pole %c %-11s %s  miejsce %s  meta %5.1f s  reakcja %3d ms  śr.v %.2f  śr.|drift| %4.1f  banda %3d  szprycha %4d kl.\n",
+                   'A' + i, r->name, lvl_name[r->ai_level],
+                   place > 0 ? (char[]){(char)('0' + place), 0} : (b->state == BIKE_EXCLUDED ? "W" : "-"),
+                   place > 0 ? b->finish_frame / 50.0 : 0.0, b->reaction_frames * 20,
+                   n[i] ? ssum[i] / (double)n[i] / 65536.0 : 0.0, n[i] ? dsum[i] / (double)n[i] : 0.0,
+                   wall[i], roost[i]);
+        }
+        if (tournament_watering_after((UBYTE)(h + 1))) track_apply_watering();
+        else track_dry_step();
+    }
+
+    printf("\nKLASYFIKACJA KOŃCOWA\n");
+    {
+        UBYTE order[4];
+        tournament_sort(order);
+        for (i = 0; i < 4; i++) {
+            Rider *r = &g_tour.riders[order[i]];
+            printf("  %d. %-11s %s %2d pkt  %d zw.\n", i + 1, r->name, lvl_name[r->ai_level], r->points, r->wins);
+        }
+    }
+    printf("średnio %.1f s na bieg (z procedurą startową)\n", total_frames / 50.0 / heats);
+    fclose(trace);
+    return 0;
+}

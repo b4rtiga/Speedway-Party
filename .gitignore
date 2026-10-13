@@ -1,0 +1,21 @@
+# wynik budowania (Bebbo GCC)
+*.o
+/SpeedwayParty
+/dist/
+
+# narzedzia na PC (zig cc, symulator, zrzuty ekranu)
+*.exe
+*.pdb
+*.ilk
+/tools/sim/trace.csv
+/tools/shots/out/
+
+# Python
+__pycache__/
+*.pyc
+
+# systemy / edytory
+.DS_Store
+Thumbs.db
+.vscode/
+*.uaem

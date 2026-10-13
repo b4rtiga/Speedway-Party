@@ -1,0 +1,15 @@
+# zrodla i skrypty z LF (skrypty .sh uruchamiane w WSL/Linux)
+*.c   text eol=lf
+*.h   text eol=lf
+*.py  text eol=lf
+*.sh  text eol=lf
+*.md  text eol=lf
+Makefile text eol=lf
+# dane binarne dla Amigi i podglady - bez konwersji
+*.raw binary
+*.bpl binary
+*.pal binary
+*.spr binary
+*.bin binary
+*.png binary
+*.wav binary

@@ -1,0 +1,17 @@
+/* ui.h - ekrany tekstowe i nakladki na tor. */
+#ifndef UI_H
+#define UI_H
+
+#include <exec/types.h>
+
+void ui_init(void);
+void ui_invalidate(void);          /* tresc ekranu sie zmienila -> przerysuj oba bufory */
+void ui_render(void);              /* raz na klatke, rysuje do bufora "back" */
+
+BOOL ui_title_update(void);        /* TRUE = przejdz dalej */
+BOOL ui_setup_update(void);        /* TRUE = start turnieju */
+BOOL ui_editing(void);             /* edycja nazwiska (ESC nie wychodzi z gry) */
+BOOL ui_confirm(void);             /* FIRE/Return na ekranie tabeli, wyniku, podium */
+void ui_pick_update(void);         /* wybor pol w biegach nominowanych */
+
+#endif
