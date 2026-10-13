@@ -878,14 +878,15 @@ def compose_screen(palette, frames, bikes):
 def main():
     (ROOT / "data").mkdir(exist_ok=True)
     (ROOT / "art").mkdir(exist_ok=True)
+    (ROOT / "build/preview").mkdir(parents=True, exist_ok=True)   # podglady robocze (poza repo)
 
     # tory: data/trackN.pal (sucho + mokro) i data/trackN.bpl, podglady art/track_<nazwa>.png
     for i, (name, *_rest) in enumerate(PRESETS):
         build_track(i)
         (ROOT / f"data/track{i}.pal").write_bytes(bytes(pal.astype(np.uint8).ravel()) + bytes(wet.astype(np.uint8).ravel()))
         (ROOT / f"data/track{i}.bpl").write_bytes(to_planar(img, 8))
-        write_png(ROOT / f"art/track_{name}.png", pal[img], 2)
-        write_png(ROOT / f"art/track_{name}_mokry.png", wet[img], 2)
+        write_png(ROOT / f"build/preview/track_{name}.png", pal[img], 2)
+        write_png(ROOT / f"build/preview/track_{name}_mokry.png", wet[img], 2)
     build_track(0)                           # reszta podgladow na torze 0
     # plansza tytulowa: tools/gentitle.py (ilustracja src/title.png, wlasna paleta)
     (ROOT / "data/hud.pal").write_bytes(bytes(hud_pal.astype(np.uint8).ravel()))
@@ -907,7 +908,7 @@ def main():
             cell = vs[kind * 34 + 1:kind * 34 + 33, j * 34 + 1:j * 34 + 33]
             m = f != 0
             cell[m] = pal[240 + f[m]]
-    write_png(ROOT / "art/tractors_sheet.png", vs, 3)
+    write_png(ROOT / "build/preview/tractors_sheet.png", vs, 3)
 
 
     # arkusz klatek: 32 kierunki x (3 uslizgi) na tle toru, + rzad kaskow
@@ -926,16 +927,16 @@ def main():
             cell = sheet[SKIDS * 34 + 1:SKIDS * 34 + 33, (g * 8 + j) * 34 + 1:(g * 8 + j) * 34 + 33]
             m = f != 0
             cell[m] = pal[240 + f[m]]
-    write_png(ROOT / "art/bikes_sheet.png", sheet, 3)
+    write_png(ROOT / "build/preview/bikes_sheet.png", sheet, 3)
 
     ref = referee_img()
-    write_png(ROOT / "art/referee.png", hud_pal[ref], 6)
+    write_png(ROOT / "build/preview/referee.png", hud_pal[ref], 6)
 
     bikes = [(GATE_X, GATE_Y[g], 0, 0, g) for g in range(2)] + \
             [(272, 120, 24, 2, 2), (262, 140, 26, 1, 3)]
-    write_png(ROOT / "art/mockup_race.png", compose_screen(pal, frames, bikes), 3)
-    write_png(ROOT / "art/mockup_wet.png", compose_screen(wet, frames, bikes), 3)
-    print("gotowe: data/*.{pal,bpl,spr,bin}, art/*.png")
+    write_png(ROOT / "build/preview/mockup_race.png", compose_screen(pal, frames, bikes), 3)
+    write_png(ROOT / "build/preview/mockup_wet.png", compose_screen(wet, frames, bikes), 3)
+    print("gotowe: data/*.{pal,bpl,spr,bin}, podglady: build/preview/")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""plot_wear.py - mapa ubicia toru po symulacji (tools/sim/wear.csv) -> art/sim_wear.png"""
+"""plot_wear.py - mapa ubicia toru po symulacji (tools/sim/wear.csv) -> build/preview/sim_wear.png"""
 import pathlib
 import sys
 
@@ -16,5 +16,6 @@ heat[..., 0] = 255
 heat[..., 1] = 230 - cell * 0.6
 a = (cell / 255.0)[..., None] * 0.85
 out = (base * 0.55 * (1 - a) + heat * a).clip(0, 255).astype(np.int32)
-g.write_png(ROOT / "art/sim_wear.png", out, 3)
-print("art/sim_wear.png")
+(ROOT / "build/preview").mkdir(parents=True, exist_ok=True)
+g.write_png(ROOT / "build/preview/sim_wear.png", out, 3)
+print("build/preview/sim_wear.png")

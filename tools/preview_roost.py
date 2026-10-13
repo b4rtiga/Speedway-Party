@@ -69,8 +69,9 @@ def main():
                 if f[yy, xx]:
                     scr[y - 16 + yy, x - 16 + xx] = g.pal[240 + f[yy, xx]]
     crop = scr[20:200, 150:320]
-    g.write_png(g.ROOT / "art/mockup_roost.png", crop, 4)
-    print("art/mockup_roost.png,", len(parts), "drobin")
+    (g.ROOT / "build/preview").mkdir(parents=True, exist_ok=True)
+    g.write_png(g.ROOT / "build/preview/mockup_roost.png", crop, 4)
+    print("build/preview/mockup_roost.png,", len(parts), "drobin")
 
 
 if __name__ == "__main__":

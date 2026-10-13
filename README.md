@@ -240,7 +240,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 
 | Polecenie | Co robi |
 |---|---|
-| `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`) i podglądy w `art/` |
+| `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`); robocze podglądy (makiety, arkusze klatek, WAV) trafiają do `build/preview/` poza repo |
 | `make release` | buduje paczkę `release/SpeedwayParty.zip` i startową dyskietkę `release/SpeedwayParty.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
 | `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png`: kadr 320×256, własna paleta AGA i dithering (`data/title.bpl`, `data/title.pal`) |
 | `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |

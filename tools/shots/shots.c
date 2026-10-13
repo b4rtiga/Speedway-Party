@@ -294,7 +294,7 @@ static int screenshots(void)
 
     while (g_tour.heat.phase != HEAT_TAPE_UP) step();   /* taśma w trakcie odlotu */
     step(); step(); step();
-    bike_sprites(); render(); hud_update(); shot("04b_tape_up", TRUE);
+    bike_sprites(); render(); hud_update();          /* tasma w locie (bez zrzutu - nieuzywany w README) */
     while (g_tour.heat.phase != HEAT_RACING) step();
     for (i = 0; i < 700; i++) step();
     bike_sprites(); render(); hud_update(); shot("05_racing", TRUE);
@@ -329,7 +329,7 @@ static int screenshots(void)
     g_tour.current_heat = FIXED_HEATS;
     tournament_prepare_nominated();
     tournament_assign_gate(g_tour.pick_order[0], tournament_ai_choose_gate(g_tour.pick_order[0]));
-    g_tour.state = GS_GATE_PICK; render(); shot("09_gate_pick", FALSE);
+    g_tour.state = GS_GATE_PICK; render();
 
     for (i = FIXED_HEATS; i < NUM_HEATS; i++) {
         g_tour.current_heat = (UBYTE)i;
@@ -344,12 +344,12 @@ static int screenshots(void)
         for (k = 0; k < MAX_RIDERS; k++) g_tour.runoff_rank[k] = RUNOFF_NONE;
         if (tournament_prepare_runoff()) {
             g_tour.current_heat = RUNOFF_HEAT;
-            g_tour.state = GS_TABLE; render(); shot("14_dodatkowy", FALSE);
+            g_tour.state = GS_TABLE; render();
             begin(RUNOFF_HEAT);
             g_tour.state = GS_HEAT;
             while (g_tour.heat.phase != HEAT_FINISHED) step();
             tournament_award_points();
-            g_tour.state = GS_HEAT_RESULT; render(); shot("15_dodatkowy_wynik", FALSE);
+            g_tour.state = GS_HEAT_RESULT; render();
         }
     }
     g_tour.state = GS_PODIUM; render(); shot("10_podium", FALSE);

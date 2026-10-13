@@ -32,7 +32,7 @@ def lowpass(x, alpha):
 
 
 def write_wav(name, s8, rate):
-    with wave.open(str(ROOT / "art" / name), "wb") as w:
+    with wave.open(str(ROOT / "build/preview" / name), "wb") as w:
         w.setnchannels(1)
         w.setsampwidth(1)
         w.setframerate(int(rate))
@@ -103,7 +103,7 @@ def engine_sweep(sample, seconds=4.0, out_rate=22050):
 
 def main():
     (ROOT / "data").mkdir(exist_ok=True)
-    (ROOT / "art").mkdir(exist_ok=True)
+    (ROOT / "build/preview").mkdir(parents=True, exist_ok=True)   # odsluch WAV (poza repo)
     sounds = {
         "engine": (engine(), None),
         "crowd": (crowd(), 11025),
