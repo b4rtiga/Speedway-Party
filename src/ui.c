@@ -39,6 +39,7 @@ static UBYTE setup_row;
 static BOOL  editing;
 static UBYTE pick_cursor, pick_prev;
 
+#define BORDER_RACE 0x334          /* 12-bit: ciemny beton trybun */
 static UWORD line_bg[FULL_H], line_fg[FULL_H], rainbow[48];
 static UBYTE *title_img;            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
 
@@ -134,7 +135,7 @@ static void draw_title(UBYTE *b)
     text_draw_center(b, 64, "AMIGA 1200 AGA", U_WHITE, U_SHADOW);
     if (blink) text_draw_center(b, 206, "NACIŚNIJ FIRE", U_RAINBOW, U_SHADOW);
     text_draw_center(b, 224, "TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", U_WHITE, U_SHADOW);
-    text_draw_center(b, 240, "Created by b4rtiga, A.D. 2026", U_GOLD, U_SHADOW);
+    text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GOLD, U_SHADOW);
 }
 
 BOOL ui_title_update(void)
@@ -314,6 +315,27 @@ BOOL ui_setup_update(void)
 
 /* ===================== PROGRAM / TABELA =========================== */
 
+/* czas w klatkach -> "41.2" (dziesiate) albo "9.84" (setne) */
+static char *fmt_time(char *p, UWORD frames, BOOL hundredths)
+{
+    p = text_uint(p, (ULONG)(frames / FPS), 1);
+    p = text_cat(p, ".");
+    if (hundredths) return text_uint(p, (ULONG)((frames % FPS) * 2), 2);
+    return text_uint(p, (ULONG)((frames % FPS) * 2 / 10), 1);
+}
+
+/* "REKORD BIEGU 41.2 S NOWAK" / "REKORD OKR.  9.84 S KOWALSKI" */
+static void record_text(char *s, BOOL lap)
+{
+    TrackRecord *r = records_for(g_tour.track.type);
+    UWORD fr = lap ? r->lap_frames : r->heat_frames;
+    char *p = text_cat(s, lap ? "REKORD OKR. " : "REKORD BIEGU ");
+    if (!fr) { text_cat(p, "-"); return; }
+    p = fmt_time(p, fr, lap);
+    p = text_cat(p, " S ");
+    name_trunc(p, lap ? r->lap_name : r->heat_name, 10);
+}
+
 static void wetness_text(char *s)
 {
     UBYTE w = g_tour.track.wetness;
@@ -374,8 +396,12 @@ static void draw_table(UBYTE *b)
 
     draw_standings(b, 130);
     wetness_text(s);
-    text_draw_center(b, 206, s, g_tour.track.wetness > 170 ? U_BORDER : U_GREY, 0);
-    if (blink) text_draw_center(b, 232, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 198, s, g_tour.track.wetness > 170 ? U_BORDER : U_GREY, 0);
+    record_text(s, FALSE);
+    text_draw_center(b, 211, s, U_GOLD, 0);
+    record_text(s, TRUE);
+    text_draw_center(b, 222, s, U_GOLD, 0);
+    if (blink) text_draw_center(b, 238, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);
 }
 
 BOOL ui_confirm(void)
@@ -572,13 +598,15 @@ static void draw_result(UBYTE *b)
         for (g = 0; g < 4; g++)
             if (g_tour.bikes[g].rider == h->finish_order[0]) t = g_tour.bikes[g].finish_frame;
         p = text_cat(s, "CZAS: ");
-        p = text_uint(p, (ULONG)(t / FPS), 1);
-        p = text_cat(p, ".");
-        p = text_uint(p, (ULONG)((t % FPS) * 2 / 10), 1);
+        p = fmt_time(p, t, FALSE);
         text_cat(p, " S");
-        text_draw_center(b, PANEL_Y + 84, s, U_GREY, 0);
+        text_draw_center(b, PANEL_Y + 84, s, g_tour.new_records & REC_HEAT ? U_GOLD : U_GREY, 0);
     }
-    if (blink) text_draw_center(b, PANEL_Y + 98, "FIRE - DALEJ", U_RAINBOW, 0);
+    /* nowy rekord: na zmiane z "FIRE - DALEJ" */
+    if (g_tour.new_records && !blink)
+        text_draw_center(b, PANEL_Y + 98, g_tour.new_records & REC_HEAT ? "NOWY REKORD TORU!" : "REKORD OKRĄŻENIA!",
+                         U_GOLD, U_SHADOW);
+    else if (blink) text_draw_center(b, PANEL_Y + 98, "FIRE - DALEJ", U_RAINBOW, 0);
 }
 
 extern UWORD g_grading_progress;   /* 0..255, z main.c */
@@ -675,7 +703,8 @@ static void update_line_colors(void)
 {
     UWORD i;
     if (state_uses_track(g_tour.state)) {
-        for (i = 0; i < PLAY_H; i++) { line_bg[i] = 0x000; line_fg[i] = 0xFFF; }
+        /* ramka obrazu (overscan) w kolorze betonu trybun - bez czarnych pasow po bokach toru */
+        for (i = 0; i < PLAY_H; i++) { line_bg[i] = BORDER_RACE; line_fg[i] = 0xFFF; }
     } else {
         UWORD ph = (UWORD)(g_frame >> 1);
         for (i = 0; i < FULL_H; i++) {

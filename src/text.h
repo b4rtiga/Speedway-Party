@@ -8,8 +8,9 @@
 
 #define FONT_W       8
 #define FONT_H       10
-#define FONT_GLYPHS  99          /* ASCII 32..95, polskie (9), male litery a-z (26) */
+#define FONT_GLYPHS  100         /* ASCII 32..95, polskie (9), male litery a-z (26), (c) */
 #define LOWER_FIRST  73
+#define GLYPH_COPY   99          /* znak (c), w napisach UTF-8 */
 #define PL_FIRST     0x80          /* Ą Ć Ę Ł Ń Ó Ś Ź Ż = 0x80..0x88 */
 #define PL_COUNT     9
 

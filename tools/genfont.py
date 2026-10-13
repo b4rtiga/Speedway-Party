@@ -119,6 +119,9 @@ for base, acc, og, shape in POLISH:
 for ch in "abcdefghijklmnopqrstuvwxyz":                 # glify 73..98
     body, tail = LOWER[ch]
     glyphs.append((ch, rows_to_bytes(NONE, body, tail or (NONE, NONE))))
+# (c) na 7 kolumnach (komorka ma 8): w 5 px kolko zlewa sie z litera C i wyglada jak "@"
+glyphs.append(("(c)", rows_to_bytes(".......", "..###..|.#...#.|#..##.#|#.#...#|#..##.#|.#...#.|..###..",
+                                    (".......", "......."))))   # 99
 
 def main():
     lines = ["/* font.c - WYGENEROWANE przez tools/genfont.py, nie edytowac recznie. */",

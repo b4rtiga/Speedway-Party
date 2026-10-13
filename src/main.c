@@ -102,6 +102,7 @@ static void update_heat(void)
         ui_invalidate();
     }
     if (h->phase == HEAT_FINISHED) {
+        g_tour.new_records = records_check_heat();
         tournament_award_points();
         enter(GS_HEAT_RESULT);
     }
@@ -210,6 +211,7 @@ int main(void)
 
     tournament_defaults();
     tournament_reset();
+    records_load();
     if (!track_init()) { rc = 20; goto out; }   /* wszystkie tory (przed przejeciem) */
     ui_init();
     hud_init();
@@ -245,6 +247,7 @@ int main(void)
 
     audio_stop();
     system_restore();
+    records_save();                     /* dysk dostepny dopiero po oddaniu systemu */
 out:
     audio_free();
     ui_free();

@@ -8,7 +8,7 @@ CFLAGS += $(EXTRA)
 
 SRC = src/main.c src/system.c src/video.c src/sprites.c src/fixmath.c src/track.c \
       src/input.c src/start.c src/race.c src/ai.c src/tournament.c src/hud.c \
-      src/blit.c src/text.c src/font.c src/ui.c src/assets.c src/roost.c src/tractors.c src/audio.c
+      src/blit.c src/text.c src/font.c src/ui.c src/assets.c src/roost.c src/tractors.c src/audio.c src/records.c
 OBJ = $(SRC:.c=.o)
 
 SpeedwayParty: $(OBJ)

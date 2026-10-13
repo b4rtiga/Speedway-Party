@@ -72,13 +72,17 @@ extern volatile UWORD g_fake_custom[0x100];
 #define BPLCON0_PLANES(n) ((((n) & 7) << 12) | (((n) & 8) ? BPLCON0_BPU3 : 0))
 
 /* --- BPLCON3 (AGA) --- */
-#define BPLCON3_BANK(b) (((b) & 7) << 13)  /* bank palety 0..7 (po 32 kolory) */
+#define BPLCON3_BRDRBLNK 0x0020            /* ramka poza oknem obrazu wygaszona (czarna) */
+/* bank palety 0..7 (po 32 kolory); kazdy zapis BPLCON3 w grze wygasza tez ramke -
+ * emulatory (autoskalowanie) wykrywaja wtedy dokladnie obszar 320x256 */
+#define BPLCON3_BANK(b) ((((b) & 7) << 13) | BPLCON3_BRDRBLNK)
 #define BPLCON3_LOCT    0x0200             /* zapis dolnych 4 bitow skladowych */
 #define BPLCON3_SPRES_LORES 0x0000
 
 /* --- FMODE (AGA) --- */
 #define FMODE_BPL_4X   0x0003   /* 64-bit fetch bitplanow */
 #define FMODE_SPR_4X   0x000C   /* SPR32|SPAGEM: duszki 64 px */
+#define FMODE_SPR_2X   0x0004   /* SPR32: duszki 32 px */
 
 /* --- CIA --- */
 #define CIAA_PRA  (*(volatile UBYTE *)0xBFE001)   /* /FIR1 bit7, /FIR0 bit6 */

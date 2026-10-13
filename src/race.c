@@ -9,12 +9,11 @@
  * Wartosci do strojenia zebrane w #define (symulator: tools/sim). */
 #include "game.h"
 
-#define MAX_SPEED       ((fix16)(FIX_ONE * 18 / 10))   /* px/klatke */
+#define MAX_SPEED       BIKE_MAX_SPEED
 #define DRIFT_MAX       28           /* 40 st. (256 jednostek = 360 st.) */
 #define DRIFT_MIN       (-10)        /* ~14 st. kontry w prawo */
 #define DRIFT_IN        2            /* LEWO: lamanie na klatke (pelne zlamanie w ~0.3 s) */
 #define DRIFT_OUT       3            /* PRAWO: kontra na klatke */
-#define TURN_K          17           /* skret kierunku [1/256 jedn./klatke] na jednostke zlamania */
 #define DRIFT_CAP_DIV   112          /* zlamanie obniza predkosc maks.: 40 st. -> ok. -25% */
 #define ACCEL_SHIFT     6            /* przyspieszenie = (max-v)>>6 * grip */
 #define DRAG_DIV        3200         /* opor boczny: v*|drift|/DRAG_DIV */
@@ -61,6 +60,8 @@ void race_init_heat(void)
         b->in_roost = 0;
         b->ai_timer = 0;
         b->launch_timer = 0;
+        b->lap_start = 0;
+        b->best_lap = 0;
         b->position = g;
         b->state = (b->empty || g_tour.riders[r].warnings >= 2) ? BIKE_EXCLUDED : BIKE_AT_GATE;
     }
@@ -162,7 +163,16 @@ static void update_bike(Bike *b)
     prev_s = b->race_distance - (LONG)b->lap * t->lap_length;
     s = track_progress(FIX2INT(b->x), FIX2INT(b->y)) - t->tape_s;
     if (s < 0) s += t->lap_length;
-    if (prev_s > t->lap_length * 3 / 4 && s < t->lap_length / 4) b->lap++;
+    if (prev_s > t->lap_length * 3 / 4 && s < t->lap_length / 4) {
+        /* przeciecie linii: czas okrazenia (pierwsze przeciecie = start pomiaru) */
+        UWORD now = g_tour.heat.race_frames;
+        if (b->lap >= 1) {
+            UWORD lap = (UWORD)(now - b->lap_start);
+            if (!b->best_lap || lap < b->best_lap) b->best_lap = lap;
+        }
+        b->lap_start = now;
+        b->lap++;
+    }
     else if (prev_s < t->lap_length / 4 && s > t->lap_length * 3 / 4 && b->lap) b->lap--;
     b->race_distance = (LONG)b->lap * t->lap_length + s;
 

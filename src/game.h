@@ -11,6 +11,11 @@
 #define RUNOFF_HEAT     NUM_HEATS /* indeks biegu dodatkowego (remis o podium) */
 #define RUNOFF_NONE     0xFF
 #define LAPS_PER_HEAT   4
+
+/* model jazdy (race.c, ai.c, audio.c) */
+#define BIKE_MAX_SPEED  ((fix16)(FIX_ONE * 23 / 10))   /* 2.3 px/klatke = 115 px/s */
+#define TURN_K          22        /* skret [1/256 jedn. kata/klatke] na jednostke zlamania przy v maks.;
+                                     promien przy pelnym zlamaniu ~45 px */
 #define NAME_LEN        16
 #define FPS             50
 
@@ -105,6 +110,8 @@ typedef struct Bike {
     UBYTE   skid_frame;       /* 0 = brak, 1..N klatki uslizgu */
     UBYTE   hw_sprite;        /* para duszkow sprzetowych (0,2,4,6) */
     UBYTE   empty;            /* puste pole startowe (bieg dodatkowy) - motocykla nie ma */
+    UWORD   lap_start;        /* klatka przeciecia linii na poczatku biezacego okrazenia */
+    UWORD   best_lap;         /* najlepsze okrazenie w tym biegu [klatki], 0 = brak */
 
     /* AI */
     WORD    ai_reaction;      /* klatki od zielonego do puszczenia; <0 = antycypacja (tasma!) */
@@ -179,6 +186,16 @@ typedef struct Heat {
     UWORD     race_frames;
 } Heat;
 
+/* ------------------------- REKORDY -------------------------------- */
+typedef struct TrackRecord {
+    UWORD heat_frames;                   /* najlepszy czas biegu [klatki 1/50 s], 0 = brak */
+    UWORD lap_frames;                    /* najlepsze okrazenie */
+    char  heat_name[NAME_LEN + 1];
+    char  lap_name[NAME_LEN + 1];
+} TrackRecord;
+#define REC_HEAT 1
+#define REC_LAP  2
+
 /* -------------------------- TURNIEJ -------------------------------- */
 typedef enum {
     GS_TITLE = 0,
@@ -206,6 +223,7 @@ typedef struct Tournament {
     Particle  particles[MAX_PARTICLES];
     UBYTE     particle_head;               /* bufor kolowy: nowa nadpisuje najstarsza */
     UBYTE     start_condition;             /* stan toru na start: 0 suchy, 1 wilgotny, 2 mokry */
+    UBYTE     new_records;                 /* REC_HEAT|REC_LAP pobite w ostatnim biegu */
     GameState state;
 } Tournament;
 
@@ -281,6 +299,12 @@ UBYTE roost_hits(const Bike *b);                  /* ile cudzych drobin trafia w
 void  roost_erase(void);                          /* przed ui_render: zdejmij stare z "back" */
 void  roost_draw(void);                           /* po ui_render: narysuj aktualne w "back" */
 void  roost_forget_buffer(UBYTE buf);             /* bufor przerysowany w calosci */
+
+/* records.c - rekordy torow (PROGDIR:records.dat) */
+void         records_load(void);                  /* przed przejeciem sprzetu */
+void         records_save(void);                  /* po oddaniu systemu */
+UBYTE        records_check_heat(void);            /* po biegu: bity REC_* nowych rekordow */
+TrackRecord *records_for(UBYTE track);
 
 /* tractors.c - przerwa na tor */
 BOOL tractors_init(void);

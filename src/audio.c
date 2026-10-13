@@ -138,7 +138,7 @@ static UWORD bike_rpm(const Bike *b)
     }
     {
         /* 6000 + do 8000 z predkosci; uslizg = kolo sie slizga -> wyzsze obroty */
-        ULONG frac = (ULONG)(b->speed >> 8) * 8000UL / (ULONG)((FIX_ONE * 18 / 10) >> 8);
+        ULONG frac = (ULONG)(b->speed >> 8) * 8000UL / (ULONG)(BIKE_MAX_SPEED >> 8);
         UWORD rpm = (UWORD)(6000 + (frac > 8000 ? 8000 : frac));
         rpm += (UWORD)((b->drift > 0 ? b->drift : 0) * 30);
         if (b->state == BIKE_FINISHED) rpm = (UWORD)(rpm * 3 / 4);

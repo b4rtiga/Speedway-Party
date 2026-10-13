@@ -66,7 +66,7 @@ UBYTE *video_backbuffer(void);
 BOOL   sprites_init(void);
 void   sprites_free(void);
 extern UWORD *g_blank_sprite;
-#define SPRITE_W     64          /* AGA: duszki 64 px (FMODE SPR 4x) */
+#define SPRITE_W     32          /* AGA: duszki 32 px (FMODE SPR32) - motocykl miesci sie w 32x32 */
 #define SPRITE_H     32
 #define SKID_FRAMES  3           /* 0 = prosto, 1-2 = coraz mocniejszy uslizg */
 UWORD *sprite_frame_ptr(UBYTE gate, UBYTE frame, UBYTE skid, UBYTE half);

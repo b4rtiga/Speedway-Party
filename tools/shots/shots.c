@@ -134,6 +134,7 @@ static void run_heat(UBYTE hn)
 {
     begin(hn);
     while (g_tour.heat.phase != HEAT_FINISHED) step();
+    g_tour.new_records = records_check_heat();
     tournament_award_points();
     if (tournament_watering_after((UBYTE)(hn + 1))) track_apply_watering(); else track_dry_step();
 }
@@ -203,8 +204,11 @@ int main(void)
     }
 
     while (g_tour.heat.phase != HEAT_FINISHED) step();
+    g_tour.new_records = records_check_heat();
     tournament_award_points();
+    g_frame = 0;                      /* faza migania: napis o rekordzie */
     g_tour.state = GS_HEAT_RESULT; render(); hud_update(); shot("07_result", FALSE);
+    g_frame = 16;
 
     g_tour.state = GS_TRACK_GRADING;
     roost_reset();

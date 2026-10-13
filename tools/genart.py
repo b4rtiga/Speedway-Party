@@ -49,7 +49,7 @@ def set_preset(i):
 
 
 set_preset(0)
-SPR_W, SPR_H, DIRS, SKIDS = 64, 32, 32, 3
+SPR_W, SPR_H, DIRS, SKIDS = 32, 32, 32, 3      # duszki 32 px (SPRITE_W w src/video.h)
 
 rng = np.random.default_rng(1977)
 
@@ -372,7 +372,7 @@ HELMETS = [HR, HB, HW, HY]
 HELMET_SLOT = 10       # w renderze kask ma kolor 10, potem podmiana na kolor pola
 
 SS = 4                 # nadprobkowanie 4x4
-cw = 32                # renderujemy srodek 32x32 duszka 64x32
+cw = 32                # klatka motocykla 32x32 (caly duszek)
 
 
 def render_bike(dir_, skid, canvas=None, scale=None, stripe=True):
@@ -850,11 +850,11 @@ def main():
     print("motocykle: renderowanie 96 klatek...")
     frames = bike_frames()
     blob = sprite_blob(frames)
-    assert len(blob) == 4 * DIRS * SKIDS * 2 * (SPR_H + 2) * 16, len(blob)
+    assert len(blob) == 4 * DIRS * SKIDS * 2 * (SPR_H + 2) * (SPR_W // 4), len(blob)
     (ROOT / "data/bikes.spr").write_bytes(blob)
 
     vblob, vframes = vehicle_blob()
-    assert len(vblob) == 2 * DIRS * 2 * (SPR_H + 2) * 16, len(vblob)
+    assert len(vblob) == 2 * DIRS * 2 * (SPR_H + 2) * (SPR_W // 4), len(vblob)
     (ROOT / "data/tractors.spr").write_bytes(vblob)
     vs = np.zeros((2 * 34, 16 * 34, 3), dtype=np.int32) + pal[20]
     for kind in range(2):

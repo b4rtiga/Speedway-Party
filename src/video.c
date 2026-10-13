@@ -72,7 +72,7 @@ static UWORD *build_copper(UWORD *c, UBYTE buf, UBYTE menu)
     UWORD i, b, lines = menu ? FULL_H : PLAY_H;
     ULONG pl;
 
-    c = cop_move(c, R_FMODE,   BPL_FMODE | FMODE_SPR_4X);
+    c = cop_move(c, R_FMODE,   BPL_FMODE | (SPRITE_W == 64 ? FMODE_SPR_4X : FMODE_SPR_2X));
     c = cop_move(c, R_DIWSTRT, (DISPLAY_VSTART << 8) | 0x81);
     c = cop_move(c, R_DIWSTOP, ((DISPLAY_VSTART + 256) & 0xFF) << 8 | 0xC1);
     /* 320 px = 5 blokow po 64 px przy fetch 4x; standardowe $38/$D0.

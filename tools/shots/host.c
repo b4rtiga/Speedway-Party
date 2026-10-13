@@ -56,6 +56,9 @@ void video_set_menu(BOOL menu) { g_video.menu = (UBYTE)(menu ? 1 : 0); }
 void video_set_sprite(UBYTE n, const UWORD *data) { cap_spr[n] = data; }
 UBYTE *video_backbuffer(void) { return g_video.play[g_video.back]; }
 
+BPTR Open(CONST_STRPTR name, LONG mode) { (void)name; (void)mode; return 0; }   /* records.c: bez zapisu */
+LONG Write(BPTR f, CONST APTR b, LONG n) { (void)f; (void)b; return n; }
+BOOL Close(BPTR f) { (void)f; return TRUE; }
 void sfx_buzzer(void) {}
 void sfx_whistle(void) {}
 UBYTE input_menu(void) { return 0; }

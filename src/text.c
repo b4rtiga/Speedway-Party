@@ -26,6 +26,7 @@ static UBYTE next_glyph(const UBYTE **ps)
         case 0x15A: case 0x15B: idx = 70; break;   /* Ś */
         case 0x179: case 0x17A: idx = 71; break;   /* Ź */
         case 0x17B: case 0x17C: idx = 72; break;   /* Ż */
+        case 0xA9:  idx = GLYPH_COPY; break;       /* (c) */
         default:    idx = 0; break;
         }
     }

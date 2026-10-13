@@ -1,7 +1,7 @@
-/* sprites.c - duszki sprzetowe motocykli (AGA, 64 px, pary attached = 15 kolorow).
+/* sprites.c - duszki sprzetowe motocykli (AGA, 32 px, pary attached = 15 kolorow).
  *
- * Format danych przy FMODE SPR 4x (W = SPRITE_W/16 = 4 slowa na plan):
- *   naglowek: POS, 0,0,0, CTL, 0,0,0          (2*W slow)
+ * Format danych przy FMODE SPR32 (W = SPRITE_W/16 = 2 slowa na plan):
+ *   naglowek: POS, 0, CTL, 0                  (2*W slow)
  *   linia:    planA[W], planB[W]               (2*W slow) x SPRITE_H
  *   koniec:   2*W zer
  * Para attached: duszek parzysty daje bity 0-1 koloru, nieparzysty (bit ATT) bity 2-3.

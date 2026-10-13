@@ -72,14 +72,14 @@ static const SteerTune tune[3] = {
 };
 
 /* Zlamanie potrzebne, zeby przy obecnej predkosci jechac lukiem o promieniu r
- * (odwrotnosc skretu z race.c: turn88 = drift * 17 * vfrac/256 * (128+grip/2)/256). */
+ * (odwrotnosc skretu z race.c: turn88 = drift * TURN_K * vfrac/256 * (128+grip/2)/256). */
 static WORD feedforward_drift(const Bike *b, WORD r, UBYTE grip)
 {
-    LONG vfrac = (b->speed << 8) / (FIX_ONE * 18 / 10);
+    LONG vfrac = (b->speed << 8) / BIKE_MAX_SPEED;
     LONG w88, den;
     if (!r || vfrac < 16 || grip < 16) return 0;
     w88 = (b->speed >> 8) * 41 / r;                     /* v/R w jednostkach 1/256 kata */
-    den = 17L * vfrac * (128 + grip / 2) / 256;         /* jak gripf w race.c */
+    den = (LONG)TURN_K * vfrac * (128 + grip / 2) / 256; /* jak gripf w race.c */
     return (WORD)(w88 * 256 / (den ? den : 1));
 }
 
