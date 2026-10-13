@@ -230,11 +230,32 @@ tools/          generatory, sprawdzanie kodu, symulator
 ---
 
 ## Znane ograniczenia / do zrobienia
-- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip) z ROM-em AROS przy stałych 50 FPS. Nie była jeszcze testowana z prawdziwym Kickstartem 3.1 ani na prawdziwym sprzęcie.
-- Słychać silniki tylko 2 zawodników naraz (Paula ma 4 kanały).
-- Dźwięk silnika jest syntetyczny. Prawdziwe nagranie można zaimportować przez `tools/import_engine.py`.
-- Brak dogrywki przy remisie punktowym (o kolejności decydują zwycięstwa biegów).
-- Nie ma ilustracji na ekranie tytułowym.
+
+### Stan
+- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS) przy stałych 50 FPS: plansza tytułowa, menu, turniej, biegi na wszystkich trzech torach, polewanie, dźwięk.
+- **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
+- Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
+- Gra zajmuje ok. 1 MB Chip RAM (trzy tory, motocykle, traktory, plansza tytułowa, dźwięk), więc potrzebuje A1200 z 2 MB Chip.
+
+### Znane ograniczenia
+- **Silniki słychać tylko dwa naraz** (lidera i drugiego zawodnika): Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty.
+- **Dźwięk silnika jest syntetyczny.** Prawdziwe nagranie można zamienić w pętlę dla Pauli narzędziem `tools/import_engine.py`, ale potrzebna jest licencja na nagranie.
+- **Wyjeżdżone ścieżki działają w fizyce, ale nie widać ich na ekranie.** Grafika toru się nie zmienia.
+- **Mysz w porcie 0:** menu jej nie czyta, ale gracz 2 ustawiony na „JOY 0” z myszą zamiast joysticka będzie „jechał” ruchami myszy.
+- **Adapter 4 graczy na porcie równoległym** nie był testowany. Przypisanie bitów w `src/input.c` może wymagać poprawki.
+- **Remis punktowy** rozstrzygają zwycięstwa biegów, bez biegu dodatkowego.
+- **Boty** jeżdżą głównie wewnętrzną połową toru. Szeroka linia pod bandą to szansa dla ludzi.
+- Tylko **PAL** (50 Hz).
+
+### Pomysły na dalsze wersje
+- [ ] obraz dyskietki **ADF** do Gotka i emulatorów
+- [ ] widoczne wyjeżdżone ścieżki (tor ciemnieje tam, gdzie jeździ stawka)
+- [ ] bieg dodatkowy przy remisie o miejsce na podium
+- [ ] tabela rekordów (najlepsze czasy biegu i okrążenia na każdym torze) zapisywana na dysk
+- [ ] tryb treningu: pojedynczy bieg albo jazda na czas
+- [ ] muzyka w menu (moduł Protrackera)
+- [ ] więcej torów i stadionów
+- [ ] prawdziwe nagranie silnika żużlowego (z licencją)
 
 ---
 

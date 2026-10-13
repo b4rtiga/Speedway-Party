@@ -375,8 +375,9 @@ SS = 4                 # nadprobkowanie 4x4
 cw = 32                # renderujemy srodek 32x32 duszka 64x32
 
 
-def render_bike(dir_, skid, canvas=None, scale=None):
-    """Motocykl z gory; dir_ moze byc ulamkowy (0..32). canvas/scale: duzy render do ilustracji."""
+def render_bike(dir_, skid, canvas=None, scale=None, stripe=True):
+    """Motocykl z gory; dir_ moze byc ulamkowy (0..32). canvas/scale: duzy render do ilustracji,
+    stripe=False: bez pasa w kolorze kasku na plecach (w powiekszeniu wyglada jak kreska z kasku)."""
     n = canvas or cw
     th = dir_ * 2 * math.pi / DIRS
     c, s = math.cos(th), math.sin(th)
@@ -451,7 +452,8 @@ def render_bike(dir_, skid, canvas=None, scale=None):
     bu, bv = -2.4, lean
     body = ell(bu, bv, 3.3, 2.7)
     col[body] = np.where(world_light(u - bu, v - bv) > -0.1, KEV_L, KEV)[body]
-    col[body & (np.abs(v - bv) < 0.5)] = HELMET_SLOT         # pas w kolorze kasku na plecach
+    if stripe:
+        col[body & (np.abs(v - bv) < 0.5)] = HELMET_SLOT     # pas w kolorze kasku na plecach
     # rece do kierownicy
     for side in (-1, 1):
         hand_v = side * 4.4
@@ -681,7 +683,7 @@ def make_title():
     course = math.atan2(-(bx - ccx), (by - ccy))   # styczna (jazda przeciwnie do wskazowek)
     frame = course - math.radians(38)
     big = 112
-    bike = render_bike((frame % (2 * math.pi)) / (2 * math.pi) * DIRS, 2, canvas=big, scale=4.0)
+    bike = render_bike((frame % (2 * math.pi)) / (2 * math.pi) * DIRS, 2, canvas=big, scale=4.0, stripe=False)
     fdx, fdy = math.cos(frame), math.sin(frame)
     # cien pod motocyklem: przyciemnienie nawierzchni (o 3 odcienie w strefie)
     m = bike != 0
@@ -716,12 +718,14 @@ def make_title():
                     if 0 <= X < W and 0 <= Y < TH:
                         t[Y, X] = col
 
-    # motocykl na wierzchu (kolory duszkow 240..255 sa tez w palecie pola gry)
+    # motocykl na wierzchu (kolory duszkow 240..255 sa tez w palecie pola gry);
+    # kask caly czerwony: cien kasku = ciemna czerwien z palety band (88) zamiast szarosci
     bike = np.where(bike == HELMET_SLOT, HR, bike)
     for yy_, xx_ in zip(ys, xs):
         X, Y = int(bx - big / 2 + xx_), int(by - big / 2 + yy_)
         if 0 <= X < W and 0 <= Y < TH:
-            t[Y, X] = 240 + bike[yy_, xx_]
+            v_ = bike[yy_, xx_]
+            t[Y, X] = 88 if v_ == HSHADE else 240 + v_
 
     # gora i dol: miekkie przejscie w gradient Coppera (indeks 0) pod napisy
     for y in range(TH):

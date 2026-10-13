@@ -9,8 +9,8 @@ static UBYTE next_glyph(const UBYTE **ps)
     const UBYTE *s = *ps;
     UBYTE c = *s++, idx;
     if (c < 0x80) {
-        if (c >= 'a' && c <= 'z') c -= 32;
-        idx = (c >= 32 && c < 96) ? (UBYTE)(c - 32) : 0;
+        if (c >= 'a' && c <= 'z') idx = (UBYTE)(LOWER_FIRST + c - 'a');
+        else idx = (c >= 32 && c < 96) ? (UBYTE)(c - 32) : 0;
     } else if (c < PL_FIRST + PL_COUNT) {
         idx = (UBYTE)(64 + c - PL_FIRST);
     } else {
