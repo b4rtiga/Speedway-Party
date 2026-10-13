@@ -1,0 +1,42 @@
+config_description=Speedway Party - A1200 AGA, 2MB Chip, AROS ROM
+config_hardware=true
+config_host=true
+use_gui=no
+
+; --- procesor i chipset (gole A1200) ---
+cpu_type=68020
+cpu_model=68020
+cpu_compatible=true
+cpu_24bit_addressing=true
+cycle_exact=true
+cpu_cycle_exact=true
+cpu_memory_cycle_exact=true
+blitter_cycle_exact=true
+chipset=aga
+chipset_compatible=A1200
+ntsc=false
+
+; --- pamiec: 2 MB Chip, bez Fast RAM ---
+chipmem_size=4
+fastmem_size=0
+bogomem_size=0
+z3mem_size=0
+
+; --- ROM: wbudowany zamiennik AROS (podmien na kick31 A1200, gdy bedziesz mial) ---
+kickstart_rom_file=:AROS
+
+; --- dysk startowy: katalog dist/ z gra (WPISZ SWOJA SCIEZKE) ---
+filesystem2=rw,DH0:Speedway:C:\SCIEZKA\DO\Speedway-Party\dist,0
+uaehf0=dir,rw,DH0:Speedway:C:\SCIEZKA\DO\Speedway-Party\dist,0
+
+; --- sterowanie: port 1 = strzalki + prawy Ctrl (fire), port 0 pusty (bez myszy) ---
+joyport0=none
+joyport1=kbd2
+
+; --- obraz i dzwiek ---
+gfx_width=720
+gfx_height=568
+gfx_fullscreen_amiga=false
+sound_output=exact
+sound_channels=stereo
+sound_stereo_separation=7

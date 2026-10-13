@@ -4,13 +4,15 @@
 
 #define MAX_SPEED       ((fix16)(FIX_ONE * 18 / 10))   /* px/klatke */
 #define DRIFT_MAX       48
-#define DRIFT_MIN       (-16)        /* kontra */
+#define DRIFT_MIN       (-8)         /* kontra: w prawo motocykl glownie sie prostuje */
+#define RIGHT_TURN_DIV  3            /* skret w prawo 3x slabszy niz w lewo */
+#define DRIFT_CAP_DIV   190          /* uslizg obniza predkosc maks.: drift 48 -> ok. -25% */
 #define DRIFT_IN        3            /* LEWO: lamanie */
 #define DRIFT_OUT       4            /* PRAWO: kontra */
 #define ACCEL_SHIFT     6            /* przyspieszenie = (max-v)>>6 * grip */
-#define DRAG_DIV        8192         /* opor boczny: v*|drift|/DRAG_DIV - subtelnie */
+#define DRAG_DIV        4096         /* opor boczny: v*|drift|/DRAG_DIV */
 #define LAUNCH_FRAMES   50
-#define BUMP_DIST2      (10 * 10)
+#define BUMP_DIST2      (8 * 8)      /* kontakt lokiec w lokiec (motocykl ~9 px szerokosci) */
 #define BUMP_COOLDOWN   12
 #define OUTER_LIMIT     (TRACK_HALF_WIDTH - 3)
 #define INNER_LIMIT     (-TRACK_HALF_WIDTH + 2)
@@ -61,22 +63,8 @@ void race_launch(Bike *b)
     b->launch_timer = LAUNCH_FRAMES;
 }
 
-static void push_to_lateral(Bike *b, WORD lat)
-{
-    WORD x, y;
-    track_point(track_progress(FIX2INT(b->x), FIX2INT(b->y)), lat, &x, &y);
-    b->x = INT2FIX(x);
-    b->y = INT2FIX(y);
-}
-
-static void align_to_tangent(Bike *b)
-{
-    LONG s = track_progress(FIX2INT(b->x), FIX2INT(b->y));
-    WORD x0, y0, x1, y1;
-    track_point(s, 0, &x0, &y0);
-    track_point(s + 8, 0, &x1, &y1);
-    b->heading = atan2_8(y1 - y0, x1 - x0);
-}
+static void push_to_lateral(Bike *b, WORD lat) { track_snap_lateral(&b->x, &b->y, lat); }
+static void align_to_tangent(Bike *b)          { b->heading = track_tangent(b->x, b->y); }
 
 /* Szprycha: >= ROOST_HITS cudzych drobin w strefie przed motocyklem (roost.c)
  * -> minimalna kara predkosci; zmusza do szukania czystej linii ("mijanki"). */
@@ -105,8 +93,12 @@ static void update_bike(Bike *b)
     if (b->drift > DRIFT_MAX) b->drift = DRIFT_MAX;
     if (b->drift < DRIFT_MIN) b->drift = DRIFT_MIN;
 
-    /* skret ramy proporcjonalny do uslizgu i przyczepnosci */
-    b->heading = (angle8)(b->heading - ((b->drift * (WORD)grip) >> 11));
+    /* skret ramy proporcjonalny do uslizgu i przyczepnosci; w prawo (kontra) duzo slabiej */
+    {
+        WORD turn = (WORD)((b->drift * (WORD)grip) >> 11);
+        if (turn < 0) turn /= RIGHT_TURN_DIV;
+        b->heading = (angle8)(b->heading - turn);
+    }
     /* slaby grip = tyl ucieka, motocykl jedzie szerzej niz wskazuje rama */
     travel = (angle8)(b->heading + ((b->drift * (WORD)(300 - grip)) >> 9));
 
@@ -118,6 +110,8 @@ static void update_bike(Bike *b)
             b->speed += MAX_SPEED >> 8;
         }
     }
+    /* im mocniej zlamany, tym nizsza predkosc, do ktorej motocykl moze sie rozpedzic */
+    if (b->drift > 0) cap -= (cap / DRIFT_CAP_DIV) * b->drift;
     if (b->speed < cap)
         b->speed += (((cap - b->speed) >> ACCEL_SHIFT) >> 8) * grip;
     if (b->launch_timer) {
@@ -143,8 +137,11 @@ static void update_bike(Bike *b)
         align_to_tangent(b);
         /* TODO audio: uderzenie w bande */
     } else if (lat < INNER_LIMIT) {
+        /* kraweznik: lekka strata i motocykl rownolegle do toru - inaczej przy slabym
+         * skrecie w prawo nie dalby sie od niego odkleic */
         b->speed -= b->speed >> 5;
         push_to_lateral(b, INNER_LIMIT + 1);
+        align_to_tangent(b);
     }
 
     /* --- okrazenia: przeciecie linii tasmy --- */

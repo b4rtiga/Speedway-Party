@@ -4,6 +4,7 @@
 CC      = m68k-amigaos-gcc
 CFLAGS  = -m68020 -mtune=68020 -O2 -fomit-frame-pointer -noixemul -Wall -Wno-pointer-sign
 LDFLAGS = -noixemul -s
+CFLAGS += $(EXTRA)
 
 SRC = src/main.c src/system.c src/video.c src/sprites.c src/fixmath.c src/track.c \
       src/input.c src/start.c src/race.c src/ai.c src/tournament.c src/hud.c \

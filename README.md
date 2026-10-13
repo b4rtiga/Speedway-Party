@@ -64,6 +64,8 @@ Gotowe dane (`data/`) są w repozytorium. Do budowania nie potrzebujesz Pythona.
 2. **CPU and FPU:** 68020, *cycle-exact* (najwierniejszy czas, ważny dla stałych 50 FPS). Bez FPU.
 3. **RAM:** Chip 2 MB, Slow 0, Fast 0. Testujemy bez Fast RAM, tak jak na gołym A1200.
 4. **Chipset:** AGA, PAL.
+Gotowa konfiguracja jest w [tools/winuae/SpeedwayParty-A1200.uae](tools/winuae/SpeedwayParty-A1200.uae): wpisz w niej ścieżkę do swojego `dist/` i wczytaj ją w WinUAE (*Configurations → Load*) albo uruchom `winuae64.exe -f SpeedwayParty-A1200.uae`. Ręcznie:
+
 5. **CD & Hard drives → Add Directory or Archive…**: wskaż katalog `dist/`.
    - *Device name*: `DH0`, *Volume label*: `Speedway`
    - *Boot priority*: 0 lub wyżej (katalog ma być dyskiem startowym)
@@ -77,7 +79,8 @@ Jeśli wolisz Workbench: podepnij `dist/` jako dodatkowy dysk i w Shellu wpisz `
 ### Gdy coś nie działa
 | Objaw | Gdzie szukać |
 |---|---|
-| Obraz „ścięty” lub przesunięty o 64 px | `DDFSTRT/DDFSTOP` i modulo w `src/video.c` (pobieranie danych bitplanów w trybie 4×) |
+| Obraz „poszatkowany”, przesunięty o 64 px | `DDF_STOP` i `MOD_ADJ` w `src/video.c` (pobieranie bitplanów w trybie 4×). W WinUAE działa `$38/$A0`. Do testów: `make dist EXTRA=-DDDF_STOP=0xD0` |
+| Menu samo się przełącza | mysz w porcie 0: menu czyta tylko port 1 i klawiaturę, ale gracz 2 ustawiony na JOY 0 będzie „jechał” myszą |
 | Zamiast grafiki są proste kształty | brak `data/` obok programu (gra wtedy rysuje grafikę zastępczą) |
 | Brak dźwięku | brak `data/*.raw` |
 | Gracze 3–4 na adapterze LPT nie reagują | bity adaptera w `src/input.c`, oznaczone „sprawdzić” |
@@ -94,7 +97,7 @@ Każdy gracz ma tylko **LEWO i PRAWO**. Gaz jest automatyczny.
 | do wyboru w menu | + adapter 4 graczy (LPT), strzałki | | | |
 
 - **Start spod taśmy:** trzymaj dowolny kierunek. Na zielonym świetle **puść**. Puszczenie przed zielonym to taśma (falstart). Trzymanie dłużej niż 0,3 s po zielonym to mielenie kołem w miejscu.
-- **Jazda:** LEWO łamie motocykl w łuk (większy uślizg, większy opór), PRAWO to kontra (prostuje motocykl, szybciej przyspiesza). Najszybsze jest pulsacyjne dozowanie uślizgu.
+- **Jazda:** LEWO łamie motocykl w łuk. Im mocniej złamany, tym większy opór i niższa prędkość, do której może się rozpędzić (przy pełnym złamaniu ok. 25% mniej). PRAWO to kontra: głównie prostuje motocykl, a skręt w prawo jest 3× słabszy niż w lewo. Najszybsze jest pulsacyjne dozowanie uślizgu.
 - **Szeroka niesie:** pod bandą, z pełną prędkością i w lekkim uślizgu motocykl dostaje dodatkowe przyspieszenie. Za wolno pod bandą motocykl się zakopuje.
 - **Szprycha:** jazda tuż za rywalem w uślizgu lekko spowalnia. Szukaj czystej linii.
 - **Menu:** joystick (góra/dół/lewo/prawo/fire) albo strzałki i Return. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
@@ -149,7 +152,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 ---
 
 ## Znane ograniczenia / do zrobienia
-- Kod nie był jeszcze kompilowany Bebbo GCC ani uruchamiany na Amidze. Składnię sprawdza Clang, logikę symulator, a ekrany generator zrzutów (bez prawdziwego Coppera i Blittera).
+- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip) z ROM-em AROS przy stałych 50 FPS. Nie była jeszcze testowana z prawdziwym Kickstartem 3.1 ani na prawdziwym sprzęcie.
 - Słychać silniki tylko 2 zawodników naraz (Paula ma 4 kanały).
 - Dźwięk silnika jest syntetyczny. Prawdziwe nagranie można zaimportować przez `tools/import_engine.py`.
 - Brak dogrywki przy remisie punktowym (o kolejności decydują zwycięstwa biegów).

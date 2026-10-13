@@ -28,6 +28,21 @@
 
 Video g_video;
 
+/* Pobieranie bitplanow AGA. Mozna nadpisac przy kompilacji (make EXTRA=-DDDF_STOP=...)
+ * do testow w emulatorze. */
+#ifndef BPL_FMODE
+#define BPL_FMODE   FMODE_BPL_4X
+#endif
+#ifndef DDF_START
+#define DDF_START   0x0038
+#endif
+#ifndef DDF_STOP
+#define DDF_STOP    0x00A0
+#endif
+#ifndef MOD_ADJ
+#define MOD_ADJ     0           /* korekta modulo, gdy Agnus pobiera dodatkowy blok */
+#endif
+
 #define COPPER_WORDS    6144
 #define LINE_WORDS      10          /* WAIT + 4 MOVE na linie */
 #define UI_RAINBOW      100         /* kolor tekstu zmieniany co linie (bank 3, indeks 4) */
@@ -57,20 +72,20 @@ static UWORD *build_copper(UWORD *c, UBYTE buf)
     UWORD i, b;
     ULONG pl;
 
-    c = cop_move(c, R_FMODE,   FMODE_BPL_4X | FMODE_SPR_4X);
+    c = cop_move(c, R_FMODE,   BPL_FMODE | FMODE_SPR_4X);
     c = cop_move(c, R_DIWSTRT, (DISPLAY_VSTART << 8) | 0x81);
     c = cop_move(c, R_DIWSTOP, ((DISPLAY_VSTART + 256) & 0xFF) << 8 | 0xC1);
     /* 320 px = 5 blokow po 64 px przy fetch 4x; standardowe $38/$D0.
      * Jesli w WinUAE obraz sie "scina" o 64 px - korekta DDFSTOP/modulo tutaj. */
-    c = cop_move(c, R_DDFSTRT, 0x0038);
-    c = cop_move(c, R_DDFSTOP, 0x00D0);
+    c = cop_move(c, R_DDFSTRT, DDF_START);
+    c = cop_move(c, R_DDFSTOP, DDF_STOP);
     c = cop_move(c, R_BPLCON0, BPLCON0_PLAY);
     c = cop_move(c, R_BPLCON1, 0);
     c = cop_move(c, R_BPLCON2, BPLCON2_SPR_FRONT);
     c = cop_move(c, R_BPLCON3, BPLCON3_BANK(0));
     c = cop_move(c, R_BPLCON4, BPLCON4_SPRITES_240);
-    c = cop_move(c, R_BPL1MOD, PLAY_STRIDE - ROW_BYTES);   /* przeplot: pomijamy pozostale plany */
-    c = cop_move(c, R_BPL2MOD, PLAY_STRIDE - ROW_BYTES);
+    c = cop_move(c, R_BPL1MOD, PLAY_STRIDE - ROW_BYTES + MOD_ADJ);   /* przeplot: pomijamy pozostale plany */
+    c = cop_move(c, R_BPL2MOD, PLAY_STRIDE - ROW_BYTES + MOD_ADJ);
 
     g_video.cop_sprites[buf] = c;
     for (i = 0; i < 16; i++)
@@ -117,8 +132,8 @@ static UWORD *build_copper(UWORD *c, UBYTE buf)
         c = cop_move(c, R_BPL1PT + i * 4,     (UWORD)(pl >> 16));
         c = cop_move(c, R_BPL1PT + i * 4 + 2, (UWORD)pl);
     }
-    c = cop_move(c, R_BPL1MOD, HUD_STRIDE - ROW_BYTES);
-    c = cop_move(c, R_BPL2MOD, HUD_STRIDE - ROW_BYTES);
+    c = cop_move(c, R_BPL1MOD, HUD_STRIDE - ROW_BYTES + MOD_ADJ);
+    c = cop_move(c, R_BPL2MOD, HUD_STRIDE - ROW_BYTES + MOD_ADJ);
 
     c = cop_wait(c, 0xFF, 0xDF);                      /* przejscie przez linie 255 */
     c = cop_wait(c, (HUD_VSTART + HUD_GAP) & 0xFF, 0x07);

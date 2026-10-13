@@ -9,12 +9,12 @@
 #define CX      160
 #define CY      100
 #define HALF_L  60          /* polowa dlugosci prostych */
-#define R_IN    44          /* kraweznik */
+#define R_IN    40          /* kraweznik */
 #define R_OUT   96          /* banda: szerokosc toru 52 px; dol bandy y=196, motocykl
-                               przy bandzie (srodek <= 193, +10 px grafiki) nie wchodzi w HUD (208) */
+                               przy bandzie (srodek <= 193, +8 px grafiki) nie wchodzi w HUD (208) */
 #define R_MID   ((R_IN + R_OUT) / 2)
 #define GATE_FIRST 7        /* pole A: 7 px od kraweznika */
-#define GATE_STEP  12       /* odstep pol startowych */
+#define GATE_STEP  13       /* odstep pol startowych (motocykl ~9 px szerokosci) */
 #define PI_RMID ((LONG)R_MID * 355 / 113)
 
 /* indeksy palety pola gry */
@@ -45,6 +45,36 @@ static UWORD radial(WORD x, WORD y)
 }
 
 WORD track_lateral(WORD x, WORD y) { return (WORD)radial(x, y) - R_MID; }
+
+/* Wektor od osi owalu do punktu (8.8 px). */
+static void radial88(fix16 x, fix16 y, LONG *sx, LONG *dx, LONG *dy)
+{
+    LONG px = x >> 8, py = y >> 8;
+    LONG lo = (LONG)(CX - HALF_L) << 8, hi = (LONG)(CX + HALF_L) << 8;
+    *sx = px < lo ? lo : px > hi ? hi : px;
+    *dx = px - *sx;
+    *dy = py - ((LONG)CY << 8);
+}
+
+/* Przesuniecie w poprzek toru na zadana odleglosc od osi (bez ruchu wzdluz toru).
+ * Uzywane przy odbiciu od bandy i kraweznika. */
+void track_snap_lateral(fix16 *x, fix16 *y, WORD lat)
+{
+    LONG sx, dx, dy, r, t = (LONG)(R_MID + lat) << 8;
+    radial88(*x, *y, &sx, &dx, &dy);
+    r = (LONG)isqrt32((ULONG)(dx * dx + dy * dy));
+    if (!r) return;
+    *x = (sx + dx * t / r) << 8;
+    *y = (((LONG)CY << 8) + dy * t / r) << 8;
+}
+
+/* Kierunek jazdy rownolegly do toru (przeciwnie do wskazowek zegara). */
+angle8 track_tangent(fix16 x, fix16 y)
+{
+    LONG sx, dx, dy;
+    radial88(x, y, &sx, &dx, &dy);
+    return atan2_8(-dx, dy);
+}
 
 GripZone track_zone_at(WORD x, WORD y)
 {

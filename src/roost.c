@@ -20,8 +20,8 @@
 #define LIFE_RAND       8
 #define HIT_RADIUS2     (6 * 6)
 #define HIT_MIN_LIFE    3
-#define REAR_OFFSET     9          /* tylne kolo za srodkiem motocykla [px] */
-#define FRONT_OFFSET    5
+#define REAR_OFFSET     7          /* tylne kolo za srodkiem motocykla [px] */
+#define FRONT_OFFSET    4
 
 /* kolory drobin: koleiny i ciemny granit (po polewaniu paleta sama je przyciemnia) */
 static const UBYTE dust_colors[4] = { 48, 49, 50, 17 };

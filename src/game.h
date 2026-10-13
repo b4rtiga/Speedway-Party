@@ -228,10 +228,12 @@ GripZone track_zone_at(WORD x, WORD y);
 LONG     track_progress(WORD x, WORD y);          /* 0..lap_length */
 void     track_point(LONG s, WORD lateral, WORD *x, WORD *y);
 WORD     track_lateral(WORD x, WORD y);           /* odleglosc od osi: - do kraweznika, + do bandy */
+void     track_snap_lateral(fix16 *x, fix16 *y, WORD lat);
+angle8   track_tangent(fix16 x, fix16 y);
 void     track_apply_watering(void);
 void     track_dry_step(void);
 angle8   atan2_8(LONG dy, LONG dx);
-#define TRACK_HALF_WIDTH 26        /* (R_OUT - R_IN) / 2 z track.c */
+#define TRACK_HALF_WIDTH 28        /* (R_OUT - R_IN) / 2 z track.c */
 
 /* input.c */
 void  input_init(void);
@@ -239,7 +241,7 @@ void  input_update(void);                         /* raz na klatke */
 UBYTE input_read(InputPort port);
 BOOL  key_down(UBYTE rawkey);
 UBYTE key_get(void);                              /* nastepny wcisniety klawisz lub 0xFF */
-UBYTE input_menu(void);                           /* nowe wcisniecia: JOY1|JOY0|strzalki|Return */
+UBYTE input_menu(void);                           /* nowe wcisniecia: JOY1|strzalki|Return (bez myszy w porcie 0) */
 #define KEY_RETURN    0x44
 #define KEY_BACKSPACE 0x41
 #define KEY_LALT      0x64

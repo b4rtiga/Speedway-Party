@@ -8,7 +8,7 @@
 
 enum { H_BG = 0, H_WHITE = 1, H_HELMET = 2, H_RED_ON = 6, H_GREEN_ON = 7, H_RED_OFF = 8, H_GREEN_OFF = 9,
        H_SKIN = 10, H_DARK = 11, H_JACKET = 12, H_FLAG_W = 13, H_FLAG_K = 14, H_POLE = 15, H_FRAME = 16,
-       H_JACKET_D = 18, H_FLAG = 21, H_FLAG_SH = 25 };
+       H_JACKET_D = 18, H_SHIRT = 19, H_FLAG = 21, H_FLAG_SH = 25 };
 
 /* portret sedziego 32x38, 5 planow przeplatanych (tools/genart.py) */
 #define REF_W_BYTES 4
@@ -114,8 +114,8 @@ static void draw_referee(void)
     if (shown.flag == FLAG_NONE) return;
 
     set_flag_color(shown.flag);
-    hline_thick(276, HUD_TOP + 28, hx + 2, hy + 2, H_JACKET_D);   /* rekaw */
-    hline_thick(275, HUD_TOP + 27, hx + 1, hy + 1, H_JACKET);
+    hline_thick(276, HUD_TOP + 28, hx + 2, hy + 2, H_FLAG_K);     /* rekaw koszulki w pasy: kontur */
+    hline_thick(275, HUD_TOP + 27, hx + 1, hy + 1, H_SHIRT);
     hrect(hx - 1, hy - 1, 4, 4, H_SKIN);                          /* dlon */
     hrect(hx, hy - 22, 2, 26, H_POLE);                            /* drzewce */
     for (j = 0; j < 13; j++)

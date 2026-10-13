@@ -63,11 +63,11 @@ void tractors_update(void)
         veh[i].s88 += SPEED_88;
         place(&veh[i]);
     }
-    /* zraszacz: rampa na koncu beczki, 14 px za srodkiem pojazdu */
+    /* zraszacz: rampa na koncu beczki, 12 px za srodkiem pojazdu */
     {
         Vehicle *b = &veh[1];
-        fix16 x = INT2FIX(b->x) - (fix16)COS(b->heading) * (14 << 2);
-        fix16 y = INT2FIX(b->y) - (fix16)SIN(b->heading) * (14 << 2);
+        fix16 x = INT2FIX(b->x) - (fix16)COS(b->heading) * (12 << 2);
+        fix16 y = INT2FIX(b->y) - (fix16)SIN(b->heading) * (12 << 2);
         roost_emit_water(x, y, b->heading);
         roost_emit_water(x, y, b->heading);
     }

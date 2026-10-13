@@ -90,7 +90,8 @@ void input_update(void)
     port_state[INPUT_KEYS_ARROWS] = (UBYTE)(keyset(0x4F, 0x4E, 0x44)
                                   | (keys[0x4C] ? BTN_UP : 0) | (keys[0x4D] ? BTN_DOWN : 0));
     {
-        UBYTE m = (UBYTE)(port_state[INPUT_JOY1] | port_state[INPUT_JOY0] | port_state[INPUT_KEYS_ARROWS]);
+        /* bez JOY0: w porcie 0 zwykle siedzi mysz, a jej liczniki wygladaja jak ruchy joysticka */
+        UBYTE m = (UBYTE)(port_state[INPUT_JOY1] | port_state[INPUT_KEYS_ARROWS]);
         menu_edge = (UBYTE)(m & ~menu_prev);
         menu_prev = m;
     }

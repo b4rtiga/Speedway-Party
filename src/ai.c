@@ -22,7 +22,7 @@ static LONG bike_s(const Bike *b)
  * przy duzej predkosci chetnie idzie szeroko ("szeroka niesie"). */
 static WORD master_line(const Bike *b, LONG s_ahead)
 {
-    static const WORD lines[4] = { -10, -4, 6, 19 };
+    static const WORD lines[4] = { -12, -5, 7, 21 };
     WORD best = -6, best_score = -32000, i;
     for (i = 0; i < 4; i++) {
         WORD x, y, score;
@@ -50,9 +50,9 @@ static WORD pro_line(const Bike *b, LONG s)
         d = s - bike_s(o);
         if (d < 0) d += g_tour.track.lap_length;
         lat = track_lateral(FIX2INT(o->x), FIX2INT(o->y));
-        if (d > 0 && d < 30 && lat < my_lat) return (WORD)(lat - 2);
+        if (d > 0 && d < 30 && lat < my_lat) return (WORD)(lat - 2 < -14 ? -14 : lat - 2);
     }
-    return -6;
+    return -7;
 }
 
 /* Jeden regulator uslizgu dla wszystkich poziomow, rozne nastawy:
@@ -80,7 +80,7 @@ UBYTE ai_steer(Bike *b)
     if (b->ai_timer) { b->ai_timer--; return b->prev_input; }
 
     switch (lvl) {
-    case AI_AMATEUR: lat = -12; break;                  /* kurczowo przy krawezniku */
+    case AI_AMATEUR: lat = -14; break;                  /* kurczowo przy krawezniku */
     case AI_PRO:     lat = pro_line(b, s); break;
     default:         lat = master_line(b, ahead); break;
     }
@@ -96,7 +96,7 @@ UBYTE ai_steer(Bike *b)
         if (lvl == AI_MASTER) cap = (WORD)(cap + (220 - (WORD)track_grip_at(FIX2INT(b->x), FIX2INT(b->y))) / 4);
         if (tw > cap) tw = cap;
     }
-    if (tw < -12) tw = -12;
+    if (tw < -8) tw = -8;                               /* kontra ograniczona jak w race.c */
     if (b->drift < tw - t->tol) out = BTN_LEFT;
     else if (b->drift > tw + t->tol) out = BTN_RIGHT;
     b->ai_timer = (UWORD)t->hold;

@@ -23,11 +23,13 @@ sys.path.insert(0, str(ROOT / "tools"))
 import genfont  # noqa: E402
 
 W, H = 320, 208
-CX, CY, HALF_L, R_IN, R_OUT = 160, 100, 60, 44, 96
+CX, CY, HALF_L, R_IN, R_OUT = 160, 100, 60, 40, 96
 R_MID = (R_IN + R_OUT) // 2
 TAPE_X = CX - 20
 GATE_X = TAPE_X - 9
-GATE_FIRST, GATE_STEP = 7, 12
+GATE_FIRST, GATE_STEP = 7, 13
+BIKE_SCALE = 0.78          # motocykl ~17x9 px: czterech miesci sie obok siebie na luku
+VEH_SCALE = 0.85
 GATE_Y = [CY + R_IN + GATE_FIRST + i * GATE_STEP for i in range(4)]
 SPR_W, SPR_H, DIRS, SKIDS = 64, 32, 32, 3
 
@@ -185,7 +187,7 @@ blot = value_noise(xx, yy, 14.0, 14.0, 9)
 track = (rr >= R_IN) & (rr < R_OUT)
 zone = np.clip(((rr - R_IN) * 4 / (R_OUT - R_IN)).astype(int), 0, 3)
 shade = 3.5 + (fine - 0.5) * 2.6 + (streak - 0.5) * 3.2 + (blot - 0.5) * 1.5
-groove = np.exp(-((lat + 18) / 3.0) ** 2) + 0.7 * np.exp(-((lat - 1) / 2.6) ** 2)  # linie jazdy
+groove = np.exp(-((lat + 20) / 3.0) ** 2) + 0.7 * np.exp(-((lat - 1) / 2.6) ** 2)  # linie jazdy
 shade -= groove * 2.2 * (0.6 + streak)
 light_side = -(nx * -0.707 + ny * -0.707)              # >0: banda od strony swiatla -> cien
 wall_shadow = (rr > R_OUT - 4) & (light_side < -0.25)
@@ -327,8 +329,8 @@ def render_bike(dir_, skid):
     c, s = math.cos(th), math.sin(th)
     o = (np.arange(cw * SS) + 0.5) / SS - cw / 2
     py, px = np.meshgrid(o, o, indexing='ij')
-    u = px * c + py * s
-    v = -px * s + py * c
+    u = (px * c + py * s) / BIKE_SCALE
+    v = (-px * s + py * c) / BIKE_SCALE
     col = np.zeros(u.shape, dtype=np.int32)
 
     lean = [0.0, -1.0, -2.0][skid]            # pochylenie w lewo (do wnetrza luku)
@@ -453,8 +455,8 @@ def render_vehicle(kind, dir_):
     c, s = math.cos(th), math.sin(th)
     o = (np.arange(cw * SS) + 0.5) / SS - cw / 2
     py, px = np.meshgrid(o, o, indexing='ij')
-    u = px * c + py * s
-    v = -px * s + py * c
+    u = (px * c + py * s) / VEH_SCALE
+    v = (-px * s + py * c) / VEH_SCALE
     col = np.zeros(u.shape, dtype=np.int32)
 
     def box(u0, u1, v0, v1):
@@ -518,56 +520,58 @@ def vehicle_blob():
 
 # ============================ SEDZIA (HUD) ===============================
 
-REFEREE = [
-    "..........KKKKKKKKKKKK..........",
-    "........KKccccccccccccKK........",
-    ".......KccccccccYYccccccK.......",
-    "......KcccccccYYYYcccccccK......",
-    "......KccccccccYYccccccccK......",
-    ".....KKCCCCCCCCCCCCCCCCCCKK.....",
-    "....KCCCCCCCCCCCCCCCCCCCCCCK....",
-    ".....KKKKSSSSSSSSSSSSSSKKKK.....",
-    "......KSSSSSSSSSSSSSSSSSSsK.....",
-    "......KSSHHHSSSSSSSSHHHSSsK.....",
-    ".....KSSSSSSSSSSSSSSSSSSSSsK....",
-    ".....KSSSEEPSSSSSSSSEEPSSSsK....",
-    ".....KSSSEEPSSSSSSSSEEPSSSsK....",
-    "....KsSSSSSSSSSssSSSSSSSSSssK...",
-    "....KsSSSSSSSSSSsSSSSSSSSSssK...",
-    ".....KSOOSSSSSSSsSSSSSSOOSsK....",
-    ".....KSSSSSHHHHHHHHHHSSSSSsK....",
-    ".....KSSSHHHHHHHHHHHHHHSSSsK....",
-    "......KSSHHHSSSSSSSSHHHSSsK.....",
-    "......KSSSSSSRRRRRRSSSSSssK.....",
-    ".......KSSSSSSSSSSSSSSSssK......",
-    "........KKsSSSSSSSSSSssKK.......",
-    "..........KKsssssssssKK.........",
-    "...........KSSSSSSSSSK..........",
-    ".......KKKKKWWWWTTWWWKKKKK......",
-    ".....KKJJJJJKWWWTTWWKJJJJJKK....",
-    "....KJJLLJJJJKWWTTWKJJJJJJjjK...",
-    "...KJJLLJJJJJJKWTTWKJJJJJJJjjK..",
-    "...KJLLJJJJJJJJKTTKJJJJJJJJJjK..",
-    "..KJJLJJJJJJJJJKTTKJJJJJJJJJjjK.",
-    "..KJLLJJJJJYJJJJKKJJJJJJJJJJjjK.",
-    "..KJLJJJJJJJJJJJJJJJJJJJJJJJJjK.",
-    ".KJJLJJJJJJJJJJYJJJJJJJJJJJJJjjK",
-    ".KJLJJJJJJJJJJJJJJJJJJJJJJJJJjjK",
-    ".KJLJJJJJJJJJJJYJJJJJJJJJJJJJjjK",
-    ".KJLJJJJJJJJJJJJJJJJJJJJJJJJJjjK",
-    ".KJLJJJJJJJJJJJJJJJJJJJJJJJJJjjK",
-    ".KKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK",
+# Sedzia zuzlowy: czarna czapka z daszkiem, ciemne okulary, koszulka w czarno-biale
+# pionowe pasy z czarnym kolnierzem i rekawami, zolta naszywka na piersi.
+REFEREE_HEAD = [
+    "..........KKKKKKKKKKK...........",
+    "........KKkkkkkkkkkkkKK.........",
+    ".......KkkkkkkkYYYkkkkkK........",
+    "......KkkkkkkkkYYYkkkkkkK.......",
+    "......KkkkkkkkkkkkkkkkkkK.......",
+    ".....KKKKKKKKKKKKKKKKKKKKKKKK...",
+    "......KSSSSSSSSSSSSSSSSKKKKKK...",
+    "......KSSSSSSSSSSSSSSSSsK.......",
+    ".....KSSKKKKKKSSKKKKKKSSsK......",
+    ".....KSSKRRRRKKKKRRRRKSSsK......",
+    ".....KSSKRrrRKSSKRrrRKSSsK......",
+    ".....KSSSKKKKSSSSKKKKSSSsK......",
+    "....KsSSSSSSSSSsSSSSSSSSssK.....",
+    "....KsSSSSSSSSSssSSSSSSSssK.....",
+    ".....KSSSSSSSSSSSSSSSSSSsK......",
+    ".....KSSSSSSMMMMMMSSSSSSsK......",
+    "......KSSSSSSSSSSSSSSSSsK.......",
+    ".......KSSSSSSSSSSSSSSssK.......",
+    "........KKsSSSSSSSSSssKK........",
+    "..........KKsssssssKK...........",
+    "...........KSSSSSSSK............",
 ]
-REF_MAP = {'.': 0, 'K': 14, 'C': 18, 'c': 12, 'Y': 5, 'S': 10, 's': 17, 'E': 13, 'P': 11,
-           'H': 20, 'R': 22, 'O': 23, 'J': 12, 'j': 18, 'L': 24, 'W': 19, 'T': 2}
+REF_MAP = {'.': 0, 'K': 14, 'k': 11, 'Y': 5, 'S': 10, 's': 17, 'R': 22, 'r': 23, 'M': 22,
+           'W': 19, 'B': 14, 'P': 5, 'p': 2}
 
 
 def referee_img():
     a = np.zeros((38, 32), dtype=np.int32)
-    for y, row in enumerate(REFEREE):
+    for y, row in enumerate(REFEREE_HEAD):
         row = (row + "." * 32)[:32]
         for x, ch in enumerate(row):
             a[y, x] = REF_MAP[ch]
+    # tulow: koszulka w pionowe pasy, czarne rekawy i kolnierz w szpic
+    for y in range(21, 38):
+        hw = min(15, 7 + (y - 21))                      # ramiona rozszerzaja sie w dol
+        x0, x1 = 15 - hw, 15 + hw
+        for x in range(max(0, x0), min(32, x1 + 1)):
+            if x in (x0, x1) or y == 37:
+                c = 14                                  # kontur
+            elif x - x0 <= 3 or x1 - x <= 3:
+                c = 14 if (x - x0) % 3 else 19          # rekawy: czarne z bialym lampasem
+            else:
+                c = 14 if (x % 3) == 0 else 19          # pasy
+            a[y, x] = c
+        v = max(0, 4 - (y - 21))                        # kolnierz w szpic
+        if v:
+            a[y, 15 - v:15 + v + 1] = 14
+    a[26:30, 7:11] = 5                                  # naszywka
+    a[27:29, 8:10] = 2
     return a
 
 
