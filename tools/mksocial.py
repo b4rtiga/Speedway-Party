@@ -112,7 +112,7 @@ def main():
     canvas *= dark[..., None]
     draw_text(canvas, "SPEEDWAY", 56, 48, 13, (60, 230, 60))
     draw_text(canvas, "PARTY", 56, 48 + 9 * 13, 13, (255, 200, 40))
-    draw_text(canvas, "AMIGA 1200 AGA", 60, 48 + 18 * 13 + 6, 5, (245, 245, 245))
+    draw_text(canvas, "AMIGA 1200", 60, 48 + 18 * 13 + 6, 5, (245, 245, 245))
     out = ART / "social_preview.png"
     write_png(out, canvas)
     print(out, W, "x", H)

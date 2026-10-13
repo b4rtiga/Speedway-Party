@@ -152,7 +152,7 @@ static void draw_title(UBYTE *b)
     if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
     text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
     text_draw_big_center(b, 38, "PARTY", U_GOLD, U_SHADOW);
-    text_draw_center(b, 64, "AMIGA 1200 AGA", U_WHITE, U_SHADOW);
+    text_draw_center(b, 64, "AMIGA 1200", U_WHITE, U_SHADOW);
     if (blink) text_draw_center(b, 206, "NACIŚNIJ FIRE", U_RAINBOW, U_SHADOW);
     text_draw_center(b, 224, "TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", U_WHITE, U_SHADOW);
     text_draw_center(b, 240, "MIT © 2026 dev84", U_GREY, 0);
