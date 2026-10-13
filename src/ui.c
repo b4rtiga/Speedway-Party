@@ -135,7 +135,7 @@ static void draw_title(UBYTE *b)
     text_draw_center(b, 64, "AMIGA 1200 AGA", U_WHITE, U_SHADOW);
     if (blink) text_draw_center(b, 206, "NACIŚNIJ FIRE", U_RAINBOW, U_SHADOW);
     text_draw_center(b, 224, "TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", U_WHITE, U_SHADOW);
-    text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GOLD, U_SHADOW);
+    text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GREY, 0);
 }
 
 BOOL ui_title_update(void)
