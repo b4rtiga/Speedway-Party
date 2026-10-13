@@ -83,7 +83,7 @@ W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową: lampk
 Raz na jakiś czas maszyna startowa odmawia posłuszeństwa: światła gasną, taśma znika, a sędzia startuje bieg **flagą narodową**. Trzeba wtedy patrzeć na jego rękę.
 
 ### 🚩 Flagi sędziego
-Sędzia w rogu ekranu pokazuje flagi jak na prawdziwych zawodach:
+Sędzia w rogu ekranu pokazuje flagi jak na prawdziwych zawodach. Gdy nic się nie dzieje, mruga, zerka na boki, a raz na jakiś czas puszcza bąbla z nosa.
 
 | Flaga | Znaczenie |
 |---|---|
