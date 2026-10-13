@@ -17,7 +17,14 @@ enum { H_BG = 0, H_WHITE = 1, H_HELMET = 2, H_RED_ON = 6, H_GREEN_ON = 7, H_RED_
 static UBYTE referee[REF_H * HUD_DEPTH * REF_W_BYTES];
 static BOOL  have_referee;
 
-typedef enum { FLAG_NONE = 0, FLAG_GREEN, FLAG_RED, FLAG_WHITE, FLAG_CHECKERED } Flag;
+/* Flagi sedziego (regulamin zuzlowy):
+ *   szachownica - koniec biegu (od mety zwyciezcy)   zolta     - niebezpieczenstwo na torze
+ *   czerwona    - przerwanie biegu (np. tasma)         czarna    - wykluczenie zawodnika
+ *   biala       - ostatnie okrazenie lidera            niebieska - zaraz zostaniesz zdublowany
+ *   narodowa    - awaryjny start (awaria maszyny startowej i swiatel) */
+typedef enum { FLAG_NONE = 0, FLAG_RED, FLAG_WHITE, FLAG_CHECKERED, FLAG_YELLOW, FLAG_BLUE, FLAG_BLACK,
+               FLAG_NATIONAL } Flag;
+#define LAP_WARN 90                     /* niebieska: strata do lidera > okrazenie - 90 px */
 
 static struct { UBYTE order[4], lap, lights, flag, wave, menu; } shown;
 
@@ -96,7 +103,8 @@ static void hline_thick(WORD x0, WORD y0, WORD x1, WORD y1, UBYTE c)
 
 static void set_flag_color(UBYTE flag)
 {
-    static const UBYTE rgb[5][3] = { {0,0,0}, {40,220,60}, {240,30,30}, {250,250,250}, {250,250,250} };
+    static const UBYTE rgb[8][3] = { {0,0,0}, {240,30,30}, {250,250,250}, {250,250,250},
+                                     {255,215,0}, {30,90,255}, {28,28,32}, {250,250,250} };
     video_set_hud_color(H_FLAG, rgb[flag][0], rgb[flag][1], rgb[flag][2]);
     video_set_hud_color(H_FLAG_SH, (UBYTE)(rgb[flag][0] * 3 / 5), (UBYTE)(rgb[flag][1] * 3 / 5),
                         (UBYTE)(rgb[flag][2] * 3 / 5));
@@ -136,6 +144,7 @@ static void draw_referee(void)
             WORD dy = (WORD)(ph < 5 ? ph / 2 : (9 - ph) / 2);
             UBYTE c;
             if (shown.flag == FLAG_CHECKERED) c = ((i >> 2) ^ (j >> 2)) & 1 ? H_FLAG_K : H_FLAG_W;
+            else if (shown.flag == FLAG_NATIONAL) c = j < 7 ? H_FLAG_W : H_RED_ON;     /* bialo-czerwona */
             else c = ph >= 5 ? H_FLAG_SH : H_FLAG;
             hplot(hx - 20 + i, hy - 22 + j + dy, c);
         }
@@ -188,13 +197,34 @@ void hud_update(void)
     if (lap < 1) lap = 1;
     if (lap > LAPS_PER_HEAT) lap = LAPS_PER_HEAT;
 
-    lights = h->phase == HEAT_RED_LIGHT ? 1 : (h->phase == HEAT_TAPE_UP || h->phase == HEAT_RACING) ? 2 : 0;
-    if (h->phase == HEAT_FALSE_START)                       flag = FLAG_RED;
-    else if (h->finished_count)                             flag = FLAG_CHECKERED;
-    else if (h->phase == HEAT_RACING && lap == LAPS_PER_HEAT) flag = FLAG_WHITE;
-    else if (h->phase == HEAT_TAPE_UP)                      flag = FLAG_GREEN;
-    else                                                    flag = FLAG_NONE;
-    wave = flag ? (UBYTE)((h->phase_timer >> 3) & 1) : 0;
+    lights = h->emergency ? 0 :                              /* awaria: swiatla nie dzialaja */
+             h->phase == HEAT_RED_LIGHT ? 1 : (h->phase == HEAT_TAPE_UP || h->phase == HEAT_RACING) ? 2 : 0;
+    flag = FLAG_NONE;
+    wave = (UBYTE)((h->phase_timer >> 3) & 1);
+    if (h->phase == HEAT_FALSE_START) {
+        /* czerwona: przerwanie biegu; potem czarna, jesli tasma skonczyla sie wykluczeniem */
+        BOOL excl = h->false_starter < MAX_RIDERS && g_tour.bikes[h->false_starter].state == BIKE_EXCLUDED;
+        flag = (excl && h->phase_timer > 75) ? FLAG_BLACK : FLAG_RED;
+    } else if (h->finished_count) {
+        flag = FLAG_CHECKERED;
+    } else if (h->danger_timer) {
+        flag = FLAG_YELLOW;
+    } else if (h->phase == HEAT_RACING || h->phase == HEAT_TAPE_UP) {
+        LONG lead = 0;
+        for (i = 0; i < MAX_RIDERS; i++)
+            if (g_tour.bikes[i].state == BIKE_RACING && g_tour.bikes[i].race_distance > lead)
+                lead = g_tour.bikes[i].race_distance;
+        for (i = 0; i < MAX_RIDERS; i++)
+            if (g_tour.bikes[i].state == BIKE_RACING &&
+                lead - g_tour.bikes[i].race_distance > g_tour.track.lap_length - LAP_WARN)
+                flag = FLAG_BLUE;                            /* ktos zaraz zostanie zdublowany */
+        if (flag == FLAG_NONE && lap == LAPS_PER_HEAT) flag = FLAG_WHITE;
+        if (flag == FLAG_NONE && h->emergency && h->race_frames < 60) flag = FLAG_NATIONAL;   /* machniecie = start */
+    } else if (h->emergency && (h->phase == HEAT_READY || h->phase == HEAT_RED_LIGHT)) {
+        flag = FLAG_NATIONAL;                                /* sedzia trzyma flage w gorze */
+        wave = 0;
+    }
+    if (!flag) wave = 0;
 
     for (i = 0; i < 4; i++)
         if (order[i] != shown.order[i]) { shown.order[i] = order[i]; changed = TRUE; }

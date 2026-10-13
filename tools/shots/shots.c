@@ -189,6 +189,9 @@ int main(void)
     while (g_tour.heat.phase != HEAT_RED_LIGHT) step();
     bike_sprites(); render(); hud_update(); shot("04_gate_red", TRUE);
 
+    while (g_tour.heat.phase != HEAT_TAPE_UP) step();   /* taśma w trakcie odlotu */
+    step(); step(); step();
+    bike_sprites(); render(); hud_update(); shot("04b_tape_up", TRUE);
     while (g_tour.heat.phase != HEAT_RACING) step();
     for (i = 0; i < 700; i++) step();
     bike_sprites(); render(); hud_update(); shot("05_racing", TRUE);
@@ -247,6 +250,14 @@ int main(void)
         }
     }
     g_tour.state = GS_PODIUM; render(); shot("10_podium", FALSE);
+
+    /* awaria maszyny startowej: start z flagi narodowej */
+    track_select(0);
+    begin(0);
+    g_tour.heat.emergency = 1;
+    g_tour.state = GS_HEAT;
+    while (g_tour.heat.phase != HEAT_RED_LIGHT) step();
+    bike_sprites(); render(); hud_update(); shot("16_awaria", TRUE);
 
     /* pozostale tory: bieg w trakcie */
     {

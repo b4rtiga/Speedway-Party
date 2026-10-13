@@ -648,7 +648,7 @@ static void restore_px(UBYTE *buf, WORD x, WORD y)
 
 static UBYTE tape_style(void)
 {
-    if (g_tour.state != GS_HEAT) return TAPE_GONE;
+    if (g_tour.state != GS_HEAT || g_tour.heat.emergency) return TAPE_GONE;   /* awaria: start z flagi */
     switch (g_tour.heat.phase) {
     case HEAT_TAPE_UP:  return g_tour.heat.tape_anim;
     case HEAT_RACING:
@@ -694,6 +694,99 @@ static void render_tape(UBYTE *buf)
     tape_drawn[g_video.back] = style;
 }
 
+/* ------------------------------------------------------------------ *
+ * Okienko startu (prawy dolny rog): maszyna startowa z boku - slupki, lampka,
+ * tasma i kaski zawodnikow. Na zielonym tasma wylatuje w gore, a okienko znika
+ * w chwili ruszenia (TAPE_GONE klatek). Przy awarii maszyny: napis o starcie z flagi.
+ * ------------------------------------------------------------------ */
+#define SW_X 208
+#define SW_Y 138                   /* ponizej obszaru nakladek (PANEL_Y + PANEL_H = 136) */
+#define SW_W 112
+#define SW_H 66
+#define SW_NONE 0xFF
+static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
+
+/* stan okienka: SW_NONE albo (klatka odlotu << 2) | lampka (0 zgaszona, 1 czerwona, 2 zielona); 3 = awaria */
+static UBYTE startwin_state(void)
+{
+    Heat *h = &g_tour.heat;
+    if (g_tour.state != GS_HEAT) return SW_NONE;
+    if (h->emergency)
+        return (h->phase == HEAT_PRE || h->phase == HEAT_READY || h->phase == HEAT_RED_LIGHT) ? 3 : SW_NONE;
+    switch (h->phase) {
+    case HEAT_PRE:
+    case HEAT_READY:     return 0;
+    case HEAT_RED_LIGHT: return 1;
+    case HEAT_TAPE_UP:   return (UBYTE)((h->phase_timer << 2) | 2);
+    default:             return SW_NONE;      /* ruszyli: okienko znika */
+    }
+}
+
+static void draw_startwin(UBYTE *b, UBYTE st)
+{
+    static const UBYTE lamp_col[3] = { U_PANEL, U_RED, U_GREEN };
+    WORD x, y, k = (WORD)(st >> 2), g;
+    panel(b, SW_X, SW_Y, SW_W, SW_H, U_PANEL, U_BORDER);
+    if (st == 3) {                                           /* awaria maszyny startowej */
+        text_draw(b, SW_X + 8, SW_Y + 10, "AWARIA", U_RED, U_SHADOW);
+        text_draw(b, SW_X + 8, SW_Y + 24, "MASZYNY", U_RED, U_SHADOW);
+        text_draw(b, SW_X, SW_Y + 44, "START Z FLAGI", U_WHITE, U_SHADOW);
+        return;
+    }
+    blit_fill(b, SW_X, SW_Y + 2, SW_W, 22, 129);             /* trybuna */
+    blit_fill(b, SW_X, SW_Y + 24, SW_W, SW_H - 26, 24);      /* nawierzchnia */
+    hw_wait_blit();
+    for (y = SW_Y + 4; y < SW_Y + 24; y += 3)                /* kibice */
+        for (x = SW_X + 3; x < SW_X + SW_W - 3; x += 2)
+            plot(b, x, y, (UBYTE)(140 + ((x * 7 + y * 13) % 32)));
+    for (y = SW_Y + 24; y < SW_Y + SW_H - 2; y++)            /* faktura nawierzchni */
+        for (x = SW_X + 2; x < SW_X + SW_W - 2; x++)
+            if (((x * 37 + y * 91) & 7) == 0) plot(b, x, y, (UBYTE)(19 + ((x + y) & 3)));
+    for (g = 0; g < 4; g++) {                                /* kaski za tasma */
+        const Bike *bk = &g_tour.bikes[g];
+        WORD cx = (WORD)(SW_X + 26 + g * 20), cy = SW_Y + 44, dx, dy;
+        if (bk->state == BIKE_EXCLUDED) continue;
+        for (dy = -5; dy <= 5; dy++)
+            for (dx = -5; dx <= 5; dx++)
+                if (dx * dx + dy * dy <= 26)
+                    plot(b, cx + dx, cy + dy, dy == -1 ? U_SHADOW : (UBYTE)(U_HELMET + g));   /* gogle */
+    }
+    for (y = SW_Y + 6; y < SW_Y + SW_H - 4; y++)             /* slupki maszyny */
+        for (x = 0; x < 3; x++) {
+            UBYTE c = ((y >> 2) & 1) ? U_RED : U_WHITE;
+            plot(b, SW_X + 8 + x, y, c);
+            plot(b, SW_X + SW_W - 11 + x, y, c);
+        }
+    for (x = SW_X + 8; x < SW_X + SW_W - 8; x++) {           /* poprzeczka i lampka */
+        plot(b, x, SW_Y + 6, U_GREY);
+        plot(b, x, SW_Y + 7, U_GREY);
+    }
+    for (y = SW_Y + 8; y < SW_Y + 13; y++)
+        for (x = SW_X + 52; x < SW_X + 60; x++) plot(b, x, y, lamp_col[st & 3]);
+
+    /* tasma: dwie nitki; przy odlocie ramiona unosza konce, a srodek wygina sie w dol */
+    {
+        WORD ty = (WORD)(SW_Y + 40 - k * k * 3), half = (SW_W - 22) / 2, mid = SW_X + SW_W / 2;
+        for (x = SW_X + 11; x < SW_X + SW_W - 11; x++) {
+            WORD d = (WORD)(x - mid), bow = (WORD)(k * 3 * (half * half - d * d) / (half * half));
+            WORD yy = (WORD)(ty + bow);
+            if (yy >= SW_Y + 3 && yy < SW_Y + SW_H - 6) {
+                plot(b, x, yy, U_WHITE);
+                plot(b, x, yy + 4, U_WHITE);
+            }
+        }
+    }
+}
+
+static void update_startwin(UBYTE *b, UBYTE bi)
+{
+    UBYTE st = startwin_state();
+    if (st == startwin_drawn[bi]) return;
+    if (st == SW_NONE) blit_copy(b, g_video.background, SW_X, SW_Y, SW_W, SW_H);
+    else draw_startwin(b, st);
+    startwin_drawn[bi] = st;
+}
+
 static BOOL state_uses_track(GameState s)
 {
     return s == GS_HEAT || s == GS_HEAT_RESULT || s == GS_TRACK_GRADING;
@@ -734,9 +827,11 @@ void ui_render(void)
             tape_drawn[bi] = 0xFF;
             roost_forget_buffer(bi);
             track_forget_wear(bi);
+            startwin_drawn[bi] = SW_NONE;
             drawn_serial[bi] = 0;
         }
         track_flush_wear(bi, b);                          /* wyjezdzone sciezki */
+        update_startwin(b, bi);                           /* przed nakladkami - nie tnie panelu */
         if (drawn_serial[bi] != serial) {
             blit_copy(b, g_video.background, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
             switch (current_overlay()) {

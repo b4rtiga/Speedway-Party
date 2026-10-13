@@ -34,6 +34,9 @@ void start_begin(void)
     h->tape_anim = 0;
     h->false_starter = 0xFF;
     h->red_light_frames = rng_range(RED_MIN_FRAMES, RED_MAX_FRAMES);
+    /* rzadko (~1 na 20 startow) awaria maszyny startowej i swiatel: sedzia startuje
+     * flaga narodowa - bez tasmy, sygnalem jest machniecie flaga */
+    h->emergency = (UBYTE)(rng_range(0, 19) == 0);
     ready_hold = 0;
 
     race_init_heat();     /* ustawia motocykle na polach, zeruje predkosci */
@@ -143,7 +146,7 @@ void start_update(void)
             h->phase = HEAT_TAPE_UP;
             h->phase_timer = 0;
             h->tape_anim = 1;
-            sfx_buzzer();
+            if (!h->emergency) sfx_buzzer();         /* przy awarii: tylko flaga */
             update_launches(0);
         }
         break;

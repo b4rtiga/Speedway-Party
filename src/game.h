@@ -184,6 +184,8 @@ typedef struct Heat {
     UBYTE     false_starter;        /* 0xFF = brak */
     UBYTE     restarts;
     UWORD     race_frames;
+    UBYTE     danger_timer;         /* >0: zolta flaga (ktos uderzyl w bande) */
+    UBYTE     emergency;            /* awaria maszyny startowej: start z flagi narodowej */
 } Heat;
 
 /* ------------------------- REKORDY -------------------------------- */

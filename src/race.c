@@ -35,6 +35,7 @@ void race_init_heat(void)
 
     h->finished_count = 0;
     h->race_frames = 0;
+    h->danger_timer = 0;
     winner_frame = 0;
     for (g = 0; g < 4; g++) {
         Bike *b = &g_tour.bikes[g];
@@ -147,6 +148,7 @@ static void update_bike(Bike *b)
     lat = track_lateral(FIX2INT(b->x), FIX2INT(b->y));
     if (lat > OUTER_LIMIT) {
         b->speed -= b->speed >> 2;            /* -25% */
+        g_tour.heat.danger_timer = 75;        /* zolta flaga: niebezpieczenstwo na torze */
         b->drift = 0;
         push_to_lateral(b, OUTER_LIMIT - 1);
         align_to_tangent(b);
@@ -239,6 +241,7 @@ void race_update(void)
     UBYTE i, active = 0, done = 0;
 
     h->race_frames++;
+    if (h->danger_timer) h->danger_timer--;
     for (i = 0; i < MAX_RIDERS; i++) {
         Bike *b = &g_tour.bikes[i];
         if (b->state == BIKE_RACING || b->state == BIKE_FINISHED) update_bike(b);

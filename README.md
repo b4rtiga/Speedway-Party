@@ -60,6 +60,23 @@ Zielone, brzęczyk, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśm
 
 Kto nie wytrzyma nerwowo i puści za wcześnie, usłyszy gwizdek: **TAŚMA!** Sędzia macha czerwoną flagą, a druga taśma w biegu oznacza wykluczenie. Kto z kolei przegapi zielone, będzie mielił kołem w miejscu, patrząc na plecy rywali.
 
+W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową z boku: kaski zawodników tuż za taśmą i lampkę. Na zielonym taśma wystrzeliwuje w górę, a okienko znika w chwili ruszenia.
+
+Raz na jakiś czas maszyna startowa odmawia posłuszeństwa: światła gasną, taśma znika, a sędzia startuje bieg **flagą narodową**. Trzeba wtedy patrzeć na jego rękę.
+
+### 🚩 Flagi sędziego
+Sędzia w rogu ekranu pokazuje flagi jak na prawdziwych zawodach:
+
+| Flaga | Znaczenie |
+|---|---|
+| 🏁 szachownica | koniec biegu: od mety zwycięzcy do ostatniego zawodnika |
+| 🟨 żółta | niebezpieczeństwo na torze: ktoś właśnie uderzył w bandę |
+| 🟥 czerwona | przerwanie biegu, np. po dotknięciu taśmy |
+| ⬛ czarna | wykluczenie zawodnika (np. druga taśma w biegu) |
+| ⬜ biała | lider zaczyna ostatnie okrążenie |
+| 🟦 niebieska | ktoś zaraz zostanie zdublowany przez lidera |
+| 🇵🇱 narodowa | awaryjny start po awarii maszyny startowej |
+
 ### 🏍️ Jazda: dwa przyciski i cała prawda o żużlu
 Gaz jest zawsze odkręcony do końca. Ty decydujesz tylko o jednym: **jak mocno złamać motocykl**.
 
