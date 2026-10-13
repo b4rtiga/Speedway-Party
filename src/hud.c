@@ -130,6 +130,29 @@ static void hline_thick(WORD x0, WORD y0, WORD x1, WORD y1, UBYTE c)
 
 #define ABSW(v) ((v) < 0 ? -(v) : (v))
 
+/* "Kosa" (zolta flaga z czarnym krzyzem, ostatnie okrazenie): sedzia macha nia od chwili,
+ * gdy prowadzacy na 3. okrazeniu wjezdza na prosta startowa (wyjscie z ostatniego luku),
+ * do 2 s po tym, jak ostatni jadacy zawodnik przetnie linie konczaca 3. okrazenie. */
+static BOOL kosa_shown(void)
+{
+    const Track *t = &g_tour.track;
+    const Heat *h = &g_tour.heat;
+    static UWORD all_in_frame;          /* klatka, w ktorej ostatni zaczal 4. okrazenie */
+    LONG lead = 0, entry = (LONG)(LAPS_PER_HEAT - 1) * t->lap_length + (t->lap_length - t->tape_s);
+    BOOL all_in = TRUE;
+    UBYTE i;
+    for (i = 0; i < MAX_RIDERS; i++) {
+        const Bike *b = &g_tour.bikes[i];
+        if (b->state == BIKE_EXCLUDED || b->empty) continue;
+        if (b->race_distance > lead) lead = b->race_distance;
+        if (b->lap < LAPS_PER_HEAT) all_in = FALSE;
+    }
+    if (lead < entry) { all_in_frame = 0; return FALSE; }      /* lider jeszcze przed prosta */
+    if (!all_in) { all_in_frame = 0; return TRUE; }
+    if (!all_in_frame) all_in_frame = (UWORD)(h->race_frames ? h->race_frames : 1);
+    return (BOOL)(h->race_frames - all_in_frame < 2 * FPS);
+}
+
 static void set_flag_color(UBYTE flag)
 {
     static const UBYTE rgb[8][3] = { {0,0,0}, {240,30,30}, {255,215,0}, {250,250,250},
@@ -241,6 +264,7 @@ void hud_update(void)
     } else if (h->danger_timer) {
         flag = FLAG_YELLOW;
     } else if (h->phase == HEAT_RACING || h->phase == HEAT_TAPE_UP) {
+        BOOL kosa = kosa_shown();                    /* liczy czas okna w kazdej klatce */
         LONG lead = 0;
         for (i = 0; i < MAX_RIDERS; i++)
             if (g_tour.bikes[i].state == BIKE_RACING && g_tour.bikes[i].race_distance > lead)
@@ -249,7 +273,7 @@ void hud_update(void)
             if (g_tour.bikes[i].state == BIKE_RACING &&
                 lead - g_tour.bikes[i].race_distance > g_tour.track.lap_length - LAP_WARN)
                 flag = FLAG_BLUE;                            /* ktos zaraz zostanie zdublowany */
-        if (flag == FLAG_NONE && lap == LAPS_PER_HEAT) flag = FLAG_LAST_LAP;   /* ostatnie okrazenie: "kosa" */
+        if (flag == FLAG_NONE && kosa) flag = FLAG_LAST_LAP;   /* ostatnie okrazenie: "kosa" */
         if (flag == FLAG_NONE && h->emergency && h->race_frames < 60) flag = FLAG_NATIONAL;   /* machniecie = start */
     } else if (h->emergency && (h->phase == HEAT_READY || h->phase == HEAT_RED_LIGHT)) {
         flag = FLAG_NATIONAL;                                /* sedzia trzyma flage w gorze */

@@ -86,7 +86,7 @@ Sędzia w rogu ekranu pokazuje flagi jak na prawdziwych zawodach:
 | 🏁 szachownica | koniec biegu: od mety zwycięzcy do ostatniego zawodnika. Plansza z wynikami pojawia się 2 sekundy po tym, jak metę minie ostatni |
 | 🟥 czerwona | przerwanie biegu, np. po dotknięciu taśmy |
 | ⬛ czarna | wykluczenie zawodnika (np. druga taśma w biegu) |
-| 🟨✖️ żółta z czarnym krzyżem („kosa”) | lider zaczyna ostatnie okrążenie |
+| 🟨✖️ żółta z czarnym krzyżem („kosa”) | ostatnie okrążenie: od wjazdu prowadzącego na prostą startową pod koniec 3. okrążenia do 2 s po tym, jak linię minie ostatni zawodnik |
 | 🟦 niebieska | ktoś zaraz zostanie zdublowany przez lidera |
 | 🇵🇱 narodowa | awaryjny start po awarii maszyny startowej |
 
