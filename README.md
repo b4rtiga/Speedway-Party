@@ -2,14 +2,18 @@
 
 Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. Turniej 15 biegów dla 1–4 graczy przy jednej kanapie, wolne miejsca zajmują boty. Kod w C (Bebbo GCC, NDK 3.9) pisze bezpośrednio do rejestrów, z wyłączonym systemem.
 
-![Bieg na mokrym torze](art/screen_05_racing.png)
+| ![Bieg w WinUAE](art/winuae_race.png) | ![Ekran tytułowy w WinUAE](art/winuae_title.png) |
+|---|---|
+
+*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip): bieg z szprychą spod tylnego koła i ekran tytułowy z tęczą z Coppera.*
+
+Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
 | | | |
 |---|---|---|
 | ![Tytuł](art/screen_01_title.png) | ![Start spod taśmy](art/screen_04_gate_red.png) | ![Taśma!](art/screen_06_false_start.png) |
 | ![Program zawodów](art/screen_03_table.png) | ![Przerwa na tor](art/screen_08_grading.png) | ![Podium](art/screen_10_podium.png) |
 
-*Zrzuty z prawdziwego kodu gry skompilowanego na PC (`tools/shots`).*
 
 ## Spis treści
 1. [Budowanie](#budowanie)
