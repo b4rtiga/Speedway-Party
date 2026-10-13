@@ -78,7 +78,7 @@ Zielone, brzęczyk, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśm
 
 Kto nie wytrzyma nerwowo i puści za wcześnie, usłyszy gwizdek: **TAŚMA!** Sędzia macha czerwoną flagą, a druga taśma w biegu oznacza wykluczenie. Kto z kolei przegapi zielone, będzie mielił kołem w miejscu, patrząc na plecy rywali.
 
-W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową: lampkę i taśmę z dwóch wstęg połączonych cienkimi tasiemkami. Na zielonym taśma płynnie odlatuje w górę, a okienko znika zaraz po ruszeniu.
+W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową: lampkę i taśmę. Na zielonym taśma płynnie odlatuje w górę, a okienko znika zaraz po ruszeniu.
 
 Raz na jakiś czas maszyna startowa odmawia posłuszeństwa: światła gasną, taśma znika, a sędzia startuje bieg **flagą narodową**. Trzeba wtedy patrzeć na jego rękę.
 
