@@ -317,9 +317,9 @@ tools/          generatory, sprawdzanie kodu, symulator
 ---
 
 ## Jak powstała gra
-Speedway Party została stworzona przez dev84 przy pomocy sztucznej inteligencji: **Claude** (Anthropic) oraz **GPT-6 Astra**.
+Speedway Party została stworzona przez b4rtiga przy pomocy sztucznej inteligencji: **Claude** (Anthropic) oraz **GPT-6 Astra**.
 
 ---
 
 ## Licencja
-[MIT](LICENSE) © 2026 dev84
+[MIT](LICENSE) © 2026 b4rtiga
