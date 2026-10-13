@@ -186,22 +186,60 @@ UBYTE track_grip_at(WORD x, WORD y)
     return g_tour.track.grip[cy][cx];
 }
 
-/* Przyczepnosc: mokry tor = slisko wszedzie, najbardziej przy krawezniku
- * (tam polewaczka leje najwiecej). Odsypisko ma niski grip, ale bonus
- * "szeroka niesie" liczy race.c zaleznie od predkosci. */
-static void rebuild_grip(void)
+/* Przyczepnosc komorki = strefa + rodzaj toru - wilgoc + ubicie.
+ * Mokry tor: slisko wszedzie, najbardziej przy krawezniku (tam polewaczka leje
+ * najwiecej). Odsypisko ma niski grip, ale bonus "szeroka niesie" liczy race.c.
+ * Wyjezdzona sciezka (pack): do +PACK_GRIP i przesycha szybciej (mniej wody). */
+#define PACK_GRIP     32          /* bonus przyczepnosci przy pelnym ubiciu */
+#define PACK_WEAR     1           /* ubicie na klatke pod rozpedzonym motocyklem */
+#define PACK_LOOSEN   1           /* spulchnienie od grudki szprycy */
+
+static void cell_grip(WORD gx, WORD gy)
 {
     static const UBYTE base[5] = { 210, 225, 200, 150, 0 };
     static const UBYTE wet_loss[5] = { 90, 70, 50, 30, 0 };
     Track *t = &g_tour.track;
+    GripZone z = (GripZone)t->zone[gy][gx];
+    UBYTE pk = t->pack[gy][gx];
+    WORD wet = (WORD)((t->wetness * (256 - (pk >> 1))) >> 8);   /* ubita linia mniej mokra */
+    WORD g = (WORD)(base[z] - (wet_loss[z] * wet >> 8));
+    if (z != GRIP_WALL) g += def->grip_adj + ((pk * PACK_GRIP) >> 8);
+    t->grip[gy][gx] = (UBYTE)(g < 0 ? 0 : g > 255 ? 255 : g);
+}
+
+static void rebuild_grip(void)
+{
     WORD gx, gy;
     for (gy = 0; gy < GRIP_H; gy++)
-        for (gx = 0; gx < GRIP_W; gx++) {
-            GripZone z = (GripZone)t->zone[gy][gx];
-            WORD g = (WORD)(base[z] - (wet_loss[z] * t->wetness >> 8));
-            if (z != GRIP_WALL) g += def->grip_adj;
-            t->grip[gy][gx] = (UBYTE)(g < 0 ? 0 : g > 255 ? 255 : g);
-        }
+        for (gx = 0; gx < GRIP_W; gx++)
+            cell_grip(gx, gy);
+}
+
+void track_wear(WORD x, WORD y)
+{
+    WORD gx = x / GRIP_CELL, gy = y / GRIP_CELL;
+    UBYTE *pk;
+    if (gx < 0 || gy < 0 || gx >= GRIP_W || gy >= GRIP_H) return;
+    pk = &g_tour.track.pack[gy][gx];
+    if (*pk <= 255 - PACK_WEAR) { *pk += PACK_WEAR; cell_grip(gx, gy); }
+}
+
+void track_loosen(WORD x, WORD y)
+{
+    WORD gx = x / GRIP_CELL, gy = y / GRIP_CELL;
+    UBYTE *pk;
+    if (gx < 0 || gy < 0 || gx >= GRIP_W || gy >= GRIP_H) return;
+    pk = &g_tour.track.pack[gy][gx];
+    if (*pk >= PACK_LOOSEN) { *pk -= PACK_LOOSEN; cell_grip(gx, gy); }
+}
+
+void track_reset_wear(void)
+{
+    WORD gx, gy;
+    for (gy = 0; gy < GRIP_H; gy++)
+        for (gx = 0; gx < GRIP_W; gx++)
+            g_tour.track.pack[gy][gx] = 0;
+    rebuild_grip();
 }
 
 void track_set_wetness(UBYTE wet)
@@ -213,6 +251,11 @@ void track_set_wetness(UBYTE wet)
 
 void track_apply_watering(void)
 {
+    WORD gx, gy;
+    /* rownarka zaciera wyjezdzone sciezki - zostaje ok. 1/3 ubicia */
+    for (gy = 0; gy < GRIP_H; gy++)
+        for (gx = 0; gx < GRIP_W; gx++)
+            g_tour.track.pack[gy][gx] = (UBYTE)(g_tour.track.pack[gy][gx] / 3);
     g_tour.track.wetness = 255;
     g_tour.track.heats_since_watering = 0;
     rebuild_grip();
@@ -384,6 +427,9 @@ void track_select(UBYTE type)
         g_video.pal_wet[c] = track_pal[type][1][c];
     }
     g_video.background = track_bg[type];
+    for (gy = 0; gy < GRIP_H; gy++)                       /* inny tor = rowna nawierzchnia */
+        for (gx = 0; gx < GRIP_W; gx++)
+            t->pack[gy][gx] = 0;
     rebuild_grip();
     video_blend_track_palette(t->wetness);
 }

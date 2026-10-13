@@ -135,6 +135,7 @@ static void update_state(void)
             g_tour.current_heat = 0;
             {
                 static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
+                track_reset_wear();
                 track_set_wetness(start_wet[g_tour.start_condition]);
             }
             enter(GS_TABLE);

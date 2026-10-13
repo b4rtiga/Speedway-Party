@@ -111,6 +111,8 @@ void roost_update(BOOL bikes)
         p->dx -= p->dx >> 2;              /* opor: drobina szybko opada na tor */
         p->dy -= p->dy >> 2;
         p->life--;
+        if (!p->life && p->owner != OWNER_WATER)
+            track_loosen(FIX2INT(p->x), FIX2INT(p->y));   /* grudka spadla na tor */
         if (p->x < 0 || p->y < 0 || FIX2INT(p->x) > SCREEN_W - 17 || FIX2INT(p->y) > PLAY_H - 2)
             p->life = 0;
         else if (p->owner == OWNER_WATER && track_lateral(FIX2INT(p->x), FIX2INT(p->y)) < -TRACK_HALF_WIDTH)

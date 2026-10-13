@@ -133,6 +133,9 @@ static void update_bike(Bike *b)
     if (b->state == BIKE_FINISHED && b->speed > MAX_SPEED / 2) b->speed -= b->speed >> 5;
     if (b->speed < 0) b->speed = 0;
 
+    /* --- rozpedzony motocykl ubija nawierzchnie (wyjezdzona sciezka) --- */
+    if (b->speed > MAX_SPEED / 2) track_wear(px, py);
+
     /* --- ruch --- */
     b->x += ((b->speed >> 6) * COS(travel)) >> 8;
     b->y += ((b->speed >> 6) * SIN(travel)) >> 8;

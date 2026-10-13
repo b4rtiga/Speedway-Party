@@ -74,8 +74,17 @@ int main(int argc, char **argv)
         total_frames += frame;
         tournament_award_points();
 
-        printf("Bieg %2d  (taśmy: %d, czas %5.1f s, wilgotność %3d)\n", h + 1, falsestarts,
-               ht->race_frames / 50.0, g_tour.track.wetness);
+        {
+            long sum = 0, cnt = 0; int mx = 0, gx, gy;
+            for (gy = 0; gy < GRIP_H; gy++)
+                for (gx = 0; gx < GRIP_W; gx++)
+                    if (g_tour.track.zone[gy][gx] != GRIP_WALL) {
+                        sum += g_tour.track.pack[gy][gx]; cnt++;
+                        if (g_tour.track.pack[gy][gx] > mx) mx = g_tour.track.pack[gy][gx];
+                    }
+            printf("Bieg %2d  (taśmy: %d, czas %5.1f s, wilgotność %3d, ubicie śr. %3ld maks. %3d)\n", h + 1,
+                   falsestarts, ht->race_frames / 50.0, g_tour.track.wetness, cnt ? sum / cnt : 0, mx);
+        }
         for (i = 0; i < 4; i++) {
             Bike *b = &g_tour.bikes[i];
             Rider *r = &g_tour.riders[b->rider];
@@ -102,6 +111,15 @@ int main(int argc, char **argv)
         }
     }
     printf("średnio %.1f s na bieg (z procedurą startową)\n", total_frames / 50.0 / heats);
+    {
+        FILE *w = fopen("tools/sim/wear.csv", "w");
+        int gx, gy;
+        for (gy = 0; gy < GRIP_H; gy++) {
+            for (gx = 0; gx < GRIP_W; gx++) fprintf(w, gx ? ",%d" : "%d", g_tour.track.pack[gy][gx]);
+            fprintf(w, "\n");
+        }
+        fclose(w);
+    }
     fclose(trace);
     return 0;
 }

@@ -133,7 +133,8 @@ typedef struct Waypoint { WORD x, y; BYTE inner_ofs, outer_ofs; } Waypoint;
 
 typedef struct Track {
     UBYTE    zone[GRIP_H][GRIP_W];        /* GripZone */
-    UBYTE    grip[GRIP_H][GRIP_W];        /* 0..255 dynamiczna przyczepnosc */
+    UBYTE    grip[GRIP_H][GRIP_W];        /* 0..255 przyczepnosc (strefa + wilgoc + ubicie) */
+    UBYTE    pack[GRIP_H][GRIP_W];        /* 0..255 ubicie: wyjezdzona sciezka trzyma lepiej */
     Waypoint wp[MAX_WAYPOINTS];
     UBYTE    num_wp;
     LONG     lap_length;                  /* jednostki race_distance */
@@ -243,6 +244,9 @@ angle8   track_tangent(fix16 x, fix16 y);
 WORD     track_bend_radius(LONG s, WORD lat);     /* 0 na prostej */
 void     track_apply_watering(void);
 void     track_set_wetness(UBYTE wet);           /* np. stan toru wybrany w menu */
+void     track_wear(WORD x, WORD y);             /* motocykl ubija nawierzchnie */
+void     track_loosen(WORD x, WORD y);           /* szpryca spadla na tor - spulchnia */
+void     track_reset_wear(void);                 /* rowny tor (nowy turniej / zmiana toru) */
 void     track_dry_step(void);
 angle8   atan2_8(LONG dy, LONG dx);
 #define TRACK_HALF_WIDTH (g_tour.track.half_width)   /* zalezy od wybranego toru */
