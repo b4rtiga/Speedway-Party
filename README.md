@@ -47,6 +47,7 @@ Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 
 5. [Narzędzia na PC](#narzędzia-na-pc)
 6. [Struktura projektu](#struktura-projektu)
 7. [Znane ograniczenia / do zrobienia](#znane-ograniczenia--do-zrobienia)
+8. [Jak powstała gra](#jak-powstała-gra)
 
 ---
 
@@ -312,6 +313,11 @@ tools/          generatory, sprawdzanie kodu, symulator
 - test na prawdziwym A1200 i z oryginalnym Kickstartem 3.1
 - usunięcie zgubionych klatek przy wejściu na bieg
 - sprawdzenie zapisu rekordów toru (`records.dat`) na Amidze
+
+---
+
+## Jak powstała gra
+Speedway Party została stworzona przez dev84 przy pomocy sztucznej inteligencji: **Claude** (Anthropic) oraz **GPT-6 Astra**.
 
 ---
 
