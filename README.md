@@ -36,42 +36,63 @@ Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 
 
 ## Mechanika gry
 
-### Turniej
-- 15 biegów po 4 okrążenia, punktacja 3–2–1–0. Biegi 1–13 jadą według stałej tabeli, w której każdy startuje z każdego pola. W biegach 14 i 15 (nominowanych) zawodnicy wybierają pola od najlepszego w tabeli.
-- Kolor kasku zależy od pola startowego: A czerwony, B niebieski, C biały, D żółty.
-- Wolne miejsca zajmują boty na trzech poziomach: **Amator** (spóźniony start, łamie za mocno i za późno), **Profi** (dobry refleks, potrafi „zamknąć płot”) i **Mistrz** (czyta przyczepność toru, dozuje minimalny uślizg, umie pojechać szeroko pod bandą).
+> Cztery motocykle, cztery okrążenia, jedna taśma. Bez hamulców, bez biegów, bez litości.
 
-### Start spod taśmy
-- Trzymasz dowolny kierunek. Po czerwonym świetle, które pali się losowo od 1,5 do 3,5 s, zapala się zielone i brzmi brzęczyk. Wtedy **puszczasz**.
-- Czas reakcji decyduje o tym, jak mocno motocykl wystrzeli spod taśmy.
-- Puszczenie przed zielonym to **taśma**: sędzia pokazuje czerwoną flagę, a druga taśma w biegu oznacza wykluczenie. Trzymanie dłużej niż 0,3 s po zielonym kończy się **mieleniem kołem** w miejscu.
+### 🏁 Turniej, czyli wieczór na stadionie
+Gracie klasyczne zawody na 15 biegów, czterech zawodników w każdym. Za zwycięstwo są 3 punkty, potem 2, 1 i nic. Program jest ułożony tak, że każdy startuje z każdego pola, więc nikt nie może narzekać na losowanie.
 
-### Fizyka jazdy
-- **Gaz jest automatyczny**, a dwa przyciski sterują wyłącznie kątem złamania motocykla, czyli ustawieniem ramy względem kierunku jazdy.
-- **LEWO** łamie motocykl w łuk, maksymalnie do **40°**. **PRAWO** to kontra: prostuje motocykl i daje najwyżej ok. 14° w prawo, więc skręt w prawo jest wyraźnie słabszy.
-- Kierunek jazdy skręca proporcjonalnie do złamania, prędkości i przyczepności. Przy pełnym złamaniu promień skrętu wynosi ok. 45 px, więc motocykl nie zawróci w miejscu.
-- **Im mocniej złamany, tym wolniej.** Złamanie obniża prędkość, do której motocykl może się rozpędzić (przy 40° o ok. 25%), i zwiększa opór boczny. Najszybsze jest pulsacyjne dozowanie złamania w łuku i prostowanie na wyjściu.
-- **Banda** zabiera ok. 25% prędkości i prostuje motocykl, bez upadku. **Krawężnik** spowalnia lekko i ustawia motocykl równolegle do toru. **Kontakt łokieć w łokieć** spowalnia obu zawodników o ok. 8%, więc taranowanie się nie opłaca.
+Kolor kasku zdradza pole startowe: czerwony wewnątrz, potem niebieski, biały i żółty przy bandzie.
 
-### Nawierzchnia i przyczepność
-- Tor ma ukrytą **mapę przyczepności** ze strefami: przy krawężniku (ubite), środek, zewnętrzna i **odsypisko pod bandą**.
-- **„Szeroka niesie”:** wjazd w odsypisko z pełną prędkością i w lekkim uślizgu daje dodatkowe przyspieszenie, ale za wolna jazda tam **zakopuje** motocykl.
-- **Trzy tory do wyboru w menu:**
+Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, a reszta bierze to, co zostało.
 
-  | Tor | Charakter |
-  |---|---|
-  | **GRANIT** | klasyczny owal, czerwona nawierzchnia |
-  | **BAKAŁAR** | długie proste, ciasne łuki, węższy, szara nawierzchnia, lepsza przyczepność |
-  | **PIASEK** | krótkie proste, duże okrągłe łuki, ślisko, szerokie odsypisko pod bandą |
+Puste miejsca przy kanapie zajmują boty:
+- **Amator** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.
+- **Profi** ma refleks i nie zawaha się „zamknąć płotu”, gdy próbujesz go minąć po wewnętrznej.
+- **Mistrz** czyta tor jak gazetę: wie, gdzie jest przyczepność, łamie dokładnie tyle, ile trzeba, a gdy trzeba, odjeżdża szeroko pod bandą.
 
-- **Stan toru** na start turnieju wybierasz w menu: suchy, wilgotny albo mokry. Mokry tor jest ciemniejszy (zamiana palety w Copperze, bez przerysowywania grafiki), ma kałuże przy krawężniku i mniejszą przyczepność, najbardziej przy krawężniku. Motocykl skręca słabiej i wynosi go szerzej.
-- **Polewanie:** po biegach 4, 7, 11 i 13 traktory równają i polewają tor. Potem tor z każdym biegiem **przesycha**, a przyczepność wraca.
+### 🚦 Start spod taśmy
+To tu wygrywa się połowę biegów. Trzymasz kierunek, ręka napięta, pali się czerwone. Czekasz sekundę, dwie, trzy, nigdy nie wiesz ile.
 
-### Szpryca
-- Motocykl w uślizgu wyrzuca spod tylnego koła **szprycę** nawierzchni: drobiny lecą do tyłu i wachlarzem na zewnątrz łuku. Rysuje je Blitter, jeden blit z maską na drobinę.
-- Zawodnik jadący **w szprycy** rywala (co najmniej 2 drobiny w strefie przed motocyklem) traci trochę prędkości w każdej klatce. Trzeba więc szukać czystej linii i mijanki.
+Zielone, brzęczyk, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśmy jak z procy.
 
----
+Kto nie wytrzyma nerwowo i puści za wcześnie, usłyszy gwizdek: **TAŚMA!** Sędzia macha czerwoną flagą, a druga taśma w biegu oznacza wykluczenie. Kto z kolei przegapi zielone, będzie mielił kołem w miejscu, patrząc na plecy rywali.
+
+### 🏍️ Jazda: dwa przyciski i cała prawda o żużlu
+Gaz jest zawsze odkręcony do końca. Ty decydujesz tylko o jednym: **jak mocno złamać motocykl**.
+
+**LEWO** kładzie maszynę w uślizg, tylne koło ucieka na zewnątrz, a rama ustawia się w łuk, najwyżej pod kątem 40°. **PRAWO** to kontra: prostuje motocykl i pozwala delikatnie odbić od krawężnika. Prawdziwy żużlowiec w prawo nie skręca, więc i tutaj ta strona jest wyraźnie słabsza.
+
+Najważniejsza zasada: **każdy stopień uślizgu kosztuje prędkość**. Motocykl złamany do oporu skręci ostro, ale zwolni o jedną czwartą. Szybcy zawodnicy nie trzymają przycisku, tylko **pulsują**: łamią na wejściu, odpuszczają w środku łuku, prostują na wyjściu i znów mają pełny gaz na prostej.
+
+Tor nie wybacza:
+- **banda** zabiera ćwierć prędkości i prostuje motocykl;
+- **krawężnik** lekko spowalnia i ustawia równolegle do toru;
+- **kontakt łokieć w łokieć** spowalnia obu zawodników, więc taranowanie nic nie daje i wygrywa czysta jazda.
+
+### 🟤 Nawierzchnia, która żyje
+Tor nie jest jednolity. Przy krawężniku nawierzchnia jest ubita i przyczepna, środkiem biegnie wyjeżdżona koleina, a pod bandą zbiera się luźne **odsypisko**.
+
+To tam rodzi się najpiękniejszy manewr: **„szeroka niesie”**. Jeśli wjedziesz pod bandę z pełną prędkością i w lekkim uślizgu, odsypisko wystrzeli cię do przodu. Jeśli wjedziesz za wolno, motocykl się w nim zakopie.
+
+W menu wybierasz jeden z trzech stadionów:
+
+| Tor | Charakter |
+|---|---|
+| 🔴 **GRANIT** | Klasyczny owal z czerwonej nawierzchni. Dobry na początek. |
+| ⚫ **BAKAŁAR** | Długie proste i ciasne łuki na ciemnym żużlu. Węższy i bardziej techniczny, ale trzyma koło lepiej niż inne. |
+| 🟡 **PIASEK** | Krótkie proste i wielkie, okrągłe łuki. Ślisko, za to pod bandą czeka szerokie odsypisko dla odważnych. |
+
+### 💧 Polewaczka, czyli tor zmienia się w trakcie zawodów
+Na start turnieju wybierasz **stan toru**: suchy, wilgotny albo mokry.
+
+Mokry tor ciemnieje, przy krawężniku zbierają się kałuże, a koło łapie wyraźnie gorzej. Motocykl skręca słabiej, wynosi go szerzej i trzeba łamać mocniej.
+
+Po biegach 4, 7, 11 i 13 na tor wyjeżdżają **traktory**: jeden równa nawierzchnię, drugi ją polewa. Potem tor z biegu na bieg **przesycha**, a przyczepność powoli wraca. Linia, która wygrywała na początku zawodów, pod koniec może już nie działać.
+
+### 🌪️ Szpryca
+Każdy motocykl w uślizgu sypie spod tylnego koła **szprycę**, czyli wachlarz nawierzchni lecący do tyłu i na zewnątrz łuku.
+
+Jedziesz tuż za rywalem? Dostajesz nią prosto w twarz i tracisz prędkość, metr po metrze. Siedzenie komuś na kole nic nie da: trzeba znaleźć **czystą linię**, wyjść z jego szprycy i zaatakować z boku. Tak samo jak na prawdziwym torze.
 
 ---
 
