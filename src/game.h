@@ -13,7 +13,7 @@
 #define LAPS_PER_HEAT   4
 
 /* model jazdy (race.c, ai.c, audio.c) */
-#define BIKE_MAX_SPEED  ((fix16)(FIX_ONE * 23 / 10))   /* 2.3 px/klatke = 115 px/s */
+#define BIKE_MAX_SPEED  ((fix16)(FIX_ONE * 253 / 100)) /* 2.53 px/klatke = 126 px/s */
 #define TURN_K          22        /* skret [1/256 jedn. kata/klatke] na jednostke zlamania przy v maks.;
                                      promien przy pelnym zlamaniu ~45 px */
 #define NAME_LEN        16
