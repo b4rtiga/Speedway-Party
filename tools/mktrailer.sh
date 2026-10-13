@@ -23,9 +23,9 @@ ffmpeg -v error -y -i "$TMP" -loop 1 -t "$(python -c "print($HOLD+$XF)")" -i "$T
   -filter_complex "\
 [0:v]scale=1280:1024:flags=neighbor,fps=50,format=yuv420p,setsar=1[g];\
 [1:v]scale=1280:1024:flags=neighbor,fps=50,format=yuv420p,setsar=1[t];\
-[g][t]xfade=transition=pixelize:duration=$XF:offset=$OFF,fade=t=in:st=0:d=0.6,fade=t=out:st=$FO:d=1[v];\
+[g][t]xfade=transition=pixelize:duration=$XF:offset=$OFF,fade=t=in:st=0:d=0.6,fade=t=out:st=$FO:d=1,format=yuv420p[v];\
 [2:a]aresample=48000,volume=0.9,afade=t=in:st=0:d=0.6,afade=t=out:st=$AO:d=2.5[a]" \
   -map "[v]" -map "[a]" -t "$TOTAL" \
-  -c:v libx264 -preset slow -crf 20 -tune animation -r 50 -c:a aac -b:a 160k -ac 2 -movflags +faststart art/trailer.mp4 || exit 1
+  -c:v libx264 -pix_fmt yuv420p -profile:v high -preset slow -crf 20 -tune animation -r 50 -c:a aac -b:a 160k -ac 2 -movflags +faststart art/trailer.mp4 || exit 1
 rm -f "$TMP"
 echo "art/trailer.mp4 ($TOTAL s)"
