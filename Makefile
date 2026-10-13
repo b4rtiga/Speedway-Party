@@ -24,8 +24,7 @@ dist: SpeedwayParty $(DATA)
 	mkdir -p dist/data dist/s
 	cp SpeedwayParty dist/
 	cp $(DATA) dist/data/
-	printf 'SpeedwayParty
-' > dist/s/startup-sequence
+	echo SpeedwayParty > dist/s/startup-sequence
 
 # Grafika i dzwiek (Python 3 + numpy) - wynik jest juz w repozytorium, to tylko regeneracja
 assets:
