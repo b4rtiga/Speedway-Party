@@ -146,19 +146,19 @@ BOOL ui_title_update(void)
 /* ========================= USTAWIENIA ============================= */
 
 #define SETUP_ROWS   8
-#define ROW_TRACK    5
-#define ROW_COND     6
+#define ROW_COND     5
+#define ROW_MUSIC    6
 #define ROW_START    7
 static const char *cond_names[3] = { "SUCHY", "WILGOTNY", "MOKRY" };
 static const char *port_names[INPUT_NONE] = {
     "JOY 1", "JOY 0", "JOY 3 LPT", "JOY 4 LPT", "KLAW Z/X", "KLAW N/M", "STRZAŁKI"
 };
-static const char *level_names[3] = { "AMATOR", "PROFI", "MISTRZ" };
+static const char *level_names[3] = { "NOWICJUSZ", "PROFESJONALISTA", "MISTRZ" };
 
 /* znaki do wyboru joystickiem */
 static const UBYTE charset[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ\x80\x81\x82\x83\x84\x85\x86\x87\x88" "0123456789-.";
 
-static WORD setup_row_y(UBYTE row) { return (WORD)(54 + row * 18); }
+static WORD setup_row_y(UBYTE row) { return (WORD)(50 + row * 18); }
 
 static void draw_setup(UBYTE *b)
 {
@@ -184,26 +184,40 @@ static void draw_setup(UBYTE *b)
         if (editing && setup_row == i + 1 && blink) text_cat(p, "_");
         text_draw(b, 48, y, s, editing && setup_row == i + 1 ? U_SHADOW : U_WHITE, editing ? 0 : U_SHADOW);
         text_draw(b, 168, y, human ? "GRACZ" : "AI", human ? U_GREEN : U_GREY, U_SHADOW);
-        text_draw(b, 216, y, human ? port_names[r->input] : level_names[r->ai_level], U_GOLD, U_SHADOW);
+        text_draw(b, human ? 216 : 192, y, human ? port_names[r->input] : level_names[r->ai_level], U_GOLD, U_SHADOW);   /* PROFESJONALISTA = 15 znakow */
     }
-    text_draw(b, 40, setup_row_y(ROW_TRACK), "TOR:", U_WHITE, U_SHADOW);
-    p = text_cat(s, "< ");
-    p = text_cat(p, track_name(g_tour.track.type));
-    text_cat(p, " >");
-    text_draw(b, 168, setup_row_y(ROW_TRACK), s, U_GOLD, U_SHADOW);
     text_draw(b, 40, setup_row_y(ROW_COND), "STAN TORU:", U_WHITE, U_SHADOW);
     p = text_cat(s, "< ");
     p = text_cat(p, cond_names[g_tour.start_condition]);
     text_cat(p, " >");
     text_draw(b, 168, setup_row_y(ROW_COND), s, U_GOLD, U_SHADOW);
+    text_draw(b, 40, setup_row_y(ROW_MUSIC), "MUZYKA:", U_WHITE, U_SHADOW);
+    text_draw(b, 168, setup_row_y(ROW_MUSIC), g_music_enabled ? "< TAK >" : "< NIE >", U_GOLD, U_SHADOW);
     text_draw_center(b, setup_row_y(ROW_START), "START TURNIEJU", setup_row == ROW_START ? U_RAINBOW : U_WHITE, U_SHADOW);
 
-    text_draw_center(b, 202, editing ? "PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA"
+    text_draw_center(b, 206, editing ? "PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA"
                                      : "GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", U_GREY, 0);
-    text_draw_center(b, 216, editing ? "PRAWO: DODAJ  LEWO: USUŃ  FIRE: OK"
+    text_draw_center(b, 222, editing ? "PRAWO: DODAJ  LEWO: USUŃ  FIRE: OK"
                                      : "FIRE: EDYCJA NAZWISKA / START", U_GREY, 0);
-    text_draw_center(b, 230, "ALT+A,C,E,L,N,O,S,X,Z = POLSKIE LITERY", U_GREY, 0);
-    text_draw_center(b, 244, "ESC - WYJŚCIE Z GRY", U_GREY, 0);
+    text_draw_center(b, 238, "ESC - WYJŚCIE Z GRY", U_GREY, 0);
+#ifdef SHOW_LAG
+    {
+        /* diagnostyka muzyki: wypelnione bufory, obiegi utworu, wolny Chip RAM (KiB) */
+        extern ULONG g_music_fills, g_music_loops, g_chip_free, g_kb_bytes;
+        extern UBYTE g_kb_last;
+        p = text_cat(s, "M ");
+        p = text_uint(p, g_music_fills, 1);
+        p = text_cat(p, " L ");
+        p = text_uint(p, g_music_loops, 1);
+        p = text_cat(p, " C ");
+        p = text_uint(p, g_chip_free >> 10, 1);
+        p = text_cat(p, " K ");
+        p = text_uint(p, g_kb_bytes, 1);
+        p = text_cat(p, " ");
+        text_uint(p, g_kb_last, 1);
+        text_draw(b, 0, 0, s, U_RED, 0);
+    }
+#endif
 }
 
 static UBYTE name_len(const char *n) { UBYTE l = 0; while (n[l]) l++; return l; }
@@ -293,20 +307,22 @@ BOOL ui_setup_update(void)
         if (setup_row == 0) {
             WORD n = g_tour.num_humans + d;
             g_tour.num_humans = (UBYTE)(n < 0 ? 0 : n > MAX_RIDERS ? MAX_RIDERS : n);   /* 0 = pokaz: same boty */
+            tournament_default_names();
         } else if (setup_row <= MAX_RIDERS) {
             Rider *r = &g_tour.riders[setup_row - 1];
             if (setup_row - 1 < g_tour.num_humans)
                 r->input = (InputPort)((r->input + INPUT_NONE + d) % INPUT_NONE);
             else
                 r->ai_level = (AiLevel)((r->ai_level + 3 + d) % 3);
-        } else if (setup_row == ROW_TRACK) {
-            track_select((UBYTE)((g_tour.track.type + NUM_TRACKS + d) % NUM_TRACKS));
         } else if (setup_row == ROW_COND) {
             g_tour.start_condition = (UBYTE)((g_tour.start_condition + 3 + d) % 3);
+        } else if (setup_row == ROW_MUSIC) {
+            g_music_enabled = (BOOL)!g_music_enabled;
         }
     }
     if (m & BTN_FIRE) {
         if (setup_row == ROW_START) return TRUE;
+        if (setup_row == ROW_MUSIC) { g_music_enabled = (BOOL)!g_music_enabled; changed = TRUE; }
         if (setup_row >= 1 && setup_row <= MAX_RIDERS) { editing = TRUE; changed = TRUE; }
     }
     if (changed) ui_invalidate();
@@ -779,6 +795,13 @@ static void render_tape(UBYTE *buf)
 static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
 
 /* stan okienka: SW_NONE albo (klatka odlotu << 2) | lampka (0 zgaszona, 1 czerwona, 2 zielona); 3 = awaria */
+#define SW_FLY   16                /* klatki odlotu tasmy w okienku (0.32 s) - okienko znika po nich */
+#define SW_TAPE_REST (SW_Y + 40)   /* tasma w spoczynku */
+#define SW_TAPE_H 3                /* wysokosc wstegi */
+#define SW_TAPE_X0 (SW_X + 11)     /* miedzy slupkami maszyny */
+#define SW_TAPE_X1 (SW_X + SW_W - 11)
+static WORD tape_prev[2][SW_W];    /* gorna krawedz wstegi w kolumnie (na bufor), -1 = brak */
+
 static UBYTE startwin_state(void)
 {
     Heat *h = &g_tour.heat;
@@ -789,17 +812,36 @@ static UBYTE startwin_state(void)
     case HEAT_PRE:
     case HEAT_READY:     return 0;
     case HEAT_RED_LIGHT: return 1;
-    case HEAT_TAPE_UP:   return (UBYTE)((h->phase_timer << 2) | 2);
-    default:             return SW_NONE;      /* ruszyli: okienko znika */
+    case HEAT_TAPE_UP:
+    case HEAT_RACING:    /* odlot tasmy trwa jeszcze chwile po ruszeniu, potem okienko znika */
+        return h->phase_timer < SW_FLY ? (UBYTE)((h->phase_timer << 2) | 2) : SW_NONE;
+    default:             return SW_NONE;
     }
 }
 
-static void draw_startwin(UBYTE *b, UBYTE st)
+/* Statyczne tlo okienka w punkcie (x, y) - tym zamazujemy poprzednie polozenie tasmy.
+ * Musi dawac to samo co draw_startwin_static (trybuna, kibice, poprzeczka, lampka, nawierzchnia). */
+static UBYTE startwin_px(WORD x, WORD y, UBYTE lamp)
 {
     static const UBYTE lamp_col[3] = { U_PANEL, U_RED, U_GREEN };
-    WORD x, y, k = (WORD)(st >> 2), g;
+    if (y == SW_Y + 6 || y == SW_Y + 7) return U_GREY;                       /* poprzeczka */
+    if (y >= SW_Y + 8 && y < SW_Y + 13 && x >= SW_X + 52 && x < SW_X + 60) return lamp_col[lamp];
+    if (y < SW_Y + 24) {                                                     /* trybuna z kibicami */
+        if (y >= SW_Y + 4 && (y - (SW_Y + 4)) % 3 == 0 && ((x - (SW_X + 3)) & 1) == 0)
+            return (UBYTE)(140 + ((x * 7 + y * 13) % 32));
+        return 129;
+    }
+    if (((x * 37 + y * 91) & 7) == 0) return (UBYTE)(19 + ((x + y) & 3));   /* faktura nawierzchni */
+    return 24;
+}
+
+static void draw_lamp(UBYTE *b, UBYTE lamp);
+
+static void draw_startwin_static(UBYTE *b, UBYTE lamp)
+{
+    WORD x, y;
     panel(b, SW_X, SW_Y, SW_W, SW_H, U_PANEL, U_BORDER);
-    if (st == 3) {                                           /* awaria maszyny startowej */
+    if (lamp == 3) {                                         /* awaria maszyny startowej */
         text_draw(b, SW_X + 8, SW_Y + 10, "AWARIA", U_RED, U_SHADOW);
         text_draw(b, SW_X + 8, SW_Y + 24, "MASZYNY", U_RED, U_SHADOW);
         text_draw(b, SW_X, SW_Y + 44, "START Z FLAGI", U_WHITE, U_SHADOW);
@@ -810,52 +852,77 @@ static void draw_startwin(UBYTE *b, UBYTE st)
     hw_wait_blit();
     for (y = SW_Y + 4; y < SW_Y + 24; y += 3)                /* kibice */
         for (x = SW_X + 3; x < SW_X + SW_W - 3; x += 2)
-            plot(b, x, y, (UBYTE)(140 + ((x * 7 + y * 13) % 32)));
+            plot(b, x, y, startwin_px(x, y, lamp));
     for (y = SW_Y + 24; y < SW_Y + SW_H - 2; y++)            /* faktura nawierzchni */
         for (x = SW_X + 2; x < SW_X + SW_W - 2; x++)
-            if (((x * 37 + y * 91) & 7) == 0) plot(b, x, y, (UBYTE)(19 + ((x + y) & 3)));
-    for (g = 0; g < 4; g++) {                                /* kaski za tasma */
-        const Bike *bk = &g_tour.bikes[g];
-        WORD cx = (WORD)(SW_X + 26 + g * 20), cy = SW_Y + 44, dx, dy;
-        if (bk->state == BIKE_EXCLUDED) continue;
-        for (dy = -5; dy <= 5; dy++)
-            for (dx = -5; dx <= 5; dx++)
-                if (dx * dx + dy * dy <= 26)
-                    plot(b, cx + dx, cy + dy, dy == -1 ? U_SHADOW : (UBYTE)(U_HELMET + g));   /* gogle */
-    }
+            if (((x * 37 + y * 91) & 7) == 0) plot(b, x, y, startwin_px(x, y, lamp));
     for (y = SW_Y + 6; y < SW_Y + SW_H - 4; y++)             /* slupki maszyny */
         for (x = 0; x < 3; x++) {
             UBYTE c = ((y >> 2) & 1) ? U_RED : U_WHITE;
             plot(b, SW_X + 8 + x, y, c);
             plot(b, SW_X + SW_W - 11 + x, y, c);
         }
-    for (x = SW_X + 8; x < SW_X + SW_W - 8; x++) {           /* poprzeczka i lampka */
+    for (x = SW_X + 8; x < SW_X + SW_W - 8; x++) {           /* poprzeczka */
         plot(b, x, SW_Y + 6, U_GREY);
         plot(b, x, SW_Y + 7, U_GREY);
     }
-    for (y = SW_Y + 8; y < SW_Y + 13; y++)
-        for (x = SW_X + 52; x < SW_X + 60; x++) plot(b, x, y, lamp_col[st & 3]);
+    draw_lamp(b, lamp);
+}
 
-    /* tasma: dwie nitki; przy odlocie ramiona unosza konce, a srodek wygina sie w dol */
-    {
-        WORD ty = (WORD)(SW_Y + 40 - k * k * 3), half = (SW_W - 22) / 2, mid = SW_X + SW_W / 2;
-        for (x = SW_X + 11; x < SW_X + SW_W - 11; x++) {
-            WORD d = (WORD)(x - mid), bow = (WORD)(k * 3 * (half * half - d * d) / (half * half));
-            WORD yy = (WORD)(ty + bow);
-            if (yy >= SW_Y + 3 && yy < SW_Y + SW_H - 6) {
-                plot(b, x, yy, U_WHITE);
-                plot(b, x, yy + 4, U_WHITE);
+static void draw_lamp(UBYTE *b, UBYTE lamp)
+{
+    WORD x, y;
+    for (y = SW_Y + 8; y < SW_Y + 13; y++)
+        for (x = SW_X + 52; x < SW_X + 60; x++) plot(b, x, y, startwin_px(x, y, lamp));
+}
+
+/* Wstega tasmy w klatce odlotu t (0 = spoczynek): konce unosza ramiona maszyny coraz
+ * szybciej (t^2), srodek zostaje troche w tyle i wygina sie lukiem w dol.
+ * Rysujemy tylko roznice: zamazujemy poprzednia wstege i kladziemy nowa. */
+static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t, UBYTE lamp)
+{
+    WORD x, r, half = (SW_TAPE_X1 - SW_TAPE_X0) / 2, mid = SW_TAPE_X0 + half;
+    LONG rise = (LONG)t * t * 42 / (SW_FLY * SW_FLY);         /* 0..42 px w gore */
+    for (x = SW_TAPE_X0; x < SW_TAPE_X1; x++) {
+        WORD *prev = &tape_prev[bi][x - SW_X];
+        WORD d = (WORD)(x - mid);
+        WORD bow = (WORD)((LONG)t * 10 * (half * half - d * d) / ((LONG)SW_FLY * half * half));
+        WORD yy = (WORD)(SW_TAPE_REST - rise + bow);
+        if (*prev == yy) continue;
+        if (*prev >= 0)
+            for (r = 0; r < SW_TAPE_H; r++) {
+                WORD py = (WORD)(*prev + r);
+                if (py >= SW_Y + 3 && py < SW_Y + SW_H - 6) plot(b, x, py, startwin_px(x, py, lamp));
             }
+        for (r = 0; r < SW_TAPE_H; r++) {
+            WORD py = (WORD)(yy + r);
+            /* biala wstega z delikatnymi pionowymi paskami co 4 px */
+            if (py >= SW_Y + 3 && py < SW_Y + SW_H - 6)
+                plot(b, x, py, ((x - SW_TAPE_X0) & 3) == 0 ? U_SILVER : U_WHITE);
         }
+        *prev = yy;
     }
 }
 
 static void update_startwin(UBYTE *b, UBYTE bi)
 {
-    UBYTE st = startwin_state();
-    if (st == startwin_drawn[bi]) return;
-    if (st == SW_NONE) blit_copy(b, g_video.background, SW_X, SW_Y, SW_W, SW_H);
-    else draw_startwin(b, st);
+    UBYTE st = startwin_state(), lamp, old = startwin_drawn[bi];
+    WORD x;
+    if (st == old) return;
+    if (st == SW_NONE) {
+        blit_copy(b, g_video.background, SW_X, SW_Y, SW_W, SW_H);
+        startwin_drawn[bi] = SW_NONE;
+        return;
+    }
+    lamp = (UBYTE)(st & 3);
+    if (old == SW_NONE || (old & 3) == 3 || lamp == 3) {
+        draw_startwin_static(b, lamp);                       /* tlo raz, potem tylko zmiany */
+        for (x = 0; x < SW_W; x++) tape_prev[bi][x] = -1;
+    } else if ((old & 3) != lamp) {
+        draw_lamp(b, lamp);
+    }
+    hw_wait_blit();
+    if (lamp != 3) draw_tape_ribbon(b, bi, (WORD)(st >> 2), lamp);
     startwin_drawn[bi] = st;
 }
 

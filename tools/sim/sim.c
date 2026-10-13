@@ -7,7 +7,7 @@
 
 void stubs_init(void);
 
-static const char *lvl_name[3] = { "AMATOR", "PROFI ", "MISTRZ" };
+static const char *lvl_name[3] = { "NOWICJ", "PROFES", "MISTRZ" };
 
 int main(int argc, char **argv)
 {
@@ -27,7 +27,6 @@ int main(int argc, char **argv)
     g_tour.riders[2].ai_level = AI_MASTER;
     g_tour.riders[3].ai_level = AI_PRO;
     track_init();
-    if (argc > 3) track_select((UBYTE)atoi(argv[3]));    /* 0 granit, 1 bakalar, 2 piasek */
     fprintf(trace, "frame,bike,gate,x,y,speed,drift,lap,state\n");
 
     for (h = 0; h < heats; h++) {

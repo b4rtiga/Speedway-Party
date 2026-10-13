@@ -8,7 +8,17 @@
  * Jednorazowy efekt na Pauli: start DMA laduje (latch) LC/LEN do licznikow,
  * wiec w nastepnej klatce wpisujemy do LC/LEN 2-slowowa cisze - po koncu
  * probki Paula "zapetli" juz tylko cisze.
- * Probki generuje tools/genaudio.py; bez plikow gra jest po prostu cicha. */
+ * Probki generuje tools/genaudio.py; bez plikow gra jest po prostu cicha.
+ *
+ * Muzyka "Night Grid" (plansza tytulowa i ustawienia): gotowy miks PCM signed 8 bit mono,
+ * ~16 kHz (PAL, okres 222), data/music.raw, 428 KiB. Zrodlo wczytywane przed przejeciem
+ * sprzetu do dowolnej pamieci (Fast RAM, jesli jest), a Paula gra z dwoch buforow po
+ * 8 KiB w Chip RAM. Para kanalow silnikow (0 lewy + 1 prawy, te same dane, start jednym
+ * zapisem do DMACON) = mono na srodku; w menu silniki milcza.
+ * Kolejka: po zaladowaniu LC/LEN Paula ustawia AUD0 w INTREQ (przerwanie wylaczone -
+ * tylko flaga). Wtedy drugi bufor juz nie gra: wypelniamy go kolejnym kawalkiem utworu
+ * (kursor zawija do bajtu 0) i wpisujemy jego adres do LC. Bufor trwa ~0.5 s, a flage
+ * sprawdzamy co klatke (20 ms). */
 #include <exec/memory.h>
 #include <proto/exec.h>
 
@@ -32,6 +42,12 @@
 #define PER_CROWD    322                  /* 11025 Hz */
 #define PER_BUZZER   322
 #define PER_WHISTLE  161                  /* 22050 Hz */
+#define PER_MUSIC    222                  /* 3546895 / 222 = 15977 Hz (PAL) */
+#define MUSIC_VOL    48
+#define MUSIC_BUF    8192UL               /* bajtow na bufor DMA = 4096 slow w AUDxLEN */
+#define MUSIC_FADE   4                    /* wyciszanie: glosnosc w dol o 4 na klatke */
+#define INTF_AUD0    0x0080
+#define INTF_AUD1    0x0100
 
 typedef struct { BYTE *data; ULONG len; } Sample;
 enum { S_ENGINE = 0, S_CROWD, S_BUZZER, S_WHISTLE, S_COUNT };
@@ -40,6 +56,19 @@ static const char *files[S_COUNT] = {
     "PROGDIR:data/buzzer.raw", "PROGDIR:data/whistle.raw"
 };
 static Sample smp[S_COUNT];
+static Sample music;                      /* data/music.raw, Fast albo Chip RAM */
+static UBYTE *music_buf[2];               /* bufory DMA w Chip RAM */
+static BOOL   music_on;
+static UBYTE  music_vol;
+static UBYTE  music_queued;               /* bufor wpisany do LC (gra albo zaraz zagra) */
+static BOOL   music_dirty[2];             /* bufor odegrany - do ponownego wypelnienia */
+static ULONG  music_cursor;               /* nastepny bajt utworu */
+BOOL g_music_enabled = TRUE;              /* opcja MUZYKA w ustawieniach */
+#ifdef SHOW_LAG
+ULONG g_music_fills, g_music_loops, g_chip_free;   /* diagnostyka na ekranie ustawien */
+ULONG g_kb_bytes;                                  /* bajty z klawiatury (input.c) */
+UBYTE g_kb_last;
+#endif
 static UWORD *silence;                    /* 2 slowa zer w Chip RAM */
 static BOOL   running;
 static UBYTE  sfx_relatch;                /* klatki do podmiany LC/LEN na cisze */
@@ -55,6 +84,14 @@ BOOL audio_init(void)
     if (!silence) return FALSE;
     for (i = 0; i < S_COUNT; i++)
         smp[i].data = (BYTE *)asset_load_alloc(files[i], &smp[i].len, MEMF_CHIP);
+    /* muzyka: brak pliku albo brak Chip RAM -> menu po prostu bez muzyki */
+    music.data = (BYTE *)asset_load_alloc("PROGDIR:data/music.raw", &music.len, MEMF_ANY);
+    music_buf[0] = AllocMem(MUSIC_BUF * 2, MEMF_CHIP);
+    music_buf[1] = music_buf[0] ? music_buf[0] + MUSIC_BUF : 0;
+    if (music.data && (music.len < 4 || (music.len & 1) || !music_buf[0])) {
+        FreeMem(music.data, music.len);
+        music.data = 0;
+    }
     return TRUE;
 }
 
@@ -63,6 +100,8 @@ void audio_free(void)
     UBYTE i;
     for (i = 0; i < S_COUNT; i++)
         if (smp[i].data) FreeMem(smp[i].data, smp[i].len);
+    if (music.data) FreeMem(music.data, music.len);     /* audio_stop wylaczyl juz DMA */
+    if (music_buf[0]) FreeMem(music_buf[0], MUSIC_BUF * 2);
     if (silence) FreeMem(silence, 4);
 }
 
@@ -72,11 +111,7 @@ static void set_ptr(UBYTE ch, const void *p, ULONG bytes)
     REG16(AUD(ch, A_LEN)) = (UWORD)(bytes >> 1);
 }
 
-static void wait_lines(UWORD n)
-{
-    UWORD start = hw_vpos();
-    while ((UWORD)(hw_vpos() - start) < n) ;
-}
+static void wait_lines(UWORD n) { hw_wait_lines(n); }
 
 static void start_loop(UBYTE ch, const Sample *s, UWORD per, UBYTE vol)
 {
@@ -97,6 +132,7 @@ void audio_start(void)
     start_loop(CH_CROWD,   &smp[S_CROWD], PER_CROWD, 0);
     set_ptr(CH_SFX, silence, 4);
     REG16(AUD(CH_SFX, A_VOL)) = 0;
+    music_on = FALSE;
     running = TRUE;
 }
 
@@ -123,6 +159,109 @@ static void play_sfx(UBYTE id, UWORD per, UBYTE vol)
 
 void sfx_buzzer(void)  { play_sfx(S_BUZZER, PER_BUZZER, 64); crowd_boost = 100; }
 void sfx_whistle(void) { play_sfx(S_WHISTLE, PER_WHISTLE, 56); }
+
+/* ---------------------------- muzyka --------------------------------- */
+
+/* kolejne MUSIC_BUF bajtow utworu do bufora, przez koniec petli (dlugosci parzyste) */
+static void music_fill(UBYTE i)
+{
+    UWORD *d = (UWORD *)music_buf[i];
+    ULONG left = MUSIC_BUF;
+    while (left) {
+        ULONG n = music.len - music_cursor;
+        const UWORD *src = (const UWORD *)(music.data + music_cursor);
+        if (n > left) n = left;
+        left -= n;
+        music_cursor += n;
+        if (music_cursor >= music.len) {
+            music_cursor = 0;
+#ifdef SHOW_LAG
+            g_music_loops++;
+#endif
+        }
+        for (n >>= 1; n; n--) *d++ = *src++;
+    }
+    music_dirty[i] = FALSE;
+#ifdef SHOW_LAG
+    g_music_fills++;
+#endif
+}
+
+static void music_queue(UBYTE i)
+{
+    set_ptr(CH_ENGINE0, music_buf[i], MUSIC_BUF);
+    set_ptr(CH_ENGINE1, music_buf[i], MUSIC_BUF);
+    music_queued = i;
+}
+
+/* zawsze od poczatku utworu; oba kanaly startuja jednym zapisem do DMACON (synchronicznie) */
+static void music_start(void)
+{
+    REG16(R_DMACON) = (1 << CH_ENGINE0) | (1 << CH_ENGINE1);
+    wait_lines(3);
+    REG16(R_INTREQ) = INTF_AUD0 | INTF_AUD1;
+    music_cursor = 0;
+    music_fill(0);
+    music_fill(1);
+    music_queue(0);
+    music_vol = MUSIC_VOL;
+    REG16(AUD(CH_ENGINE0, A_PER)) = PER_MUSIC;
+    REG16(AUD(CH_ENGINE1, A_PER)) = PER_MUSIC;
+    REG16(AUD(CH_ENGINE0, A_VOL)) = music_vol;
+    REG16(AUD(CH_ENGINE1, A_VOL)) = music_vol;
+    REG16(R_DMACON) = (UWORD)(DMAF_SETCLR | (1 << CH_ENGINE0) | (1 << CH_ENGINE1));
+    music_on = TRUE;
+}
+
+/* Paula zaladowala bufor z LC (flaga AUD0): drugi bufor skonczyl grac -> wypelnij go
+ * i wpisz do LC; zagra bez przerwy po koncu biezacego. */
+static void music_feed(void)
+{
+    UBYTE cur, nxt;
+    if (!(REG16(R_INTREQR) & INTF_AUD0)) return;
+    REG16(R_INTREQ) = INTF_AUD0 | INTF_AUD1;
+    cur = music_queued;
+    nxt = (UBYTE)(cur ^ 1);
+    if (music_dirty[nxt]) music_fill(nxt);
+    music_queue(nxt);
+    music_dirty[cur] = TRUE;
+}
+
+static void music_stop(void)
+{
+    REG16(AUD(CH_ENGINE0, A_VOL)) = 0;
+    REG16(AUD(CH_ENGINE1, A_VOL)) = 0;
+    REG16(R_DMACON) = (1 << CH_ENGINE0) | (1 << CH_ENGINE1);
+    wait_lines(3);
+    REG16(R_INTREQ) = INTF_AUD0 | INTF_AUD1;
+    eng_vol[0] = eng_vol[1] = 0;
+    eng_rpm[0] = eng_rpm[1] = 0;
+    start_loop(CH_ENGINE0, &smp[S_ENGINE], 2000, 0);
+    start_loop(CH_ENGINE1, &smp[S_ENGINE], 2000, 0);
+    music_on = FALSE;
+}
+
+static BOOL music_wanted(void)
+{
+    return (BOOL)(music.data && g_music_enabled && (g_tour.state == GS_TITLE || g_tour.state == GS_SETUP));
+}
+
+/* start przy wejsciu do menu (raz), przy wyjsciu krotkie wyciszenie i stop */
+static void update_music(void)
+{
+    BOOL want = music_wanted();
+    if (!music_on) {
+        if (want) music_start();
+        return;
+    }
+    music_feed();
+    if (!want) {
+        music_vol = (UBYTE)(music_vol > MUSIC_FADE ? music_vol - MUSIC_FADE : 0);
+        REG16(AUD(CH_ENGINE0, A_VOL)) = music_vol;
+        REG16(AUD(CH_ENGINE1, A_VOL)) = music_vol;
+        if (!music_vol) music_stop();
+    }
+}
 
 /* ---------------------------- silniki -------------------------------- */
 
@@ -233,6 +372,7 @@ void audio_update(void)
     if (!running) return;
     if (sfx_relatch && !--sfx_relatch)
         set_ptr(CH_SFX, silence, 4);          /* po koncu efektu Paula gra juz cisze */
-    update_engines();
+    update_music();
+    if (!music_on) update_engines();      /* kanaly 0/1 zajete przez muzyke */
     update_crowd();
 }

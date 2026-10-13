@@ -168,6 +168,7 @@ int main(void)
 
     g_tour.state = GS_TITLE;   render(); shot("01_title", FALSE);
     g_tour.num_humans = 2;
+    tournament_default_names();       /* GRACZ 2 zamiast CPU 2 */
     g_tour.state = GS_SETUP;   render(); shot("02_setup", FALSE);
     g_tour.num_humans = 0;
 
@@ -259,21 +260,6 @@ int main(void)
     while (g_tour.heat.phase != HEAT_RED_LIGHT) step();
     bike_sprites(); render(); hud_update(); shot("16_awaria", TRUE);
 
-    /* pozostale tory: bieg w trakcie */
-    {
-        static const char *names[NUM_TRACKS] = { "05_racing", "11_bakalar", "12_piasek" };
-        UBYTE t;
-        for (t = 1; t < NUM_TRACKS; t++) {
-            track_select(t);
-            track_set_wetness(0);
-            begin(0);
-            g_tour.state = GS_HEAT;
-            while (g_tour.heat.phase != HEAT_RACING) step();
-            for (i = 0; i < 560; i++) step();
-            bike_sprites(); render(); shot(names[t], TRUE);
-        }
-        track_select(0);
-    }
     printf("zrzuty: tools/shots/out/\n");
     return 0;
 }

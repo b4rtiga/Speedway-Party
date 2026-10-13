@@ -20,3 +20,6 @@ __pycache__/
 Thumbs.db
 .vscode/
 *.uaem
+
+# paczka zrodlowa muzyki (do gry trafia data/music.raw)
+/src/music/

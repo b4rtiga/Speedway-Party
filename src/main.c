@@ -13,6 +13,8 @@
  *   TITLE -> SETUP -> TABLE -> HEAT -> HEAT_RESULT -> [TRACK_GRADING] -> TABLE ...
  *   przed biegami 14 i 15: GATE_PICK -> TABLE -> HEAT;  po 15: PODIUM -> SETUP
  */
+#include <exec/memory.h>
+#include <proto/exec.h>
 #include <proto/dos.h>
 #include "game.h"
 #include "video.h"
@@ -263,7 +265,8 @@ int main(void)
 
     fixmath_init();
     {
-        /* ziarno losowania z zegara systemowego - co uruchomienie inne nazwiska */
+        /* ziarno z zegara systemowego (jesli komputer ma zegar z bateria); dalej mieszane
+         * w enter() pozycja wiazki przy wejsciu do ustawien */
         struct DateStamp ds;
         DateStamp(&ds);
         g_rng ^= (ULONG)ds.ds_Tick * 2654435761UL ^ (ULONG)ds.ds_Minute << 12 ^ (ULONG)ds.ds_Days;
@@ -276,6 +279,9 @@ int main(void)
     records_load();
     if (!track_init()) { rc = 20; goto out; }   /* wszystkie tory (przed przejeciem) */
     ui_init();
+#ifdef SHOW_LAG
+    { extern ULONG g_chip_free; g_chip_free = AvailMem(MEMF_CHIP); }   /* po wczytaniu wszystkiego */
+#endif
     hud_init();
     {
         /* obie listy Coppera z pustymi duszkami; bez zapisu COP1LC - OS jeszcze dziala */

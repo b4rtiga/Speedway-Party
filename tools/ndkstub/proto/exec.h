@@ -9,4 +9,5 @@ void Forbid(void); void Permit(void);
 ULONG Supervisor(ULONG (*userFunction)());
 struct Library *OpenLibrary(CONST_STRPTR libName, ULONG version);
 void CloseLibrary(struct Library *library);
+ULONG AvailMem(ULONG req);
 #endif

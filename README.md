@@ -13,7 +13,7 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 |---|---|---|
 | ![Tytuł](art/screen_01_title.png) | ![Start spod taśmy](art/screen_04_gate_red.png) | ![Taśma!](art/screen_06_false_start.png) |
 | ![Program zawodów](art/screen_03_table.png) | ![Przerwa na tor](art/screen_08_grading.png) | ![Podium](art/screen_10_podium.png) |
-| ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Tor BAKAŁAR](art/screen_11_bakalar.png) | ![Tor PIASEK](art/screen_12_piasek.png) |
+| ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Wyniki biegu](art/screen_07_result.png) | ![Awaria maszyny startowej](art/screen_16_awaria.png) |
 
 
 ## Pobierz i zagraj
@@ -49,8 +49,8 @@ Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, 
 Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko zawodnicy z remisu, a pola startowe są losowane. Nie ma liczenia zwycięstw ani kombinowania, decyduje tor.
 
 Puste miejsca przy kanapie zajmują boty:
-- **Amator** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.
-- **Profi** ma refleks i nie zawaha się „zamknąć płotu”, gdy próbujesz go minąć po wewnętrznej.
+- **Nowicjusz** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.
+- **Profesjonalista** ma refleks i nie zawaha się „zamknąć płotu”, gdy próbujesz go minąć po wewnętrznej.
 - **Mistrz** czyta tor jak gazetę: wie, gdzie jest przyczepność, łamie dokładnie tyle, ile trzeba, a gdy trzeba, odjeżdża szeroko pod bandą.
 
 ### 🚦 Start spod taśmy
@@ -60,7 +60,7 @@ Zielone, brzęczyk, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśm
 
 Kto nie wytrzyma nerwowo i puści za wcześnie, usłyszy gwizdek: **TAŚMA!** Sędzia macha czerwoną flagą, a druga taśma w biegu oznacza wykluczenie. Kto z kolei przegapi zielone, będzie mielił kołem w miejscu, patrząc na plecy rywali.
 
-W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową z boku: kaski zawodników tuż za taśmą i lampkę. Na zielonym taśma wystrzeliwuje w górę, a okienko znika w chwili ruszenia.
+W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową: taśmę i lampkę. Na zielonym taśma płynnie odlatuje w górę, a okienko znika zaraz po ruszeniu.
 
 Raz na jakiś czas maszyna startowa odmawia posłuszeństwa: światła gasną, taśma znika, a sędzia startuje bieg **flagą narodową**. Trzeba wtedy patrzeć na jego rękę.
 
@@ -95,13 +95,7 @@ To tam rodzi się najpiękniejszy manewr: **„szeroka niesie”**. Jeśli wjedz
 
 Tor **wyjeżdża się na Twoich oczach**. Każdy przejazd rozpędzonego motocykla ubija nawierzchnię, więc linia, którą jeździ cała stawka, z biegu na bieg ciemnieje, gładnieje, trzyma coraz lepiej i robi się najszybsza. Grudki szprycy spadające obok spulchniają tor, a równarka podczas przerwy zaciera ścieżki i wszystko zaczyna się od nowa. Po polewaniu wyjeżdżona linia przesycha pierwsza. Pytanie tylko, czy wolisz jechać sprawdzoną ścieżką za rywalem, prosto w jego szprycę, czy szukać własnej drogi.
 
-Wszystkie tory mają ciemnoszarą nawierzchnię z **bakałaru**. W menu wybierasz jeden z trzech kształtów:
-
-| Tor | Charakter |
-|---|---|
-| ⚫ **GRANIT** | Klasyczny owal. Dobry na początek. |
-| ⚫ **BAKAŁAR** | Długie proste i ciasne łuki. Węższy i bardziej techniczny, ale trzyma koło lepiej niż inne. |
-| ⚫ **PIASEK** | Krótkie proste i wielkie, okrągłe łuki. Ślisko, za to pod bandą czeka szerokie odsypisko dla odważnych. |
+Zawody odbywają się na klasycznym owalu z ciemnoszarą nawierzchnią z **bakałaru**.
 
 ### 💧 Polewaczka, czyli tor zmienia się w trakcie zawodów
 Na start turnieju **stan toru jest losowany**: suchy, wilgotny albo mokry. Jeśli wolisz inny, zmienisz go w menu.
@@ -146,7 +140,7 @@ make dist
 Powstaje katalog `dist/`:
 ```
 dist/SpeedwayParty          plik wykonywalny
-dist/data/*                 grafika (3 tory), dźwięk - ładowane z PROGDIR:data/
+dist/data/*                 grafika, dźwięk, muzyka - ładowane z PROGDIR:data/
 dist/s/startup-sequence     uruchamia grę od razu po starcie Amigi
 ```
 
@@ -199,7 +193,7 @@ Każdy gracz ma tylko **LEWO i PRAWO**. Gaz jest automatyczny.
 - **Jazda:** LEWO łamie motocykl w łuk (do 40°), PRAWO to kontra (do ok. 14°, głównie prostuje). Szczegóły w sekcji [Mechanika gry](#mechanika-gry).
 - **Szeroka niesie:** pod bandą, z pełną prędkością i w lekkim uślizgu motocykl dostaje dodatkowe przyspieszenie. Za wolno pod bandą motocykl się zakopuje.
 - **Szpryca:** jazda tuż za rywalem w uślizgu lekko spowalnia. Szukaj czystej linii.
-- **Menu:** joystick (góra/dół/lewo/prawo/fire) albo strzałki i Return. Na start zawodnicy dostają losowe nazwiska z puli prawdziwych żużlowców (Zmarzlik, Lambert, Kurtz…). Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
+- **Menu:** joystick (góra/dół/lewo/prawo/fire) albo strzałki i Return. Zawodnicy nazywają się na start GRACZ 1, GRACZ 2… (sterowani przez ludzi) i CPU 2, CPU 3… (boty), zależnie od liczby graczy. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
 - Liczbę graczy zmieniasz w pierwszym wierszu ekranu ustawień (LEWO/PRAWO).
 
 ---
@@ -234,14 +228,14 @@ src/
   blit.c        Blitter: wypełnianie, kopiowanie, kropki „cookie-cut” (szpryca)
   start.c       procedura startowa, taśma, refleks
   race.c        model jazdy: auto-gaz, uślizg, banda, kontakt, okrążenia
-  ai.c          boty: Amator / Profi / Mistrz
+  ai.c          boty: Nowicjusz / Profesjonalista / Mistrz
   roost.c       szpryca i woda z polewaczki (cząsteczki Blittera)
   track.c       geometria owalu, mapa przyczepności, wilgotność
   tractors.c    przerwa na tor (traktory na duszkach)
   tournament.c  tabela 15 biegów, punkty, biegi nominowane
   ui.c, text.c  ekrany tekstowe, font z polskimi literami
   hud.c         HUD: kolejność, okrążenie, światła, sędzia z flagą
-  audio.c       Paula: silniki, kibice, brzęczyk, gwizdek
+  audio.c       Paula: silniki, kibice, brzęczyk, gwizdek, muzyka w menu
   input.c       joysticki, adapter LPT, klawiatura (CIA)
   assets.c      ładowanie data/ przed przejęciem sprzętu
 data/           gotowe dane binarne (generowane narzędziami)
@@ -254,10 +248,10 @@ tools/          generatory, sprawdzanie kodu, symulator
 ## Znane ograniczenia / do zrobienia
 
 ### Stan
-- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS) przy stałych 50 FPS: plansza tytułowa, menu, turniej, biegi na wszystkich trzech torach, polewanie, dźwięk.
+- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS) przy stałych 50 FPS: plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu.
 - **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
 - Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
-- Gra zajmuje ok. 1 MB Chip RAM (trzy tory, motocykle, traktory, plansza tytułowa, dźwięk), więc potrzebuje A1200 z 2 MB Chip.
+- Gra zajmuje ok. 1,4 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i 428 KiB muzyki), więc potrzebuje A1200 z 2 MB Chip. Na Amidze z Fast RAM muzyka ląduje w Fast RAM.
 
 ### Znane ograniczenia
 - **Silniki słychać tylko dwa naraz** (lidera i drugiego zawodnika): Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty.
@@ -274,7 +268,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - [x] bieg dodatkowy przy remisie o miejsce na podium
 - [x] tabela rekordów (najlepsze czasy biegu i okrążenia na każdym torze) zapisywana na dysk
 - [ ] tryb treningu: pojedynczy bieg albo jazda na czas
-- [ ] muzyka w menu (moduł Protrackera)
+- [x] muzyka w menu: utwór „Night Grid” na planszy tytułowej i w ustawieniach (opcja MUZYKA: TAK/NIE)
 - [ ] więcej torów i stadionów
 - [ ] prawdziwe nagranie silnika żużlowego (z licencją)
 

@@ -39,15 +39,16 @@ static UBYTE decode_joy(UWORD d)
 static void poll_keyboard(void)
 {
     UBYTE c;
-    UWORD line;
     if (!(CIAA_ICR & 0x08)) return;    /* SP: przyszedl bajt z klawiatury */
     c = CIAA_SDR;
     CIAA_CRA |= 0x40;                  /* handshake: SP jako wyjscie (KDAT low) */
-    line = hw_vpos();
-    while ((UWORD)(hw_vpos() - line) < 3) ;   /* >= 85 us */
+    hw_wait_lines(3);                  /* >= 85 us (3 x 64 us), takze na przelomie ramki */
     CIAA_CRA &= (UBYTE)~0x40;
     c = (UBYTE)~c;
     c = (UBYTE)((c >> 1) | (c << 7));
+#ifdef SHOW_LAG
+    { extern ULONG g_kb_bytes; extern UBYTE g_kb_last; g_kb_bytes++; g_kb_last = c; }
+#endif
     keys[c & 0x7F] = (UBYTE)!(c & 0x80);
     if (!(c & 0x80) && (UBYTE)((keyq_head + 1) & 7) != keyq_tail) {
         keyq[keyq_head] = (UBYTE)(c & 0x7F);

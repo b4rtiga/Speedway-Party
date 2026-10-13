@@ -62,7 +62,7 @@ static WORD pro_line(const Bike *b, LONG s)
  *   gain  - jak mocno kat bledu kierunku zamienia sie na docelowy uslizg
  *   cap   - maksymalny uslizg (Mistrz dozuje minimalny -> mniej oporu)
  *   tol   - martwa strefa (wieksza = szarpane, pulsacyjne sterowanie)
- *   hold  - opoznienie reakcji w klatkach (Amator "przetrzymuje" decyzje) */
+ *   hold  - opoznienie reakcji w klatkach (Nowicjusz "przetrzymuje" decyzje) */
 /* gain4: wzmocnienie bledu kierunku x4; ff4: mnoznik przewidywania luku x4 (0 = brak) */
 typedef struct { BYTE gain4, cap, tol, hold, ff4; } SteerTune;
 static const SteerTune tune[3] = {

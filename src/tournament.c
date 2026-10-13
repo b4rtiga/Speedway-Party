@@ -1,5 +1,6 @@
 /* tournament.c - tabela 15 biegow, punktacja 3-2-1-0, biegi nominowane. */
 #include "game.h"
+#include "text.h"
 
 Tournament g_tour;
 
@@ -12,28 +13,41 @@ static const UBYTE fixed_table[FIXED_HEATS][4] = {
     {1,3,0,2}
 };
 
-/* nazwiska poczatkowe: czterech losowych z puli (gracz moze je zmienic w menu) */
-static const char *const name_pool[] = {
-    "LAMBERT", "ZMARZLIK", "KURTZ", "JEPSEN JENSEN", "DUDEK", "MADSEN", "FRICKE", "WORYNA",
-    "BEWLEY", "MICHELSEN", "KUBERA", "HUCKENBECK", "LINDGREN", "VACULIK", "KVECH"
-};
-#define NAME_POOL ((UBYTE)(sizeof(name_pool) / sizeof(name_pool[0])))
+/* nazwa domyslna wiersza: "GRACZ n" dla czlowieka, "CPU n" dla bota (n = numer wiersza) */
+static void default_name(char *dst, UBYTE i, BOOL human)
+{
+    char *p = text_cat(dst, human ? "GRACZ " : "CPU ");
+    text_uint(p, (ULONG)(i + 1), 1);
+}
+
+static BOOL same(const char *a, const char *b)
+{
+    while (*a && *a == *b) { a++; b++; }
+    return (BOOL)(*a == *b);
+}
+
+/* Nazwy zgodne z liczba graczy: pierwsze num_humans wierszy to GRACZ, reszta CPU.
+ * Nazwa wpisana recznie (inna niz domyslna) zostaje. */
+void tournament_default_names(void)
+{
+    UBYTE i;
+    for (i = 0; i < MAX_RIDERS; i++) {
+        char *n = g_tour.riders[i].name, g[NAME_LEN + 1], c[NAME_LEN + 1];
+        default_name(g, i, TRUE);
+        default_name(c, i, FALSE);
+        if (!n[0] || same(n, g) || same(n, c))
+            default_name(n, i, (BOOL)(i < g_tour.num_humans));
+    }
+}
 
 void tournament_defaults(void)
 {
     static const InputPort ports[MAX_RIDERS] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ZX, INPUT_KEYS_NM };
-    UBYTE i, j, pick[NAME_POOL];
+    UBYTE i;
     g_tour.num_humans = 1;
-    for (i = 0; i < NAME_POOL; i++) pick[i] = i;
-    for (i = 0; i < MAX_RIDERS; i++) {                   /* losowanie bez powtorzen */
-        UBYTE k = (UBYTE)rng_range(i, NAME_POOL - 1), t = pick[i];
-        pick[i] = pick[k]; pick[k] = t;
-    }
+    tournament_default_names();
     for (i = 0; i < MAX_RIDERS; i++) {
         Rider *r = &g_tour.riders[i];
-        const char *n = name_pool[pick[i]];
-        for (j = 0; n[j] && j < NAME_LEN; j++) r->name[j] = n[j];
-        r->name[j] = 0;
         r->input = ports[i];
         r->ai_level = (AiLevel)(i % 3);
     }

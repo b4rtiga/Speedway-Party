@@ -17,7 +17,7 @@ SpeedwayParty: $(OBJ)
 src/%.o: src/%.c src/*.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-DATA = data/track0.pal data/track0.bpl data/track1.pal data/track1.bpl data/track2.pal data/track2.bpl data/title.bpl data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw
+DATA = data/track0.pal data/track0.bpl data/title.bpl data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw data/music.raw
 
 # Katalog gotowy do podpiecia w WinUAE jako dysk startowy (bez Workbencha):
 # Kickstart 3.x uruchamia s/startup-sequence, a ta od razu gre.

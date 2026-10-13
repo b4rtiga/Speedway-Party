@@ -31,9 +31,7 @@ VEH_SCALE = 0.85
 # Tory - MUSZA byc zgodne z tabela track_defs w src/track.c (kolejnosc i liczby).
 #   name, half_l (pol prostej), r_in (kraweznik), r_out (banda), nawierzchnia
 PRESETS = [
-    ("granit",  60, 40, 96, "bakalar"),    # klasyczny
-    ("bakalar", 72, 36, 84, "bakalar"),   # dlugie proste, ciasne luki, wezszy
-    ("piasek",  44, 40, 96, "bakalar"),    # krotkie proste, duze okragle luki
+    ("owal",    60, 40, 96, "bakalar"),   # klasyczny owal z bakalaru
 ]
 
 
@@ -633,7 +631,7 @@ def referee_img():
 
 
 # ========================== PLANSZA TYTULOWA =============================
-# 320x256, paleta toru GRANIT (gra startuje na nim). Indeks 0 = przezroczyste:
+# 320x256, paleta toru. Indeks 0 = przezroczyste:
 # tam widac gradient z Coppera (gora i dol planszy, pod napisami).
 
 def make_title():

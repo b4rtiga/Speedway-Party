@@ -134,7 +134,7 @@ typedef struct Particle {
 /* ------------------------------ TOR -------------------------------- */
 typedef enum { GRIP_INNER = 0, GRIP_MIDDLE, GRIP_OUTER, GRIP_DEEP_OUTER, GRIP_WALL } GripZone;
 
-#define NUM_TRACKS     3                  /* GRANIT, BAKALAR, PIASEK (track.c, genart.py) */
+#define NUM_TRACKS     1                  /* jeden owal z bakalaru (track.c, genart.py) */
 #define GRIP_CELL      8                  /* komorka mapy przyczepnosci 8x8 px */
 #define GRIP_W         (320 / GRIP_CELL)
 #define GRIP_H         (208 / GRIP_CELL)
@@ -236,6 +236,7 @@ extern BOOL g_pause_quit;         /* TRUE: pytanie o wyjscie z gry (menu glowne)
 
 /* tournament.c */
 void tournament_defaults(void);                  /* nazwiska, AI - raz przy starcie programu */
+void tournament_default_names(void);              /* GRACZ n / CPU n wg liczby graczy, bez ruszania wpisanych */
 void tournament_reset(void);                     /* punkty i tabela - przed kazdym turniejem */
 void tournament_sort(UBYTE order[MAX_RIDERS]);   /* wg punktow, biegu dodatkowego, zwyciestw */
 BOOL tournament_prepare_runoff(void);            /* remis o podium -> bieg dodatkowy (TRUE) */
@@ -329,6 +330,7 @@ void audio_free(void);
 void audio_start(void);                           /* po przejeciu */
 void audio_stop(void);                            /* przed oddaniem systemu */
 void audio_update(void);                          /* raz na klatke */
+extern BOOL g_music_enabled;                      /* muzyka w menu (opcja w ustawieniach) */
 void sfx_buzzer(void);
 void sfx_whistle(void);
 

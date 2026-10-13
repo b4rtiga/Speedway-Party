@@ -103,4 +103,14 @@ static inline UWORD hw_vpos(void)
     return (UWORD)((REG32(R_VPOSR) >> 8) & 0x1FF);
 }
 
+/* czeka n zmian linii wiazki (64 us kazda) - poprawnie takze przez koniec ramki (311 -> 0) */
+static inline void hw_wait_lines(UWORD n)
+{
+    UWORD last = hw_vpos();
+    while (n) {
+        UWORD v = hw_vpos();
+        if (v != last) { last = v; n--; }
+    }
+}
+
 #endif
