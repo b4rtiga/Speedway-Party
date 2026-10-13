@@ -5,7 +5,12 @@ Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. 
 | ![Bieg w WinUAE](art/winuae_race.png) | ![Plansza tytułowa w WinUAE](art/winuae_title.png) |
 |---|---|
 
-*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip): bieg ze szprycą spod tylnych kół i plansza tytułowa z tęczą z Coppera.*
+*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip)*
+
+### 🎬 Trailer
+[![Trailer Speedway Party - kliknij, żeby obejrzeć](art/trailer_thumb.png)](art/trailer.mp4)
+
+[art/trailer.mp4](art/trailer.mp4) (1 min): plansza tytułowa, ustawienia, program zawodów, start spod taśmy, cały bieg do mety, wyniki i tabela z punktacją. Podkład: „Black Motor”. Obraz rysuje prawdziwy kod gry skompilowany na PC (te same piksele co na Amidze).
 
 Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
@@ -18,7 +23,14 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
 ## Pobierz i zagraj
 
-**[release/SpeedwayParty.zip](release/SpeedwayParty.zip)**: gotowa gra dla Amigi (plik wykonywalny, dane, `s/startup-sequence`, instrukcja `CZYTAJ.TXT`).
+**[release/SpeedwayParty.zip](release/SpeedwayParty.zip)**: gotowa gra dla Amigi. W środku jest katalog `SpeedwayParty/`:
+
+| Plik | Co to jest |
+|---|---|
+| `SpeedwayParty` | **skompilowany program dla Amigi** (plik wykonywalny AmigaOS, bez rozszerzenia) - to go uruchamiasz |
+| `data/` | grafika, dźwięk i muzyka; musi leżeć obok programu |
+| `s/startup-sequence` | uruchamia grę od razu po starcie Amigi, gdy katalog jest dyskiem startowym |
+| `CZYTAJ.TXT` | krótka instrukcja |
 
 Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 3.x. Fast RAM nie jest potrzebny.
 - **Na Amidze:** rozpakuj, w Shellu wejdź do katalogu `SpeedwayParty` i uruchom `SpeedwayParty`.
@@ -230,6 +242,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szpryca, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
 | `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z prawdziwego nagrania |
 | `python tools/mksocial.py` | miniaturka do podglądu linków na GitHubie, `art/social_preview.png` (1280×640) |
+| `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` z prawdziwego kodu gry (wymaga ffmpeg) |
 
 Geometria toru jest zapisana w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS` w `tools/genart.py`. Wartości (`HALF_L, R_IN, R_OUT`) muszą być identyczne.
 

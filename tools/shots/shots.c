@@ -6,6 +6,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#include <io.h>
+#include <fcntl.h>
+#endif
 #include "game.h"
 #include "video.h"
 #include "ui.h"
@@ -61,10 +65,9 @@ static void draw_sprites(void)
     }
 }
 
-static void shot(const char *name, BOOL sprites)
+/* sklada klatke 320x256 RGB w rgb[][] tak jak AGA (bitplany + Copper + HUD + duszki) */
+static void compose(BOOL sprites)
 {
-    char path[128];
-    FILE *f;
     int x, y;
     const UBYTE *pb = g_video.play[g_video.back];
 
@@ -88,6 +91,13 @@ static void shot(const char *name, BOOL sprites)
             else set24(o, &cur_hud[c]);
         }
     if (sprites) draw_sprites();
+}
+
+static void shot(const char *name, BOOL sprites)
+{
+    char path[128];
+    FILE *f;
+    compose(sprites);
     snprintf(path, sizeof(path), "tools/shots/out/%s.ppm", name);
     f = fopen(path, "wb");
     fprintf(f, "P6\n320 256\n255\n");
@@ -147,7 +157,82 @@ static void nominate_all(void)
         tournament_assign_gate(g_tour.pick_order[k], tournament_ai_choose_gate(g_tour.pick_order[k]));
 }
 
-int main(void)
+/* ------------------------------------------------------------------------------
+ * Tryb "trailer": kolejne klatki 50 fps (surowe RGB 320x256) na stdout, dla ffmpeg.
+ * Przebieg jak w grze: plansza tytulowa, ustawienia, program zawodow, bieg 1 od
+ * procedury startowej do mety, wyniki biegu i tabela z punktacja. Same boty.
+ * ------------------------------------------------------------------------------ */
+static long trailer_frames;
+
+static void tframe(BOOL sprites)
+{
+    UBYTE i;
+    g_frame++;
+    roost_erase();
+    ui_render();
+    roost_draw();
+    if (sprites) bike_sprites();
+    else for (i = 0; i < 8; i++) video_set_sprite(i, g_blank_sprite);
+    hud_update();
+    compose(sprites);
+    fwrite(rgb, 1, sizeof(rgb), stdout);
+    trailer_frames++;
+}
+
+static void thold(int n, BOOL sprites) { while (n-- > 0) tframe(sprites); }
+static void tenter(GameState s) { g_tour.state = s; ui_invalidate(); }
+
+static int trailer(void)
+{
+    static const UBYTE start_wet[3] = { 0, 130, 255 };
+    HeatPhase last;
+#ifdef _WIN32
+    _setmode(_fileno(stdout), _O_BINARY);
+#endif
+    host_init();
+    fixmath_init();
+    sprites_init();
+    roost_init();
+    tractors_init();
+    tournament_defaults();
+    tournament_reset();
+    track_init();
+    ui_init();
+    hud_init();
+    g_frame = 0;
+
+    tenter(GS_TITLE);  thold(5 * FPS, FALSE);                 /* plansza tytulowa */
+    g_tour.start_condition = 0;                               /* suchy tor */
+    tenter(GS_SETUP);  thold(FPS * 3 / 2, FALSE);             /* ustawienia: 1 gracz... */
+    g_tour.num_humans = 0;                                    /* ...zmiana na pokaz: same boty */
+    tournament_default_names();
+    ui_invalidate();   thold(2 * FPS, FALSE);
+
+    tournament_reset();                                       /* START TURNIEJU */
+    g_tour.current_heat = 0;
+    track_reset_wear();
+    track_set_wetness(start_wet[g_tour.start_condition]);
+    tenter(GS_TABLE);  thold(FPS * 7 / 2, FALSE);             /* program zawodow */
+
+    begin(0);                                                 /* bieg 1: start i jazda do mety */
+    tenter(GS_HEAT);
+    last = g_tour.heat.phase;
+    while (g_tour.heat.phase != HEAT_FINISHED && trailer_frames < 20000) {
+        step();
+        if (g_tour.heat.phase != last) { last = g_tour.heat.phase; ui_invalidate(); }
+        tframe(TRUE);
+    }
+    g_tour.new_records = records_check_heat();
+    tournament_award_points();
+    tenter(GS_HEAT_RESULT); thold(6 * FPS, FALSE);           /* wyniki biegu (jak w grze: bez duszkow) */
+
+    g_tour.current_heat = 1;                                  /* tabela z punktami po biegu 1 */
+    tenter(GS_TABLE);  thold(5 * FPS, FALSE);
+    fprintf(stderr, "trailer: %ld klatek (%.1f s)\n", trailer_frames, trailer_frames / 50.0);
+    return 0;
+}
+
+static int screenshots(void)
 {
     static const char test_name[] = "MAREK \x83" "OPATA";   /* test polskiej litery Ł */
     int i;
@@ -262,4 +347,10 @@ int main(void)
 
     printf("zrzuty: tools/shots/out/\n");
     return 0;
+}
+
+int main(int argc, char **argv)
+{
+    if (argc > 1 && !strcmp(argv[1], "trailer")) return trailer();
+    return screenshots();
 }
