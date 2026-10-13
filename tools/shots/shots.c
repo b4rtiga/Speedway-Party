@@ -220,10 +220,22 @@ static int trailer(void)
     begin(0);                                                 /* bieg 1: start i jazda do mety */
     tenter(GS_HEAT);
     last = g_tour.heat.phase;
-    while (g_tour.heat.phase != HEAT_FINISHED && trailer_frames < 20000) {
-        step();
-        if (g_tour.heat.phase != last) { last = g_tour.heat.phase; ui_invalidate(); }
-        tframe(TRUE);
+    {
+        /* TRAILER_LAPS=n: nagranie konczy sie pol sekundy po tym, jak prowadzacy skonczy n okrazen */
+        const char *env = getenv("TRAILER_LAPS");
+        int laps = env ? atoi(env) : 0, after = -1;
+        while (g_tour.heat.phase != HEAT_FINISHED && trailer_frames < 20000) {
+            UBYTE i, lead = 0;
+            step();
+            if (g_tour.heat.phase != last) { last = g_tour.heat.phase; ui_invalidate(); }
+            tframe(TRUE);
+            for (i = 0; i < MAX_RIDERS; i++) if (g_tour.bikes[i].lap > lead) lead = g_tour.bikes[i].lap;
+            if (laps && after < 0 && lead > laps) after = FPS / 2;
+            if (after >= 0 && after-- == 0) {
+                fprintf(stderr, "trailer: %ld klatek (%.1f s), koniec po %d okr.\n", trailer_frames, trailer_frames / 50.0, laps);
+                return 0;
+            }
+        }
     }
     g_tour.new_records = records_check_heat();
     tournament_award_points();
