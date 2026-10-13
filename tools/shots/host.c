@@ -14,7 +14,7 @@ struct ExecBase *SysBase;
 Video g_video;
 
 RGB24  cur_play[256], cur_hud[32];
-UWORD  cap_bg[PLAY_H], cap_fg[PLAY_H];
+UWORD  cap_bg[FULL_H], cap_fg[FULL_H];
 const UWORD *cap_spr[8];
 
 APTR AllocMem(ULONG size, ULONG flags) { (void)flags; return calloc(1, size); }
@@ -47,7 +47,12 @@ void video_blend_track_palette(UBYTE wet)
         cur_play[i].b = (UBYTE)(d->b + (((WORD)w->b - d->b) * wet >> 8));
     }
 }
-void video_set_lines(const UWORD *bg, const UWORD *fg) { memcpy(cap_bg, bg, sizeof(cap_bg)); memcpy(cap_fg, fg, sizeof(cap_fg)); }
+void video_set_lines(const UWORD *bg, const UWORD *fg)
+{
+    size_t n = (g_video.menu ? FULL_H : PLAY_H) * sizeof(UWORD);
+    memcpy(cap_bg, bg, n); memcpy(cap_fg, fg, n);
+}
+void video_set_menu(BOOL menu) { g_video.menu = (UBYTE)(menu ? 1 : 0); }
 void video_set_sprite(UBYTE n, const UWORD *data) { cap_spr[n] = data; }
 UBYTE *video_backbuffer(void) { return g_video.play[g_video.back]; }
 
@@ -67,7 +72,7 @@ static void put_px(UBYTE *buf, WORD x, WORD y, UBYTE c)
 }
 BOOL blit_init(void) { return TRUE; }
 void blit_free(void) {}
-void blit_clear(UBYTE *buf) { memset(buf, 0, PLAY_SIZE); }
+void blit_clear(UBYTE *buf) { memset(buf, 0, FULL_SIZE); }
 void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE c)
 {
     WORD i, j;
@@ -101,8 +106,8 @@ void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, BOOL big)
 
 void host_init(void)
 {
-    g_video.play[0] = calloc(1, PLAY_SIZE);
-    g_video.play[1] = calloc(1, PLAY_SIZE);
+    g_video.play[0] = calloc(1, FULL_SIZE);
+    g_video.play[1] = calloc(1, FULL_SIZE);
     g_video.background = calloc(1, PLAY_SIZE);
     g_video.hud = calloc(1, HUD_SIZE);
     g_video.front = 0;

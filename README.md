@@ -2,10 +2,10 @@
 
 Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. Turniej 15 biegów dla 1–4 graczy na jednej kanapie, wolne miejsca zajmują boty. Kod w C (Bebbo GCC, NDK 3.9).
 
-| ![Bieg w WinUAE](art/winuae_race.png) | ![Ekran tytułowy w WinUAE](art/winuae_title.png) |
+| ![Bieg w WinUAE](art/winuae_race.png) | ![Plansza tytułowa w WinUAE](art/winuae_title.png) |
 |---|---|
 
-*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip): bieg z szprycą spod tylnego koła i ekran tytułowy z tęczą z Coppera.*
+*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip): bieg ze szprycą spod tylnego koła i plansza tytułowa z tęczą z Coppera.*
 
 Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 

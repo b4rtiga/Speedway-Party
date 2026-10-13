@@ -6,6 +6,9 @@
  * buforowaniu kazda zmiana kosztuje wiec dwa przerysowania (w dwoch kolejnych klatkach).
  * Pelne ekrany: czyszczenie Blitterem do koloru 0, ktory Copper zamienia w gradient.
  * Nakladki: panel w stalym prostokacie nad torem; zdjecie = kopia tla Blitterem. */
+#include <exec/memory.h>
+#include <proto/exec.h>
+
 #include "game.h"
 #include "video.h"
 #include "blit.h"
@@ -36,7 +39,8 @@ static UBYTE setup_row;
 static BOOL  editing;
 static UBYTE pick_cursor, pick_prev;
 
-static UWORD line_bg[PLAY_H], line_fg[PLAY_H], rainbow[48];
+static UWORD line_bg[FULL_H], line_fg[FULL_H], rainbow[48];
+static UBYTE *title_img;            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
 
 /* ------------------------------------------------------------------ */
 
@@ -60,6 +64,17 @@ static void rgb12_lerp_table(void)
 void ui_init(void)
 {
     rgb12_lerp_table();
+    /* ilustracja z tools/genart.py; bez pliku plansza ma sam gradient i napisy */
+    title_img = AllocMem(FULL_SIZE, MEMF_CHIP);
+    if (title_img && !asset_load("PROGDIR:data/title.bpl", title_img, FULL_SIZE)) {
+        FreeMem(title_img, FULL_SIZE);
+        title_img = 0;
+    }
+}
+
+void ui_free(void)
+{
+    if (title_img) FreeMem(title_img, FULL_SIZE);
 }
 
 static UBYTE *back(void) { return video_backbuffer(); }
@@ -109,15 +124,17 @@ static const char gate_letter[4] = { 'A', 'B', 'C', 'D' };
 
 /* ======================= EKRAN TYTULOWY =========================== */
 
+/* Plansza tytulowa: ilustracja (zuzlowiec w uslizgu ze szpryca) + napisy na niej.
+ * Pokazywana na starcie gry przez kilka sekund albo do FIRE. */
 static void draw_title(UBYTE *b)
 {
-    text_draw_big_center(b, 34, "SPEEDWAY", U_RAINBOW, U_SHADOW);
-    text_draw_big_center(b, 60, "PARTY", U_GOLD, U_SHADOW);
-    blit_fill(b, 64, 88, 192, 2, U_GOLD);
-    text_draw_center(b, 100, "TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", U_WHITE, U_SHADOW);
-    text_draw_center(b, 116, "AMIGA 1200 AGA", U_GREY, 0);
-    if (blink) text_draw_center(b, 156, "NACIŚNIJ FIRE", U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 192, "ESC - WYJŚCIE", U_GREY, 0);
+    if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
+    text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
+    text_draw_big_center(b, 38, "PARTY", U_GOLD, U_SHADOW);
+    text_draw_center(b, 64, "AMIGA 1200 AGA", U_WHITE, U_SHADOW);
+    if (blink) text_draw_center(b, 206, "NACIŚNIJ FIRE", U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 224, "TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", U_WHITE, U_SHADOW);
+    text_draw_center(b, 240, "GRA: B4RTIGA  (C) 2026", U_GOLD, U_SHADOW);
 }
 
 BOOL ui_title_update(void)
@@ -140,15 +157,15 @@ static const char *level_names[3] = { "AMATOR", "PROFI", "MISTRZ" };
 /* znaki do wyboru joystickiem */
 static const UBYTE charset[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ\x80\x81\x82\x83\x84\x85\x86\x87\x88" "0123456789-.";
 
-static WORD setup_row_y(UBYTE row) { return (WORD)(36 + row * 15); }
+static WORD setup_row_y(UBYTE row) { return (WORD)(54 + row * 18); }
 
 static void draw_setup(UBYTE *b)
 {
     char s[48], *p;
     UBYTE i;
 
-    text_draw_big_center(b, 6, "USTAWIENIA", U_RAINBOW, U_SHADOW);
-    blit_fill(b, 16, setup_row_y(setup_row) - 3, 288, 15, editing ? U_GOLD : U_CURSOR);
+    text_draw_big_center(b, 12, "USTAWIENIA", U_RAINBOW, U_SHADOW);
+    blit_fill(b, 16, setup_row_y(setup_row) - 4, 288, 17, editing ? U_GOLD : U_CURSOR);
 
     p = text_cat(s, "LICZBA GRACZY:   < ");
     p = text_uint(p, g_tour.num_humans, 1);
@@ -180,11 +197,12 @@ static void draw_setup(UBYTE *b)
     text_draw(b, 168, setup_row_y(ROW_COND), s, U_GOLD, U_SHADOW);
     text_draw_center(b, setup_row_y(ROW_START), "START TURNIEJU", setup_row == ROW_START ? U_RAINBOW : U_WHITE, U_SHADOW);
 
-    text_draw_center(b, 168, editing ? "PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA"
+    text_draw_center(b, 202, editing ? "PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA"
                                      : "GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", U_GREY, 0);
-    text_draw_center(b, 182, editing ? "PRAWO: DODAJ  LEWO: USUŃ  FIRE: OK"
+    text_draw_center(b, 216, editing ? "PRAWO: DODAJ  LEWO: USUŃ  FIRE: OK"
                                      : "FIRE: EDYCJA NAZWISKA / START", U_GREY, 0);
-    text_draw_center(b, 196, "ALT+A,C,E,L,N,O,S,X,Z = POLSKIE LITERY", U_GREY, 0);
+    text_draw_center(b, 230, "ALT+A,C,E,L,N,O,S,X,Z = POLSKIE LITERY", U_GREY, 0);
+    text_draw_center(b, 244, "ESC - WYJŚCIE Z GRY", U_GREY, 0);
 }
 
 static UBYTE name_len(const char *n) { UBYTE l = 0; while (n[l]) l++; return l; }
@@ -314,7 +332,7 @@ static void draw_standings(UBYTE *b, WORD y)
     text_draw(b, 256, y, "PKT", U_GREY, 0);
     for (i = 0; i < MAX_RIDERS; i++) {
         Rider *r = &g_tour.riders[order[i]];
-        WORD yy = (WORD)(y + 12 + i * 11);
+        WORD yy = (WORD)(y + 14 + i * 13);
         name_trunc(s, r->name, 11);
         text_draw(b, 16, yy, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
         for (h = 0; h < NUM_HEATS; h++) {
@@ -336,13 +354,13 @@ static void draw_table(UBYTE *b)
 
     p = text_cat(s, "BIEG ");
     text_uint(p, (ULONG)(hn + 1), 1);
-    text_draw_big_center(b, 4, s, U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 28, hn >= FIXED_HEATS ? "BIEG NOMINOWANY" : "PROGRAM ZAWODÓW", U_GOLD, 0);
+    text_draw_big_center(b, 10, s, U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 36, hn >= FIXED_HEATS ? "BIEG NOMINOWANY" : "PROGRAM ZAWODÓW", U_GOLD, 0);
 
-    panel(b, 48, 40, 224, 56, U_PANEL, U_BORDER);
+    panel(b, 48, 52, 224, 64, U_PANEL, U_BORDER);
     for (g = 0; g < 4; g++) {
         Rider *r = &g_tour.riders[g_tour.heat_table[hn][g]];
-        WORD y = (WORD)(44 + g * 12);
+        WORD y = (WORD)(57 + g * 14);
         helmet_box(b, 64, y, g);
         s[0] = gate_letter[g]; s[1] = 0;
         text_draw(b, 88, y + 1, s, U_GREY, 0);
@@ -351,10 +369,10 @@ static void draw_table(UBYTE *b)
         text_draw(b, 216, y + 1, r->control == CTRL_HUMAN ? "GRACZ" : "AI", r->control == CTRL_HUMAN ? U_GREEN : U_GREY, 0);
     }
 
-    draw_standings(b, 104);
+    draw_standings(b, 130);
     wetness_text(s);
-    text_draw_center(b, 172, s, g_tour.track.wetness > 170 ? U_BORDER : U_GREY, 0);
-    if (blink) text_draw_center(b, 192, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 206, s, g_tour.track.wetness > 170 ? U_BORDER : U_GREY, 0);
+    if (blink) text_draw_center(b, 232, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);
 }
 
 BOOL ui_confirm(void)
@@ -372,8 +390,8 @@ static void draw_pick(UBYTE *b)
 
     p = text_cat(s, "BIEG ");
     text_uint(p, (ULONG)(hn + 1), 1);
-    text_draw_big_center(b, 4, s, U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 28, "WYBÓR PÓL STARTOWYCH", U_GOLD, 0);
+    text_draw_big_center(b, 10, s, U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 36, "WYBÓR PÓL STARTOWYCH", U_GOLD, 0);
 
     if (g_tour.pick_index < MAX_RIDERS) {
         Rider *r = &g_tour.riders[g_tour.pick_order[g_tour.pick_index]];
@@ -382,31 +400,31 @@ static void draw_pick(UBYTE *b)
         p = text_cat(p, " (");
         p = text_uint(p, r->points, 1);
         text_cat(p, r->control == CTRL_AI ? " PKT, AI)" : " PKT)");
-        text_draw_center(b, 46, s, U_WHITE, U_SHADOW);
+        text_draw_center(b, 56, s, U_WHITE, U_SHADOW);
     }
 
     for (g = 0; g < 4; g++) {
         WORD x = (WORD)(16 + g * 80);
         BOOL cur = g_tour.pick_index < MAX_RIDERS && g == pick_cursor && row[g] == 0xFF
                    && g_tour.riders[g_tour.pick_order[g_tour.pick_index]].control == CTRL_HUMAN;
-        panel(b, x, 64, 64, 80, cur ? U_CURSOR : U_PANEL, cur ? U_GOLD : U_BORDER);
-        blit_fill(b, x + 16, 68, 32, 10, (UBYTE)(U_HELMET + g));
+        panel(b, x, 78, 64, 96, cur ? U_CURSOR : U_PANEL, cur ? U_GOLD : U_BORDER);
+        blit_fill(b, x + 16, 84, 32, 12, (UBYTE)(U_HELMET + g));
         s[0] = gate_letter[g]; s[1] = 0;
-        text_draw_big(b, x + 24, 84, s, U_WHITE, U_SHADOW);
+        text_draw_big(b, x + 24, 106, s, U_WHITE, U_SHADOW);
         if (row[g] != 0xFF) name_trunc(s, g_tour.riders[row[g]].name, 7);
         else text_cat(s, "WOLNE");
-        text_draw(b, (WORD)(x + ((64 - text_len(s) * 8) / 2 & ~7)), 120, s,
+        text_draw(b, (WORD)(x + ((64 - text_len(s) * 8) / 2 & ~7)), 150, s,
                   row[g] != 0xFF ? U_GOLD : U_GREY, U_SHADOW);
     }
 
-    text_draw(b, 16, 156, "KOLEJNOŚĆ WYBORU:", U_GREY, 0);
+    text_draw(b, 16, 190, "KOLEJNOŚĆ WYBORU:", U_GREY, 0);
     for (i = 0; i < MAX_RIDERS; i++) {
         p = text_uint(s, (ULONG)(i + 1), 1);
         p = text_cat(p, ".");
         name_trunc(p, g_tour.riders[g_tour.pick_order[i]].name, 7);
-        text_draw((UBYTE *)b, (WORD)(i * 80), 170, s, i == g_tour.pick_index ? U_RAINBOW : U_WHITE, 0);
+        text_draw((UBYTE *)b, (WORD)(i * 80), 206, s, i == g_tour.pick_index ? U_RAINBOW : U_WHITE, 0);
     }
-    text_draw_center(b, 192, "LEWO/PRAWO: POLE   FIRE: WYBIERZ", U_GREY, 0);
+    text_draw_center(b, 234, "LEWO/PRAWO: POLE   FIRE: WYBIERZ", U_GREY, 0);
 }
 
 void ui_pick_update(void)
@@ -446,17 +464,17 @@ void ui_pick_update(void)
 
 static void draw_podium(UBYTE *b)
 {
-    static const WORD bx[3] = { 128, 48, 208 }, top[3] = { 76, 96, 112 };
+    static const WORD bx[3] = { 128, 48, 208 }, top[3] = { 86, 110, 128 };
     static const UBYTE col[3] = { U_GOLD, U_SILVER, U_BRONZE };
     UBYTE order[MAX_RIDERS], i;
     char s[48], *p;
 
     tournament_sort(order);
-    text_draw_big_center(b, 4, "KONIEC TURNIEJU", U_RAINBOW, U_SHADOW);
+    text_draw_big_center(b, 10, "KONIEC TURNIEJU", U_RAINBOW, U_SHADOW);
 
     for (i = 0; i < 3; i++) {
         Rider *r = &g_tour.riders[order[i]];
-        blit_fill(b, bx[i], top[i], 64, 136 - top[i], col[i]);
+        blit_fill(b, bx[i], top[i], 64, 166 - top[i], col[i]);
         s[0] = (char)('1' + i); s[1] = 0;
         text_draw_big(b, bx[i] + 24, top[i] + 6, s, U_SHADOW, 0);
         name_trunc(s, r->name, 8);
@@ -464,7 +482,7 @@ static void draw_podium(UBYTE *b)
     }
     for (i = 0; i < MAX_RIDERS; i++) {
         Rider *r = &g_tour.riders[order[i]];
-        WORD y = (WORD)(144 + i * 11);
+        WORD y = (WORD)(178 + i * 13);
         p = text_uint(s, (ULONG)(i + 1), 1);
         p = text_cat(p, ". ");
         p = name_trunc(p, r->name, NAME_EDIT_MAX);
@@ -475,7 +493,7 @@ static void draw_podium(UBYTE *b)
         text_cat(p, " ZW.");
         text_draw(b, 40, y, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
     }
-    if (blink) text_draw_center(b, 196, "FIRE - NOWY TURNIEJ", U_RAINBOW, U_SHADOW);
+    if (blink) text_draw_center(b, 238, "FIRE - NOWY TURNIEJ", U_RAINBOW, U_SHADOW);
 }
 
 /* ========================== NAKLADKI ============================== */
@@ -655,9 +673,9 @@ static void update_line_colors(void)
         for (i = 0; i < PLAY_H; i++) { line_bg[i] = 0x000; line_fg[i] = 0xFFF; }
     } else {
         UWORD ph = (UWORD)(g_frame >> 1);
-        for (i = 0; i < PLAY_H; i++) {
+        for (i = 0; i < FULL_H; i++) {
             /* tlo: granat -> fiolet -> granat; tekst: przesuwajaca sie tecza */
-            UWORD t = i < PLAY_H / 2 ? i : PLAY_H - 1 - i;
+            UWORD t = (UWORD)((i < FULL_H / 2 ? i : FULL_H - 1 - i) * 13 / 16);
             line_bg[i] = (UWORD)(((t / 26) << 8) | ((t / 52) << 4) | (2 + t / 18));
             line_fg[i] = rainbow[(i / 3 + ph) % 48];
         }
@@ -672,6 +690,7 @@ void ui_render(void)
     UBYTE new_blink = (UBYTE)((g_frame >> 4) & 1);
 
     if (new_blink != blink) { blink = new_blink; ui_invalidate(); }
+    video_set_menu(!state_uses_track(g_tour.state));   /* menu: caly ekran bez HUD */
     update_line_colors();
 
     if (state_uses_track(g_tour.state)) {

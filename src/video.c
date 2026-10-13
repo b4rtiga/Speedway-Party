@@ -8,7 +8,7 @@
  *   [bitplany]   BPL1PT..BPL8PT  (16 MOVE)  <- bufor tej listy
  *   [paleta]     8 bankow x (BPLCON3 + 32 MOVE hi + BPLCON3|LOCT + 32 MOVE lo)
  *                = 528 MOVE, miesci sie w wygaszaniu pionowym (linie 0..$2B)
- *   [linie 0..207] co linie: WAIT, COLOR00 (tlo), BPLCON3 bank3, COLOR100, BPLCON3 bank0
+ *   [linie 0..207, w menu 0..255] co linie: WAIT, COLOR00 (tlo), BPLCON3 bank3, COLOR100, BPLCON3 bank0
  *                -> gradient tla i "teczowy" kolor napisow w menu, 1040 instrukcji
  *   WAIT $FC     poczatek HUD: BPLCON0 = 0 planow (pusta przerwa 4 linie)
  *                paleta HUD (32 kolory, bank 0), BPL1..5PT -> ekran HUD, modulo HUD
@@ -67,9 +67,9 @@ static inline UWORD *cop_wait(UWORD *c, UBYTE v, UBYTE h)
 static inline UWORD rgb_hi(const RGB24 *c) { return (UWORD)(((c->r >> 4) << 8) | ((c->g >> 4) << 4) | (c->b >> 4)); }
 static inline UWORD rgb_lo(const RGB24 *c) { return (UWORD)(((c->r & 15) << 8) | ((c->g & 15) << 4) | (c->b & 15)); }
 
-static UWORD *build_copper(UWORD *c, UBYTE buf)
+static UWORD *build_copper(UWORD *c, UBYTE buf, UBYTE menu)
 {
-    UWORD i, b;
+    UWORD i, b, lines = menu ? FULL_H : PLAY_H;
     ULONG pl;
 
     c = cop_move(c, R_FMODE,   BPL_FMODE | FMODE_SPR_4X);
@@ -87,7 +87,7 @@ static UWORD *build_copper(UWORD *c, UBYTE buf)
     c = cop_move(c, R_BPL1MOD, PLAY_STRIDE - ROW_BYTES + MOD_ADJ);   /* przeplot: pomijamy pozostale plany */
     c = cop_move(c, R_BPL2MOD, PLAY_STRIDE - ROW_BYTES + MOD_ADJ);
 
-    g_video.cop_sprites[buf] = c;
+    g_video.cop_sprites[menu][buf] = c;
     for (i = 0; i < 16; i++)
         c = cop_move(c, R_SPR0PT + i * 2, 0);
 
@@ -97,7 +97,7 @@ static UWORD *build_copper(UWORD *c, UBYTE buf)
         c = cop_move(c, R_BPL1PT + i * 4 + 2, (UWORD)pl);
     }
 
-    g_video.cop_play_pal[buf] = c;
+    g_video.cop_play_pal[menu][buf] = c;
     for (b = 0; b < 8; b++) {
         c = cop_move(c, R_BPLCON3, BPLCON3_BANK(b));
         for (i = 0; i < 32; i++) c = cop_move(c, R_COLOR00 + i * 2, 0);
@@ -106,14 +106,21 @@ static UWORD *build_copper(UWORD *c, UBYTE buf)
     }
     c = cop_move(c, R_BPLCON3, BPLCON3_BANK(0));
 
-    /* ---------------- kolory per linia ---------------- */
-    g_video.cop_lines[buf] = c;
-    for (i = 0; i < PLAY_H; i++) {
+    /* ---------------- kolory per linia ----------------
+     * WAIT na koncu poprzedniej linii; dla linii $100 wypada WAIT $FF,$DF, a kolejne
+     * (mlodszy bajt pozycji pionowej) dzialaja juz za granica 255 */
+    g_video.cop_lines[menu][buf] = c;
+    for (i = 0; i < lines; i++) {
         c = cop_wait(c, (UBYTE)(DISPLAY_VSTART + i - 1), 0xDF);
         c = cop_move(c, R_COLOR00, 0x000);
         c = cop_move(c, R_BPLCON3, BPLCON3_BANK(UI_RAINBOW >> 5));
         c = cop_move(c, R_COLOR00 + (UI_RAINBOW & 31) * 2, 0xFFF);
         c = cop_move(c, R_BPLCON3, BPLCON3_BANK(0));
+    }
+
+    if (menu) {                                         /* menu: caly ekran, bez HUD */
+        *c++ = 0xFFFF; *c++ = 0xFFFE;
+        return c;
     }
 
     /* ---------------- strefa HUD ---------------- */
@@ -152,36 +159,42 @@ static UWORD *build_copper(UWORD *c, UBYTE buf)
 
 BOOL video_init(void)
 {
-    UBYTE i;
+    UBYTE i, m;
     for (i = 0; i < 2; i++) {
-        g_video.play[i]   = AllocMem(PLAY_SIZE, MEMF_CHIP | MEMF_CLEAR);
-        g_video.copper[i] = AllocMem(COPPER_WORDS * 2, MEMF_CHIP | MEMF_CLEAR);
-        if (!g_video.play[i] || !g_video.copper[i]) return FALSE;
+        g_video.play[i] = AllocMem(FULL_SIZE, MEMF_CHIP | MEMF_CLEAR);
+        if (!g_video.play[i]) return FALSE;
+        for (m = 0; m < 2; m++) {
+            g_video.copper[m][i] = AllocMem(COPPER_WORDS * 2, MEMF_CHIP | MEMF_CLEAR);
+            if (!g_video.copper[m][i]) return FALSE;
+        }
     }
     /* tla torow (Chip RAM, Blitter kopiuje z nich) przydziela track.c */
     g_video.hud = AllocMem(HUD_SIZE, MEMF_CHIP | MEMF_CLEAR);
     if (!g_video.hud) return FALSE;
 
     for (i = 0; i < 2; i++)
-        build_copper(g_video.copper[i], i);
+        for (m = 0; m < 2; m++)
+            build_copper(g_video.copper[m][i], i, m);
     g_video.front = 0;
     g_video.back  = 1;
+    g_video.menu  = 1;                                  /* gra startuje od planszy tytulowej */
     return TRUE;
 }
 
 void video_free(void)
 {
-    UBYTE i;
+    UBYTE i, m;
     for (i = 0; i < 2; i++) {
-        if (g_video.play[i])   FreeMem(g_video.play[i], PLAY_SIZE);
-        if (g_video.copper[i]) FreeMem(g_video.copper[i], COPPER_WORDS * 2);
+        if (g_video.play[i]) FreeMem(g_video.play[i], FULL_SIZE);
+        for (m = 0; m < 2; m++)
+            if (g_video.copper[m][i]) FreeMem(g_video.copper[m][i], COPPER_WORDS * 2);
     }
     if (g_video.hud)        FreeMem(g_video.hud, HUD_SIZE);
 }
 
 void video_start(void)
 {
-    REG32(R_COP1LC) = (ULONG)g_video.copper[g_video.front];
+    REG32(R_COP1LC) = (ULONG)g_video.copper[g_video.menu][g_video.front];
     REG16(R_COPJMP1) = 0;
     REG16(R_DMACON) = DMAF_SETCLR | DMAF_DMAEN | DMAF_BPLEN | DMAF_COPEN | DMAF_BLTEN | DMAF_SPREN;
 }
@@ -197,10 +210,11 @@ static void write_palette(UWORD *pal_moves, UWORD index, const RGB24 *c)
 void video_set_play_palette(const RGB24 *pal)
 {
     UWORD i;
-    UBYTE b;
-    for (b = 0; b < 2; b++)
-        for (i = 0; i < 256; i++)
-            write_palette(g_video.cop_play_pal[b], i, &pal[i]);
+    UBYTE b, m;
+    for (m = 0; m < 2; m++)
+        for (b = 0; b < 2; b++)
+            for (i = 0; i < 256; i++)
+                write_palette(g_video.cop_play_pal[m][b], i, &pal[i]);
 }
 
 void video_set_hud_palette(const RGB24 *pal)
@@ -238,21 +252,27 @@ void video_blend_track_palette(UBYTE wet)
 
 void video_set_sprite(UBYTE n, const UWORD *data)
 {
-    UWORD *c = g_video.cop_sprites[g_video.back] + n * 4;
-    c[1] = (UWORD)((ULONG)data >> 16);
-    c[3] = (UWORD)(ULONG)data;
+    UBYTE m;
+    for (m = 0; m < 2; m++) {
+        UWORD *c = g_video.cop_sprites[m][g_video.back] + n * 4;
+        c[1] = (UWORD)((ULONG)data >> 16);
+        c[3] = (UWORD)(ULONG)data;
+    }
 }
 
 /* Kolory 12-bit dla kazdej linii pola gry (tylko lista "back" - zmiana od nastepnej ramki).
  * Zapis bez LOCT: AGA kopiuje gorne 4 bity do dolnych. */
 void video_set_lines(const UWORD *bg, const UWORD *fg)
 {
-    UWORD *c = g_video.cop_lines[g_video.back], i;
-    for (i = 0; i < PLAY_H; i++, c += LINE_WORDS) {
+    UWORD *c = g_video.cop_lines[g_video.menu][g_video.back], i;
+    UWORD n = g_video.menu ? FULL_H : PLAY_H;
+    for (i = 0; i < n; i++, c += LINE_WORDS) {
         c[3] = bg[i];
         c[7] = fg[i];
     }
 }
+
+void video_set_menu(BOOL menu) { g_video.menu = (UBYTE)(menu ? 1 : 0); }
 
 UBYTE *video_backbuffer(void)
 {
@@ -265,7 +285,7 @@ UBYTE *video_backbuffer(void)
 void video_swap(void)
 {
     UBYTE t;
-    REG32(R_COP1LC) = (ULONG)g_video.copper[g_video.back];
+    REG32(R_COP1LC) = (ULONG)g_video.copper[g_video.menu][g_video.back];
     t = g_video.front;
     g_video.front = g_video.back;
     g_video.back = t;

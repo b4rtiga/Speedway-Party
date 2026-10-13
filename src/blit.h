@@ -5,7 +5,7 @@
 
 #include <exec/types.h>
 
-void blit_clear(UBYTE *buf);                                         /* caly bufor -> kolor 0 */
+void blit_clear(UBYTE *buf);                                         /* caly bufor (FULL_H) -> kolor 0 */
 void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE color);
 void blit_copy(UBYTE *dst, const UBYTE *src, WORD x, WORD y, WORD w, WORD h);
 

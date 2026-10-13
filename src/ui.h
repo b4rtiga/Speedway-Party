@@ -4,7 +4,8 @@
 
 #include <exec/types.h>
 
-void ui_init(void);
+void ui_init(void);                /* przed przejeciem sprzetu: laduje plansze tytulowa */
+void ui_free(void);
 void ui_invalidate(void);          /* tresc ekranu sie zmienila -> przerysuj oba bufory */
 void ui_render(void);              /* raz na klatke, rysuje do bufora "back" */
 

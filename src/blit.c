@@ -47,7 +47,7 @@ static void start(UWORD con0, const void *a, void *d, WORD amod, WORD dmod, UWOR
 
 void blit_clear(UBYTE *buf)
 {
-    start(USE_D | 0x00, 0, buf, 0, 0, PLAY_H * PLAY_DEPTH, ROW_BYTES / 2);
+    start(USE_D | 0x00, 0, buf, 0, 0, FULL_H * PLAY_DEPTH, ROW_BYTES / 2);
 }
 
 void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE color)

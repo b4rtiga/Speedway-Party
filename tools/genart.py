@@ -375,13 +375,15 @@ SS = 4                 # nadprobkowanie 4x4
 cw = 32                # renderujemy srodek 32x32 duszka 64x32
 
 
-def render_bike(dir_, skid):
+def render_bike(dir_, skid, canvas=None, scale=None):
+    """Motocykl z gory; dir_ moze byc ulamkowy (0..32). canvas/scale: duzy render do ilustracji."""
+    n = canvas or cw
     th = dir_ * 2 * math.pi / DIRS
     c, s = math.cos(th), math.sin(th)
-    o = (np.arange(cw * SS) + 0.5) / SS - cw / 2
+    o = (np.arange(n * SS) + 0.5) / SS - n / 2
     py, px = np.meshgrid(o, o, indexing='ij')
-    u = (px * c + py * s) / BIKE_SCALE
-    v = (-px * s + py * c) / BIKE_SCALE
+    u = (px * c + py * s) / (scale or BIKE_SCALE)
+    v = (-px * s + py * c) / (scale or BIKE_SCALE)
     col = np.zeros(u.shape, dtype=np.int32)
 
     lean = [0.0, -1.0, -2.0][skid]            # pochylenie w lewo (do wnetrza luku)
@@ -417,7 +419,7 @@ def render_bike(dir_, skid):
 
     # kurz spod tylnego kola przy uslizgu: stozek na zewnatrz luku (+v)
     if skid:
-        g = np.random.default_rng(dir_ * 7 + skid)
+        g = np.random.default_rng(int(dir_ * 7) + skid)
         for _ in range(14 + skid * 12):
             t = g.random()
             du = -11.5 - t * (2.5 + skid * 1.5)
@@ -463,15 +465,16 @@ def render_bike(dir_, skid):
     hc = np.where((lit > 0.55) & (dist > 0.8) & (dist < 1.9), WHITE, hc)
     col[helm] = hc[helm]
 
-    return downsample(col)
+    return downsample(col, n)
 
 
-def downsample(col):
+def downsample(col, n=None):
     # redukcja 4x4 -> 1 px: wiekszosc, przezroczystosc gdy > 10/16
-    blocks = col.reshape(cw, SS, cw, SS).transpose(0, 2, 1, 3).reshape(cw, cw, SS * SS)
-    out = np.zeros((cw, cw), dtype=np.int32)
-    for yv in range(cw):
-        for xv in range(cw):
+    n = n or cw
+    blocks = col.reshape(n, SS, n, SS).transpose(0, 2, 1, 3).reshape(n, n, SS * SS)
+    out = np.zeros((n, n), dtype=np.int32)
+    for yv in range(n):
+        for xv in range(n):
             b = blocks[yv, xv]
             cnt = np.bincount(b, minlength=16)
             if cnt[0] > 10:
@@ -626,6 +629,123 @@ def referee_img():
     return a
 
 
+
+# ========================== PLANSZA TYTULOWA =============================
+# 320x256, paleta toru GRANIT (gra startuje na nim). Indeks 0 = przezroczyste:
+# tam widac gradient z Coppera (gora i dol planszy, pod napisami).
+
+def make_title():
+    set_preset(0)
+    track_colors("granit")
+    TH = 256
+    rg = np.random.default_rng(2026)
+    ty, tx = np.mgrid[0:TH, 0:W].astype(np.float64)
+    ccx, ccy = -30.0, 345.0                       # srodek wielkiego luku (poza ekranem)
+    r = np.hypot(tx - ccx, ty - ccy)
+    ang = np.arctan2(ty - ccy, tx - ccx)
+    k_in, k_out, wall = 236.0, 236.0 + 190.0, 236.0 + 196.0
+    t = np.zeros((TH, W), dtype=np.int32)
+    fine_t = rg.random((TH, W))
+    along = ang * 330.0                           # wspolrzedna wzdluz luku
+    streak_t = value_noise(along + 500, r, 11.0, 1.6, 7)
+    blot_t = value_noise(tx, ty, 18.0, 18.0, 13)
+
+    grass = r < k_in - 6
+    stripe = ((tx * 0.7 - ty * 0.7) // 13).astype(int) % 2
+    t[grass] = (64 + stripe * 8 + (2 + (fine_t - 0.5) * 3 + blot_t * 3).clip(0, 7).astype(int))[grass]
+    kerb_t = (r >= k_in - 6) & (r < k_in)
+    t[kerb_t] = np.where(((along / 14).astype(int) % 2) == 0, 57, 58)[kerb_t]
+    surf = (r >= k_in) & (r < k_out)
+    zone_t = np.clip(((r - k_in) * 4 / (k_out - k_in)).astype(int), 0, 3)
+    sh = 3.5 + (fine_t - 0.5) * 2.4 + (streak_t - 0.5) * 3.4 + (blot_t - 0.5) * 1.4
+    lat_t = r - (k_in + k_out) / 2
+    groove_t = np.exp(-((lat_t + 60) / 9.0) ** 2) + 0.7 * np.exp(-((lat_t + 5) / 8.0) ** 2)
+    sh -= groove_t * 2.4 * (0.6 + streak_t)
+    sh = np.clip(sh.round().astype(int), 0, 7)
+    t[surf] = (16 + zone_t * 8 + sh)[surf]
+    stones_t = surf & (r > k_out - 30) & (fine_t > 0.88)
+    t[stones_t] = 52 + ((fine_t[stones_t] - 0.88) * 33).astype(int).clip(0, 3)
+    wall_t = (r >= k_out) & (r < wall)
+    seg_t = (along / 40).astype(int)
+    t[wall_t] = np.where(r[wall_t] < k_out + 2, 95, 80 + (seg_t[wall_t] * 5) % 8)
+    stand_t = r >= wall
+    kk = (r - wall).astype(int)
+    hsh = ((along / 3).astype(np.int64) * 73856093 ^ (kk // 3) * 19349663) & 0xFFFFFF
+    crowd = np.where(kk % 3 == 0, 129, np.where((hsh >> 9) % 100 < 12, 176, 140 + (hsh % 32)))
+    crowd = np.where((kk % 3 == 2) & ((hsh >> 5) % 2 == 0), 172 + (hsh >> 7) % 4, crowd)
+    t[stand_t] = crowd[stand_t]
+
+    # zuzlowiec: na luku, jedzie w gore-lewo, rama zlamana o ~40 st. w luk
+    bx, by = 172.0, 136.0
+    rad = math.atan2(by - ccy, bx - ccx)
+    course = math.atan2(-(bx - ccx), (by - ccy))   # styczna (jazda przeciwnie do wskazowek)
+    frame = course - math.radians(38)
+    big = 112
+    bike = render_bike((frame % (2 * math.pi)) / (2 * math.pi) * DIRS, 2, canvas=big, scale=4.0)
+    fdx, fdy = math.cos(frame), math.sin(frame)
+    # cien pod motocyklem: przyciemnienie nawierzchni (o 3 odcienie w strefie)
+    m = bike != 0
+    ys, xs = np.nonzero(m)
+    for yy_, xx_ in zip(ys, xs):
+        X, Y = int(bx - big / 2 + xx_ + 6), int(by - big / 2 + yy_ + 6)
+        if 0 <= X < W and 0 <= Y < TH and 16 <= t[Y, X] < 48:
+            base = 16 + ((t[Y, X] - 16) // 8) * 8
+            t[Y, X] = base + max(0, (t[Y, X] - base) - 4)
+
+    # szpryca: wachlarz grudek spod tylnego kola - do tylu i na zewnatrz luku
+    rear_x, rear_y = bx - fdx * 26, by - fdy * 26
+    out_x, out_y = math.cos(rad), math.sin(rad)          # na zewnatrz luku
+    back_x, back_y = -math.cos(course), -math.sin(course)
+    for i in range(1500):
+        d = rg.exponential(68.0)
+        mix = rg.uniform(0.15, 1.0)
+        vx = back_x * (1 - mix) + out_x * mix
+        vy = back_y * (1 - mix) + out_y * mix
+        nrm = math.hypot(vx, vy)
+        px = rear_x + vx / nrm * d + rg.normal(0, 3 + d * 0.12)
+        py = rear_y + vy / nrm * d + rg.normal(0, 3 + d * 0.12)
+        size = max(1, int(4.5 - d / 30 + rg.normal(0, 0.8)))
+        col = [240 + DUST_L, 240 + DUST_D, 49, 50, 52, 53, 18][rg.integers(0, 7)]
+        if d > 110 and rg.random() < 0.6:
+            col = 240 + DUST_L                        # daleko: rzadki kurz
+        X0, Y0 = int(px), int(py)
+        for yy_ in range(size):
+            for xx_ in range(size):
+                if (xx_ - size / 2 + 0.5) ** 2 + (yy_ - size / 2 + 0.5) ** 2 <= (size / 2) ** 2 + 0.3:
+                    X, Y = X0 + xx_, Y0 + yy_
+                    if 0 <= X < W and 0 <= Y < TH:
+                        t[Y, X] = col
+
+    # motocykl na wierzchu (kolory duszkow 240..255 sa tez w palecie pola gry)
+    bike = np.where(bike == HELMET_SLOT, HR, bike)
+    for yy_, xx_ in zip(ys, xs):
+        X, Y = int(bx - big / 2 + xx_), int(by - big / 2 + yy_)
+        if 0 <= X < W and 0 <= Y < TH:
+            t[Y, X] = 240 + bike[yy_, xx_]
+
+    # gora i dol: miekkie przejscie w gradient Coppera (indeks 0) pod napisy
+    for y in range(TH):
+        if y < 98:                            # napisy tytulu: linie 0..74 czyste
+            keep = max(0.0, (y - 76) / 22.0)
+        elif y > 178:                         # napisy dolne: linie 200..255 czyste
+            keep = max(0.0, (200 - y) / 22.0)
+        else:
+            continue
+        mask = fine_t[y] >= keep
+        t[y, mask] = 0
+    return t
+
+
+def title_preview(t):
+    """podglad: indeks 0 jak gradient Coppera w menu"""
+    rgb = pal[t].copy()
+    for y in range(t.shape[0]):
+        tt = int((y if y < 128 else 255 - y) * 13 / 16)
+        c12 = ((tt // 26) * 17, (tt // 52) * 17, (2 + tt // 18) * 17)
+        rgb[y][t[y] == 0] = c12
+    return rgb
+
+
 # ============================== ZAPIS ====================================
 
 
@@ -715,6 +835,11 @@ def main():
         write_png(ROOT / f"art/track_{name}.png", pal[img], 2)
         write_png(ROOT / f"art/track_{name}_mokry.png", wet[img], 2)
     build_track(0)                           # reszta podgladow na torze 0
+    print("plansza tytulowa...")
+    title = make_title()
+    (ROOT / "data/title.bpl").write_bytes(to_planar(title, 8))
+    write_png(ROOT / "art/title_art.png", title_preview(title), 2)
+    build_track(0)
     (ROOT / "data/hud.pal").write_bytes(bytes(hud_pal.astype(np.uint8).ravel()))
     (ROOT / "data/referee.bin").write_bytes(to_planar(referee_img(), 5))
 

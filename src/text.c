@@ -64,7 +64,7 @@ static void draw_pass(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color)
         WORD r;
         for (r = 0; r < FONT_H; r++) {
             WORD yy = y + r;
-            if (g[r] && yy >= 0 && yy < PLAY_H)
+            if (g[r] && yy >= 0 && yy < FULL_H)
                 put_byte(buf + (LONG)yy * PLAY_STRIDE + (x >> 3), g[r], color);
         }
         x += FONT_W;
@@ -99,7 +99,7 @@ static void draw_big_pass(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color
             for (k = 0; k < 2; k++) {
                 WORD yy = y + r * 2 + k;
                 UBYTE *d;
-                if (yy < 0 || yy >= PLAY_H) continue;
+                if (yy < 0 || yy >= FULL_H) continue;
                 d = buf + (LONG)yy * PLAY_STRIDE + (x >> 3);
                 put_byte(d, (UBYTE)(w >> 8), color);
                 put_byte(d + 1, (UBYTE)w, color);

@@ -11,7 +11,7 @@
 #include "ui.h"
 
 extern RGB24 cur_play[256], cur_hud[32];
-extern UWORD cap_bg[PLAY_H], cap_fg[PLAY_H];
+extern UWORD cap_bg[FULL_H], cap_fg[FULL_H];
 extern const UWORD *cap_spr[8];
 extern volatile ULONG g_frame;
 void host_init(void);
@@ -68,14 +68,15 @@ static void shot(const char *name, BOOL sprites)
     int x, y;
     const UBYTE *pb = g_video.play[g_video.back];
 
-    for (y = 0; y < PLAY_H; y++)
+    /* menu: cale 256 linii z bitplanow (Copper-lista bez HUD) */
+    for (y = 0; y < (g_video.menu ? FULL_H : PLAY_H); y++)
         for (x = 0; x < 320; x++) {
             UBYTE c = planar_px(pb, PLAY_STRIDE, PLAY_DEPTH, x, y);
             if (c == 0) set12(rgb[y][x], cap_bg[y]);
             else if (c == 100) set12(rgb[y][x], cap_fg[y]);
             else set24(rgb[y][x], &cur_play[c]);
         }
-    for (y = 0; y < HUD_H; y++)
+    for (y = 0; y < HUD_H && !g_video.menu; y++)
         for (x = 0; x < 320; x++) {
             UBYTE *o = rgb[PLAY_H + y][x];
             UBYTE c;

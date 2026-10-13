@@ -20,6 +20,7 @@
 #include "hw.h"
 #include "ui.h"
 
+#define TITLE_FRAMES    (7 * FPS)
 #define RESULT_FRAMES   (6 * FPS)
 #define RESULT_MIN      FPS
 #define GRADING_FRAMES  (8 * FPS)
@@ -124,8 +125,8 @@ static void update_state(void)
     if (key_down(KEY_ESC) && !ui_editing()) { enter(GS_QUIT); return; }
 
     switch (g_tour.state) {
-    case GS_TITLE:
-        if (ui_title_update()) enter(GS_SETUP);
+    case GS_TITLE:                       /* plansza tytulowa: kilka sekund albo FIRE */
+        if (ui_title_update() || state_timer > TITLE_FRAMES) enter(GS_SETUP);
         break;
 
     case GS_SETUP:
@@ -240,6 +241,7 @@ int main(void)
     system_restore();
 out:
     audio_free();
+    ui_free();
     tractors_free();
     roost_free();
     sprites_free();
