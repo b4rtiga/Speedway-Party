@@ -122,7 +122,7 @@ for k in range(32):                          # koszulki kibicow
 for i, c in enumerate([(240, 190, 150), (200, 140, 100), (120, 80, 50), (60, 40, 30)]):
     setc(172 + i, *c)                        # glowy / wlosy
 ramp(176, 4, (20, 50, 120), (50, 90, 180))   # puste krzeselka
-ramp(192, 4, (255, 255, 200), (180, 170, 90))  # reflektory
+ramp(192, 4, (255, 255, 200), (180, 170, 90))  # (wolne - dawne reflektory)
 ramp(196, 4, (70, 75, 85), (150, 155, 165))  # dachy
 setc(200, 230, 30, 40); setc(201, 30, 90, 240); setc(202, 245, 245, 245); setc(203, 255, 210, 0)  # baner: 200 czerwony, 202 bialy
 setc(204, 40, 110, 40); setc(205, 255, 120, 180)  # (dawne klomby)
@@ -299,12 +299,6 @@ def build_track(i):
                            np.where(row_m == 1, shirt, np.where(gap & ((hsh >> 18) % 2 == 0), shirt, head))))
     st = np.where(aisle, 132, st)
     img[stand] = st[stand]
-
-    # --- reflektory w naroznikach ---
-    for (lx, ly) in [(10, 6), (302, 6), (10, 194), (302, 194)]:
-        img[ly - 1:ly + 7, lx - 1:lx + 9] = 212
-        img[ly:ly + 6, lx:lx + 8] = 193
-        img[ly + 1:ly + 5:2, lx + 1:lx + 7:2] = 192
 
     # --- wieza sedziowska przy linii startu ---
     tx0, ty0 = TAPE_X - 16, 199
