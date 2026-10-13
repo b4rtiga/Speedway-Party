@@ -13,6 +13,7 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 |---|---|---|
 | ![Tytuł](art/screen_01_title.png) | ![Start spod taśmy](art/screen_04_gate_red.png) | ![Taśma!](art/screen_06_false_start.png) |
 | ![Program zawodów](art/screen_03_table.png) | ![Przerwa na tor](art/screen_08_grading.png) | ![Podium](art/screen_10_podium.png) |
+| ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Tor BAKAŁAR](art/screen_11_bakalar.png) | ![Tor PIASEK](art/screen_12_piasek.png) |
 
 
 ## Pobierz i zagraj
@@ -74,7 +75,7 @@ Tor nie jest jednolity. Przy krawężniku nawierzchnia jest ubita i przyczepna, 
 
 To tam rodzi się najpiękniejszy manewr: **„szeroka niesie”**. Jeśli wjedziesz pod bandę z pełną prędkością i w lekkim uślizgu, odsypisko wystrzeli cię do przodu. Jeśli wjedziesz za wolno, motocykl się w nim zakopie.
 
-Tor **wyjeżdża się na Twoich oczach**. Każdy przejazd rozpędzonego motocykla ubija nawierzchnię, więc linia, którą jeździ cała stawka, z biegu na bieg trzyma coraz lepiej i robi się najszybsza. Grudki szprycy spadające obok spulchniają tor, a równarka podczas przerwy zaciera ścieżki i wszystko zaczyna się od nowa. Po polewaniu wyjeżdżona linia przesycha pierwsza. Pytanie tylko, czy wolisz jechać sprawdzoną ścieżką za rywalem, prosto w jego szprycę, czy szukać własnej drogi.
+Tor **wyjeżdża się na Twoich oczach**. Każdy przejazd rozpędzonego motocykla ubija nawierzchnię, więc linia, którą jeździ cała stawka, z biegu na bieg ciemnieje, gładnieje, trzyma coraz lepiej i robi się najszybsza. Grudki szprycy spadające obok spulchniają tor, a równarka podczas przerwy zaciera ścieżki i wszystko zaczyna się od nowa. Po polewaniu wyjeżdżona linia przesycha pierwsza. Pytanie tylko, czy wolisz jechać sprawdzoną ścieżką za rywalem, prosto w jego szprycę, czy szukać własnej drogi.
 
 W menu wybierasz jeden z trzech stadionów:
 
@@ -240,7 +241,6 @@ tools/          generatory, sprawdzanie kodu, symulator
 ### Znane ograniczenia
 - **Silniki słychać tylko dwa naraz** (lidera i drugiego zawodnika): Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty.
 - **Dźwięk silnika jest syntetyczny.** Prawdziwe nagranie można zamienić w pętlę dla Pauli narzędziem `tools/import_engine.py`, ale potrzebna jest licencja na nagranie.
-- **Wyjeżdżone ścieżki działają w fizyce, ale nie widać ich na ekranie.** Grafika toru się nie zmienia.
 - **Mysz w porcie 0:** menu jej nie czyta, ale gracz 2 ustawiony na „JOY 0” z myszą zamiast joysticka będzie „jechał” ruchami myszy.
 - **Adapter 4 graczy na porcie równoległym** nie był testowany. Przypisanie bitów w `src/input.c` może wymagać poprawki.
 - **Remis punktowy** rozstrzygają zwycięstwa biegów, bez biegu dodatkowego.
@@ -249,7 +249,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 
 ### Pomysły na dalsze wersje
 - [ ] obraz dyskietki **ADF** do Gotka i emulatorów
-- [ ] widoczne wyjeżdżone ścieżki (tor ciemnieje tam, gdzie jeździ stawka)
+- [x] widoczne wyjeżdżone ścieżki (tor ciemnieje tam, gdzie jeździ stawka)
 - [ ] bieg dodatkowy przy remisie o miejsce na podium
 - [ ] tabela rekordów (najlepsze czasy biegu i okrążenia na każdym torze) zapisywana na dysk
 - [ ] tryb treningu: pojedynczy bieg albo jazda na czas

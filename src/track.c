@@ -9,6 +9,7 @@
 #include "game.h"
 #include "video.h"
 #include "text.h"
+#include "blit.h"
 
 /* Tory - MUSZA byc zgodne z PRESETS w tools/genart.py (kolejnosc i liczby).
  * Ograniczenia ekranu: HALF_L + R_OUT <= 156 (szerokosc), R_OUT <= 96 (motocykl
@@ -215,13 +216,100 @@ static void rebuild_grip(void)
             cell_grip(gx, gy);
 }
 
+/* ---------------- widoczne wyjezdzone sciezki ----------------
+ * Ubicie ma 4 poziomy (pack >> 6). Przy zmianie poziomu komorka 8x8 tla toru jest
+ * przemalowywana z nietknietej kopii (pristine): nawierzchnia ciemniejsza o poziom,
+ * kamyczki znikaja. Zmienione komorki kopiuje Blitter (blok 16x8) do obu buforow
+ * ekranu - kazdy bufor ma wlasna liste "brudnych" komorek. */
+static UBYTE *pristine;                    /* oryginal tla wybranego toru (dowolna pamiec) */
+static BYTE   pristine_type = -1;
+static UBYTE  level_drawn[GRIP_H][GRIP_W];
+static UBYTE  wear_dirty[2][GRIP_H][GRIP_W];
+
+static UBYTE get_px(const UBYTE *buf, WORD x, WORD y)
+{
+    const UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
+    UBYTE bit = (UBYTE)(0x80 >> (x & 7)), c = 0, pl;
+    for (pl = 0; pl < PLAY_DEPTH; pl++, p += ROW_BYTES)
+        if (*p & bit) c |= (UBYTE)(1 << pl);
+    return c;
+}
+
+static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c);
+
+static UWORD pack_at(WORD gx, WORD gy)
+{
+    if (gx < 0) gx = 0; else if (gx >= GRIP_W) gx = GRIP_W - 1;
+    if (gy < 0) gy = 0; else if (gy >= GRIP_H) gy = GRIP_H - 1;
+    return g_tour.track.pack[gy][gx];
+}
+
+/* Przemalowanie komorki: ubicie interpolowane miedzy srodkami sasiednich komorek
+ * (bez widocznych kwadratow), przyciemnienie z ditheringiem, rzadkie ziarna koleiny. */
+static void cell_visual(WORD gx, WORD gy)
+{
+    UBYTE lvl = (UBYTE)(g_tour.track.pack[gy][gx] >> 6);
+    WORD x, y;
+    if (!pristine || lvl == level_drawn[gy][gx]) return;
+    level_drawn[gy][gx] = lvl;
+    for (y = gy * GRIP_CELL; y < (gy + 1) * GRIP_CELL; y++)
+        for (x = gx * GRIP_CELL; x < (gx + 1) * GRIP_CELL; x++) {
+            UBYTE c = get_px(pristine, x, y);
+            WORD fx = x - GRIP_CELL / 2, fy = y - GRIP_CELL / 2;
+            WORD cx0 = (WORD)(fx >> 3), cy0 = (WORD)(fy >> 3), tx = (WORD)(fx & 7), ty = (WORD)(fy & 7);
+            UWORD f = (UWORD)((pack_at(cx0, cy0) * (8 - tx) * (8 - ty) + pack_at(cx0 + 1, cy0) * tx * (8 - ty)
+                             + pack_at(cx0, cy0 + 1) * (8 - tx) * ty + pack_at(cx0 + 1, cy0 + 1) * tx * ty) >> 6);
+            UBYTE hash = (UBYTE)((x * 73 + y * 151 + ((x * y) >> 2)) & 0xFF);
+            if (c >= 16 && c < 48) {                       /* nawierzchnia: ciemniej i gladziej */
+                UBYTE base = (UBYTE)(16 + ((c - 16) & ~7)), sh = (UBYTE)(c - base);
+                UBYTE d = (UBYTE)((f * 6 + hash) >> 8);    /* 0..6 z ditheringiem */
+                c = (UBYTE)(base + (sh > d ? sh - d : 0));
+                if (f > 190 && (hash & 15) == 0) c = (UBYTE)(48 + (hash >> 6 & 1));   /* koleina */
+            } else if (c >= 52 && c < 56 && f > 120) {     /* kamyczki zepchniete z linii */
+                c = 16 + 3 * 8 + 2;
+            }
+            plot(g_video.background, x, y, c);
+        }
+    wear_dirty[0][gy][gx] = wear_dirty[1][gy][gx] = 1;
+}
+
+static void all_cells_visual(void)
+{
+    WORD gx, gy;
+    for (gy = 0; gy < GRIP_H; gy++)
+        for (gx = 0; gx < GRIP_W; gx++)
+            if (g_tour.track.zone[gy][gx] != GRIP_WALL) cell_visual(gx, gy);
+}
+
+/* wywolywane z ui_render dla bufora "back" (po zdjeciu starej szprycy) */
+void track_flush_wear(UBYTE bi, UBYTE *buf)
+{
+    WORD gx, gy;
+    for (gy = 0; gy < GRIP_H; gy++)
+        for (gx = 0; gx < GRIP_W; gx++)
+            if (wear_dirty[bi][gy][gx]) {
+                wear_dirty[bi][gy][gx] = 0;
+                blit_copy(buf, g_video.background, (WORD)((gx * GRIP_CELL) & ~15), (WORD)(gy * GRIP_CELL),
+                          16, GRIP_CELL);
+            }
+}
+
+/* bufor dostal cale tlo - nic nie trzeba dokopiowywac */
+void track_forget_wear(UBYTE bi)
+{
+    WORD gx, gy;
+    for (gy = 0; gy < GRIP_H; gy++)
+        for (gx = 0; gx < GRIP_W; gx++)
+            wear_dirty[bi][gy][gx] = 0;
+}
+
 void track_wear(WORD x, WORD y)
 {
     WORD gx = x / GRIP_CELL, gy = y / GRIP_CELL;
     UBYTE *pk;
     if (gx < 0 || gy < 0 || gx >= GRIP_W || gy >= GRIP_H) return;
     pk = &g_tour.track.pack[gy][gx];
-    if (*pk <= 255 - PACK_WEAR) { *pk += PACK_WEAR; cell_grip(gx, gy); }
+    if (*pk <= 255 - PACK_WEAR) { *pk += PACK_WEAR; cell_grip(gx, gy); cell_visual(gx, gy); }
 }
 
 void track_loosen(WORD x, WORD y)
@@ -230,7 +318,7 @@ void track_loosen(WORD x, WORD y)
     UBYTE *pk;
     if (gx < 0 || gy < 0 || gx >= GRIP_W || gy >= GRIP_H) return;
     pk = &g_tour.track.pack[gy][gx];
-    if (*pk >= PACK_LOOSEN) { *pk -= PACK_LOOSEN; cell_grip(gx, gy); }
+    if (*pk >= PACK_LOOSEN) { *pk -= PACK_LOOSEN; cell_grip(gx, gy); cell_visual(gx, gy); }
 }
 
 void track_reset_wear(void)
@@ -240,6 +328,7 @@ void track_reset_wear(void)
         for (gx = 0; gx < GRIP_W; gx++)
             g_tour.track.pack[gy][gx] = 0;
     rebuild_grip();
+    all_cells_visual();
 }
 
 void track_set_wetness(UBYTE wet)
@@ -256,6 +345,7 @@ void track_apply_watering(void)
     for (gy = 0; gy < GRIP_H; gy++)
         for (gx = 0; gx < GRIP_W; gx++)
             g_tour.track.pack[gy][gx] = (UBYTE)(g_tour.track.pack[gy][gx] / 3);
+    all_cells_visual();
     g_tour.track.wetness = 255;
     g_tour.track.heats_since_watering = 0;
     rebuild_grip();
@@ -427,9 +517,19 @@ void track_select(UBYTE type)
         g_video.pal_wet[c] = track_pal[type][1][c];
     }
     g_video.background = track_bg[type];
+    if (pristine) {
+        ULONG n;
+        if (pristine_type >= 0)                           /* poprzedni tor wraca do oryginalu */
+            for (n = 0; n < PLAY_SIZE; n++) track_bg[pristine_type][n] = pristine[n];
+        for (n = 0; n < PLAY_SIZE; n++) pristine[n] = track_bg[type][n];
+        pristine_type = (BYTE)type;
+    }
     for (gy = 0; gy < GRIP_H; gy++)                       /* inny tor = rowna nawierzchnia */
-        for (gx = 0; gx < GRIP_W; gx++)
+        for (gx = 0; gx < GRIP_W; gx++) {
             t->pack[gy][gx] = 0;
+            level_drawn[gy][gx] = 0;
+            wear_dirty[0][gy][gx] = wear_dirty[1][gy][gx] = 0;
+        }
     rebuild_grip();
     video_blend_track_palette(t->wetness);
 }
@@ -441,6 +541,7 @@ BOOL track_init(void)
     g_tour.track.wetness = 0;
     build_palettes();                     /* zastepcze palety + paleta HUD */
     load_hud_palette();
+    pristine = AllocMem(PLAY_SIZE, 0);    /* bez niej sciezki dzialaja, tylko ich nie widac */
     for (i = 0; i < NUM_TRACKS; i++) {
         track_bg[i] = AllocMem(PLAY_SIZE, MEMF_CHIP | MEMF_CLEAR);
         if (!track_bg[i]) return FALSE;
@@ -459,4 +560,5 @@ void track_free(void)
     UBYTE i;
     for (i = 0; i < NUM_TRACKS; i++)
         if (track_bg[i]) FreeMem(track_bg[i], PLAY_SIZE);
+    if (pristine) FreeMem(pristine, PLAY_SIZE);
 }

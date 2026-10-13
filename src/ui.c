@@ -699,8 +699,10 @@ void ui_render(void)
             buf_is_track[bi] = 1;
             tape_drawn[bi] = 0xFF;
             roost_forget_buffer(bi);
+            track_forget_wear(bi);
             drawn_serial[bi] = 0;
         }
+        track_flush_wear(bi, b);                          /* wyjezdzone sciezki */
         if (drawn_serial[bi] != serial) {
             blit_copy(b, g_video.background, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
             switch (current_overlay()) {

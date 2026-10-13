@@ -170,7 +170,16 @@ int main(void)
     g_tour.state = GS_SETUP;   render(); shot("02_setup", FALSE);
     g_tour.num_humans = 0;
 
-    for (i = 0; i < 4; i++) run_heat((UBYTE)i);
+    for (i = 0; i < 3; i++) run_heat((UBYTE)i);
+    /* suchy tor po 3 biegach: widac wyjezdzone sciezki */
+    begin(3);
+    g_tour.state = GS_HEAT;
+    while (g_tour.heat.phase != HEAT_RACING) step();
+    for (i = 0; i < 330; i++) step();
+    bike_sprites(); render(); shot("13_sciezki", TRUE);
+    while (g_tour.heat.phase != HEAT_FINISHED) step();
+    tournament_award_points();
+    if (tournament_watering_after(4)) track_apply_watering();
     g_tour.current_heat = 4;
     g_tour.state = GS_TABLE;   render(); shot("03_table", FALSE);
 
