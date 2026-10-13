@@ -1,4 +1,5 @@
-"""Miniaturka do podgladu linkow na GitHubie (Settings -> Social preview): art/social_preview.png, 1280x640.
+"""Miniaturka do podgladu linkow na GitHubie (Settings -> Social preview): art/social_preview.jpg, 1280x640
+(JPG, bo GitHub przyjmuje najwyzej 1 MB; potrzebny ffmpeg w PATH).
 
 Kadr ilustracji z planszy tytulowej (src/title.png) z napisem SPEEDWAY PARTY pikselowym
 fontem gry (tools/genfont.py), w kolorach planszy tytulowej. Bez zaleznosci poza numpy.
@@ -113,9 +114,22 @@ def main():
     draw_text(canvas, "SPEEDWAY", 56, 48, 13, (60, 230, 60))
     draw_text(canvas, "PARTY", 56, 48 + 9 * 13, 13, (255, 200, 40))
     draw_text(canvas, "AMIGA 1200", 60, 48 + 18 * 13 + 6, 5, (245, 245, 245))
-    out = ART / "social_preview.png"
-    write_png(out, canvas)
-    print(out, W, "x", H)
+    # GitHub: obraz podgladu do 1 MB - ilustracja w PNG ma ~2 MB, wiec zapis JPG przez ffmpeg
+    import shutil
+    import subprocess
+    import tempfile
+    ff = shutil.which("ffmpeg")
+    if not ff:
+        out = ART / "social_preview.png"
+        write_png(out, canvas)
+        print(out, "(brak ffmpeg - PNG, sprawdz rozmiar: limit GitHuba 1 MB)")
+        return
+    with tempfile.TemporaryDirectory() as tmp:
+        png = Path(tmp) / "social.png"
+        write_png(png, canvas)
+        out = ART / "social_preview.jpg"
+        subprocess.run([ff, "-v", "error", "-y", "-i", str(png), "-q:v", "2", str(out)], check=True)
+    print(out, W, "x", H, f"{out.stat().st_size // 1024} KB")
 
 
 if __name__ == "__main__":
