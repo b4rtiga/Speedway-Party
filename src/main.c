@@ -13,6 +13,7 @@
  *   TITLE -> SETUP -> TABLE -> HEAT -> HEAT_RESULT -> [TRACK_GRADING] -> TABLE ...
  *   przed biegami 14 i 15: GATE_PICK -> TABLE -> HEAT;  po 15: PODIUM -> SETUP
  */
+#include <proto/dos.h>
 #include "game.h"
 #include "video.h"
 #include "system.h"
@@ -261,6 +262,13 @@ int main(void)
     int rc = 0;
 
     fixmath_init();
+    {
+        /* ziarno losowania z zegara systemowego - co uruchomienie inne nazwiska */
+        struct DateStamp ds;
+        DateStamp(&ds);
+        g_rng ^= (ULONG)ds.ds_Tick * 2654435761UL ^ (ULONG)ds.ds_Minute << 12 ^ (ULONG)ds.ds_Days;
+        if (!g_rng) g_rng = 0x2026B4u;
+    }
     if (!video_init() || !sprites_init() || !roost_init() || !tractors_init() || !audio_init()) { rc = 20; goto out; }
 
     tournament_defaults();

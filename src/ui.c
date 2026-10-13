@@ -25,7 +25,7 @@ enum { U_PANEL = 96, U_PANEL2, U_BORDER, U_WHITE, U_RAINBOW, U_GOLD, U_GREY,
 #define PANEL_Y 24
 #define PANEL_W 224
 #define PANEL_H 112
-#define NAME_EDIT_MAX 12
+#define NAME_EDIT_MAX 13
 
 typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE } Overlay;
 

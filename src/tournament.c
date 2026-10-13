@@ -12,16 +12,26 @@ static const UBYTE fixed_table[FIXED_HEATS][4] = {
     {1,3,0,2}
 };
 
-static const char *default_names[MAX_RIDERS] = { "KOWALSKI", "NOWAK", "WISNIEWSKI", "ZIELINSKI" };
+/* nazwiska poczatkowe: czterech losowych z puli (gracz moze je zmienic w menu) */
+static const char *const name_pool[] = {
+    "LAMBERT", "ZMARZLIK", "KURTZ", "JEPSEN JENSEN", "DUDEK", "MADSEN", "FRICKE", "WORYNA",
+    "BEWLEY", "MICHELSEN", "KUBERA", "HUCKENBECK", "LINDGREN", "VACULIK", "KVECH"
+};
+#define NAME_POOL ((UBYTE)(sizeof(name_pool) / sizeof(name_pool[0])))
 
 void tournament_defaults(void)
 {
     static const InputPort ports[MAX_RIDERS] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ZX, INPUT_KEYS_NM };
-    UBYTE i, j;
+    UBYTE i, j, pick[NAME_POOL];
     g_tour.num_humans = 1;
+    for (i = 0; i < NAME_POOL; i++) pick[i] = i;
+    for (i = 0; i < MAX_RIDERS; i++) {                   /* losowanie bez powtorzen */
+        UBYTE k = (UBYTE)rng_range(i, NAME_POOL - 1), t = pick[i];
+        pick[i] = pick[k]; pick[k] = t;
+    }
     for (i = 0; i < MAX_RIDERS; i++) {
         Rider *r = &g_tour.riders[i];
-        const char *n = default_names[i];
+        const char *n = name_pool[pick[i]];
         for (j = 0; n[j] && j < NAME_LEN; j++) r->name[j] = n[j];
         r->name[j] = 0;
         r->input = ports[i];

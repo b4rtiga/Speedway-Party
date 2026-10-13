@@ -6,4 +6,5 @@
 #define OFFSET_BEGINNING -1
 #define OFFSET_CURRENT 0
 #define OFFSET_END 1
+struct DateStamp { LONG ds_Days, ds_Minute, ds_Tick; };
 #endif
