@@ -2,6 +2,9 @@
  * Cel = punkt na osi toru przed motocyklem, przesuniety bocznie wg poziomu. */
 #include "game.h"
 
+/* linie jazdy zaprojektowane dla toru o polowie szerokosci 28 px - skalowane do wybranego */
+#define LW(v) ((WORD)((v) * TRACK_HALF_WIDTH / 28))
+
 /* Reakcja na tasme (klatki po 20 ms). Ujemna = antycypacja -> tasma. */
 WORD ai_reaction_frames(AiLevel lvl)
 {
@@ -22,16 +25,16 @@ static LONG bike_s(const Bike *b)
  * przy duzej predkosci chetnie idzie szeroko ("szeroka niesie"). */
 static WORD master_line(const Bike *b, LONG s_ahead)
 {
-    static const WORD lines[4] = { -12, -5, 7, 21 };
+    static const WORD lines[4] = { -12, -5, 7, 21 };   /* x LW() */
     WORD best = -6, best_score = -32000, i;
     for (i = 0; i < 4; i++) {
         WORD x, y, score;
-        track_point(s_ahead, lines[i], &x, &y);
+        track_point(s_ahead, LW(lines[i]), &x, &y);
         score = track_grip_at(x, y);
         if (lines[i] > 0 && b->speed > b->max_speed / 10 * 9 && track_zone_at(x, y) == GRIP_DEEP_OUTER)
             score += 25;                            /* szeroka niesie - tylko z pelna predkoscia */
-        score -= lines[i] * 3;                      /* dluzsza droga po zewnetrznej kosztuje */
-        if (score > best_score) { best_score = score; best = lines[i]; }
+        score -= LW(lines[i]) * 3;                      /* dluzsza droga po zewnetrznej kosztuje */
+        if (score > best_score) { best_score = score; best = LW(lines[i]); }
     }
     return best;
 }
@@ -50,9 +53,9 @@ static WORD pro_line(const Bike *b, LONG s)
         d = s - bike_s(o);
         if (d < 0) d += g_tour.track.lap_length;
         lat = track_lateral(FIX2INT(o->x), FIX2INT(o->y));
-        if (d > 0 && d < 30 && lat < my_lat) return (WORD)(lat - 2 < -14 ? -14 : lat - 2);
+        if (d > 0 && d < 30 && lat < my_lat) return (WORD)(lat - 2 < LW(-14) ? LW(-14) : lat - 2);
     }
-    return -7;
+    return LW(-11);
 }
 
 /* Jeden regulator uslizgu dla wszystkich poziomow, rozne nastawy:
@@ -60,12 +63,25 @@ static WORD pro_line(const Bike *b, LONG s)
  *   cap   - maksymalny uslizg (Mistrz dozuje minimalny -> mniej oporu)
  *   tol   - martwa strefa (wieksza = szarpane, pulsacyjne sterowanie)
  *   hold  - opoznienie reakcji w klatkach (Amator "przetrzymuje" decyzje) */
-typedef struct { BYTE gain, cap, tol, hold; } SteerTune;
+/* gain4: wzmocnienie bledu kierunku x4; ff4: mnoznik przewidywania luku x4 (0 = brak) */
+typedef struct { BYTE gain4, cap, tol, hold, ff4; } SteerTune;
 static const SteerTune tune[3] = {
-    { 4, 48, 4, 2 },     /* AMATOR: lamie za mocno i za pozno */
-    { 3, 40, 2, 0 },     /* PROFESJONALISTA */
-    { 3, 30, 1, 0 },     /* MISTRZ */
+    { 10, 28, 3, 3, 7 },   /* AMATOR: lamie ~1.75x za mocno i za pozno - marnuje predkosc */
+    {  6, 26, 1, 0, 4 },   /* PROFESJONALISTA */
+    {  5, 24, 1, 0, 4 },   /* MISTRZ */
 };
+
+/* Zlamanie potrzebne, zeby przy obecnej predkosci jechac lukiem o promieniu r
+ * (odwrotnosc skretu z race.c: turn88 = drift * 17 * vfrac/256 * (128+grip/2)/256). */
+static WORD feedforward_drift(const Bike *b, WORD r, UBYTE grip)
+{
+    LONG vfrac = (b->speed << 8) / (FIX_ONE * 18 / 10);
+    LONG w88, den;
+    if (!r || vfrac < 16 || grip < 16) return 0;
+    w88 = (b->speed >> 8) * 41 / r;                     /* v/R w jednostkach 1/256 kata */
+    den = 17L * vfrac * (128 + grip / 2) / 256;         /* jak gripf w race.c */
+    return (WORD)(w88 * 256 / (den ? den : 1));
+}
 
 UBYTE ai_steer(Bike *b)
 {
@@ -80,23 +96,26 @@ UBYTE ai_steer(Bike *b)
     if (b->ai_timer) { b->ai_timer--; return b->prev_input; }
 
     switch (lvl) {
-    case AI_AMATEUR: lat = -14; break;                  /* kurczowo przy krawezniku */
+    case AI_AMATEUR: lat = LW(-14); break;                  /* kurczowo przy krawezniku */
     case AI_PRO:     lat = pro_line(b, s); break;
     default:         lat = master_line(b, ahead); break;
     }
     b->ai_line_offset = (BYTE)lat;
     track_point(ahead, lat, &tx, &ty);
-    err = (BYTE)(atan2_8(ty - FIX2INT(b->y), tx - FIX2INT(b->x)) - b->heading);
+    err = (BYTE)(atan2_8(ty - FIX2INT(b->y), tx - FIX2INT(b->x)) - (angle8)(b->course88 >> 8));
     /* err < 0: trzeba skrecic w lewo -> potrzebny dodatni uslizg */
 
-    tw = (WORD)(-err * t->gain);
+    tw = (WORD)(-err * t->gain4 / 4);
+    if (t->ff4)
+        tw += (WORD)(feedforward_drift(b, track_bend_radius(s + 12, lat),
+                                       track_grip_at(FIX2INT(b->x), FIX2INT(b->y))) * t->ff4 / 4);
     {
         /* Mistrz dozuje uslizg do przyczepnosci: na mokrym potrzeba go wiecej */
         WORD cap = t->cap;
-        if (lvl == AI_MASTER) cap = (WORD)(cap + (220 - (WORD)track_grip_at(FIX2INT(b->x), FIX2INT(b->y))) / 4);
+        if (lvl == AI_MASTER) cap = (WORD)(cap + (220 - (WORD)track_grip_at(FIX2INT(b->x), FIX2INT(b->y))) / 6);
         if (tw > cap) tw = cap;
     }
-    if (tw < -8) tw = -8;                               /* kontra ograniczona jak w race.c */
+    if (tw < -10) tw = -10;                             /* kontra ograniczona jak w race.c */
     if (b->drift < tw - t->tol) out = BTN_LEFT;
     else if (b->drift > tw + t->tol) out = BTN_RIGHT;
     b->ai_timer = (UWORD)t->hold;

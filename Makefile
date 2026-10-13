@@ -17,7 +17,7 @@ SpeedwayParty: $(OBJ)
 src/%.o: src/%.c src/*.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-DATA = data/track.pal data/track.bpl data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw
+DATA = data/track0.pal data/track0.bpl data/track1.pal data/track1.bpl data/track2.pal data/track2.bpl data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw
 
 # Katalog gotowy do podpiecia w WinUAE jako dysk startowy (bez Workbencha):
 # Kickstart 3.x uruchamia s/startup-sequence, a ta od razu gre.
@@ -26,6 +26,10 @@ dist: SpeedwayParty $(DATA)
 	cp SpeedwayParty dist/
 	cp $(DATA) dist/data/
 	echo SpeedwayParty > dist/s/startup-sequence
+
+# Paczka do pobrania: release/SpeedwayParty.zip (plik gry + dane + instrukcja)
+release: dist
+	python3 tools/mkrelease.py
 
 # Grafika i dzwiek (Python 3 + numpy) - wynik jest juz w repozytorium, to tylko regeneracja
 assets:
@@ -44,4 +48,4 @@ clean:
 	rm -f $(OBJ) SpeedwayParty
 	rm -rf dist
 
-.PHONY: clean dist assets check sim
+.PHONY: clean dist release assets check sim

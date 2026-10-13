@@ -67,7 +67,7 @@ void blit_copy(UBYTE *dst, const UBYTE *src, WORD x, WORD y, WORD w, WORD h)
 }
 
 /* ------------------------------------------------------------------ *
- * Czasteczki szprychy.
+ * Czasteczki szprycy.
  * Rysowanie = "cookie-cut": D = A&B | ~A&C   (minterm $CA)
  *   A: maska kropki (0xC000 / 0x8000) przesunieta ASHIFT = x & 15,
  *   B: wzor koloru - dla wiersza planu p same jedynki albo zera (bit p koloru),

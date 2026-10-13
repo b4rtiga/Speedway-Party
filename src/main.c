@@ -132,8 +132,10 @@ static void update_state(void)
         if (ui_setup_update()) {
             tournament_reset();
             g_tour.current_heat = 0;
-            g_tour.track.wetness = 0;
-            track_dry_step();            /* przeliczenie gripu i palety dla suchego toru */
+            {
+                static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
+                track_set_wetness(start_wet[g_tour.start_condition]);
+            }
             enter(GS_TABLE);
         }
         break;
@@ -201,7 +203,7 @@ int main(void)
 
     tournament_defaults();
     tournament_reset();
-    track_init();                       /* palety + renderowanie tla (przed przejeciem) */
+    if (!track_init()) { rc = 20; goto out; }   /* wszystkie tory (przed przejeciem) */
     ui_init();
     hud_init();
     {
@@ -241,6 +243,7 @@ out:
     tractors_free();
     roost_free();
     sprites_free();
+    track_free();
     video_free();
     return rc;
 }

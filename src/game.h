@@ -71,8 +71,9 @@ typedef struct Bike {
     fix16   x, y;
     fix16   speed;            /* predkosc postepowa (px/klatke) */
     fix16   max_speed;
-    angle8  heading;          /* kierunek ramy */
-    BYTE    drift;            /* kat uslizgu tylnego kola (-DRIFT_MAX..DRIFT_MAX), + = zlamany w lewo */
+    angle8  heading;          /* kierunek ramy (to widac na ekranie) */
+    UWORD   course88;         /* kierunek jazdy, kat 8.8 */
+    BYTE    drift;            /* kat zlamania ramy do kierunku jazdy (-10..28 = -14..40 st.), + = w lewo */
     BYTE    drift_target;
 
     BikeState state;
@@ -94,7 +95,7 @@ typedef struct Bike {
     UBYTE   launch_timer;     /* klatki pozostalego bonusu startowego */
 
     /* efekty */
-    UBYTE   in_roost;         /* jedzie w szprysze innego motocykla */
+    UBYTE   in_roost;         /* jedzie w szprycy innego motocykla */
     UBYTE   bump_cooldown;    /* zapobiega wielokrotnej kary za ten sam kontakt */
 
     /* grafika */
@@ -108,7 +109,7 @@ typedef struct Bike {
     BYTE    ai_line_offset;   /* preferowany tor jazdy: - krawężnik, + banda */
 } Bike;
 
-/* ----------------------- CZASTECZKI (szprycha) --------------------- */
+/* ----------------------- CZASTECZKI (szpryca) --------------------- */
 #define MAX_PARTICLES 128
 typedef struct Particle {
     fix16 x, y;          /* pozycja 16.16 */
@@ -116,12 +117,13 @@ typedef struct Particle {
     UBYTE life;          /* 0 = wolna */
     UBYTE color;         /* indeks palety toru (ciemny granit -> po polewaniu jeszcze ciemniejszy) */
     UBYTE big;           /* 1 = 2x2 px, 0 = 1x1 */
-    UBYTE owner;         /* indeks motocykla - wlasna szprycha nie spowalnia */
+    UBYTE owner;         /* indeks motocykla - wlasna szpryca nie spowalnia */
 } Particle;
 
 /* ------------------------------ TOR -------------------------------- */
 typedef enum { GRIP_INNER = 0, GRIP_MIDDLE, GRIP_OUTER, GRIP_DEEP_OUTER, GRIP_WALL } GripZone;
 
+#define NUM_TRACKS     3                  /* GRANIT, BAKALAR, PIASEK (track.c, genart.py) */
 #define GRIP_CELL      8                  /* komorka mapy przyczepnosci 8x8 px */
 #define GRIP_W         (320 / GRIP_CELL)
 #define GRIP_H         (208 / GRIP_CELL)
@@ -140,6 +142,8 @@ typedef struct Track {
     WORD     gate_x, gate_y[4];           /* A = przy krawezniku, D = przy bandzie */
     LONG     tape_s;                      /* pozycja tasmy wzdluz osi toru */
 
+    UBYTE    type;                        /* rodzaj toru 0..NUM_TRACKS-1 */
+    WORD     half_width;                  /* polowa szerokosci nawierzchni [px] */
     UBYTE    wetness;                     /* 255 = swiezo polany, 0 = suchy */
     UBYTE    heats_since_watering;
 } Track;
@@ -155,6 +159,8 @@ typedef enum {
     HEAT_FINISHED
 } HeatPhase;
 
+#define TAPE_GONE 8                 /* klatki animacji odlotu tasmy (0.16 s) */
+
 typedef struct Heat {
     UBYTE     number;               /* 1..15 */
     UBYTE     gate_rider[4];        /* gate -> indeks zawodnika */
@@ -163,7 +169,7 @@ typedef struct Heat {
     HeatPhase phase;
     UWORD     phase_timer;          /* klatki w biezacej fazie */
     UWORD     red_light_frames;     /* wylosowana dlugosc czerwonego */
-    UBYTE     tape_anim;            /* 0=ciagla, 1-2=przerywana, 3=brak */
+    UBYTE     tape_anim;            /* 0=ciagla, 1..TAPE_GONE-1 = faza odlotu, TAPE_GONE = brak */
     UBYTE     false_starter;        /* 0xFF = brak */
     UBYTE     restarts;
     UWORD     race_frames;
@@ -194,6 +200,7 @@ typedef struct Tournament {
     Bike      bikes[MAX_RIDERS];
     Particle  particles[MAX_PARTICLES];
     UBYTE     particle_head;               /* bufor kolowy: nowa nadpisuje najstarsza */
+    UBYTE     start_condition;             /* stan toru na start: 0 suchy, 1 wilgotny, 2 mokry */
     GameState state;
 } Tournament;
 
@@ -221,7 +228,10 @@ void race_update(void);
 void race_launch(Bike *b);
 
 /* track.c */
-void     track_init(void);
+BOOL     track_init(void);                        /* wczytuje wszystkie tory (przed przejeciem sprzetu) */
+void     track_free(void);
+void     track_select(UBYTE type);
+const char *track_name(UBYTE type);
 void     track_render(UBYTE *dst);
 UBYTE    track_grip_at(WORD x, WORD y);
 GripZone track_zone_at(WORD x, WORD y);
@@ -230,10 +240,12 @@ void     track_point(LONG s, WORD lateral, WORD *x, WORD *y);
 WORD     track_lateral(WORD x, WORD y);           /* odleglosc od osi: - do kraweznika, + do bandy */
 void     track_snap_lateral(fix16 *x, fix16 *y, WORD lat);
 angle8   track_tangent(fix16 x, fix16 y);
+WORD     track_bend_radius(LONG s, WORD lat);     /* 0 na prostej */
 void     track_apply_watering(void);
+void     track_set_wetness(UBYTE wet);           /* np. stan toru wybrany w menu */
 void     track_dry_step(void);
 angle8   atan2_8(LONG dy, LONG dx);
-#define TRACK_HALF_WIDTH 28        /* (R_OUT - R_IN) / 2 z track.c */
+#define TRACK_HALF_WIDTH (g_tour.track.half_width)   /* zalezy od wybranego toru */
 
 /* input.c */
 void  input_init(void);
@@ -248,7 +260,7 @@ UBYTE input_menu(void);                           /* nowe wcisniecia: JOY1|strza
 #define KEY_RALT      0x65
 #define KEY_ESC 0x45
 
-/* roost.c - szprycha (czasteczki Blittera) */
+/* roost.c - szpryca (czasteczki Blittera) */
 BOOL  roost_init(void);
 void  roost_free(void);
 void  roost_reset(void);                          /* nowy bieg / powtorka startu */

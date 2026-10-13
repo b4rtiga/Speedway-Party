@@ -23,14 +23,32 @@ sys.path.insert(0, str(ROOT / "tools"))
 import genfont  # noqa: E402
 
 W, H = 320, 208
-CX, CY, HALF_L, R_IN, R_OUT = 160, 100, 60, 40, 96
-R_MID = (R_IN + R_OUT) // 2
-TAPE_X = CX - 20
-GATE_X = TAPE_X - 9
-GATE_FIRST, GATE_STEP = 7, 13
+CX, CY = 160, 100
+GATE_FIRST = 7
 BIKE_SCALE = 0.78          # motocykl ~17x9 px: czterech miesci sie obok siebie na luku
 VEH_SCALE = 0.85
-GATE_Y = [CY + R_IN + GATE_FIRST + i * GATE_STEP for i in range(4)]
+
+# Tory - MUSZA byc zgodne z tabela track_defs w src/track.c (kolejnosc i liczby).
+#   name, half_l (pol prostej), r_in (kraweznik), r_out (banda), nawierzchnia
+PRESETS = [
+    ("granit",  60, 40, 96, "granit"),    # klasyczny
+    ("bakalar", 72, 36, 84, "bakalar"),   # dlugie proste, ciasne luki, wezszy
+    ("piasek",  44, 40, 96, "piasek"),    # krotkie proste, duze okragle luki
+]
+
+
+def set_preset(i):
+    """Ustawia geometrie toru i (globalnie) wszystko, co od niej zalezy."""
+    global HALF_L, R_IN, R_OUT, R_MID, TAPE_X, GATE_X, GATE_STEP, GATE_Y, SURFACE
+    _, HALF_L, R_IN, R_OUT, SURFACE = PRESETS[i]
+    R_MID = (R_IN + R_OUT) // 2
+    TAPE_X = CX - 20
+    GATE_X = TAPE_X - 9
+    GATE_STEP = (R_OUT - R_IN - 2 * GATE_FIRST) // 3
+    GATE_Y = [CY + R_IN + GATE_FIRST + i * GATE_STEP for i in range(4)]
+
+
+set_preset(0)
 SPR_W, SPR_H, DIRS, SKIDS = 64, 32, 32, 3
 
 rng = np.random.default_rng(1977)
@@ -52,18 +70,32 @@ def ramp(i0, n, c0, c1):
 
 setc(0, 8, 10, 20)
 setc(1, 255, 255, 255)                      # tasma
-# 16..47 granit: 4 strefy (kraweznik ubity -> odsypisko luzne) x 8 odcieni
-zone_dark = [(96, 52, 30), (112, 62, 36), (128, 74, 42), (140, 84, 50)]
-zone_light = [(176, 104, 62), (196, 122, 74), (214, 140, 88), (228, 160, 104)]
-for z in range(4):
-    ramp(16 + z * 8, 8, zone_dark[z], zone_light[z])
-ramp(48, 4, (70, 36, 22), (100, 56, 34))     # koleiny
-ramp(52, 4, (210, 150, 100), (245, 200, 150))  # kamyczki / luzny material
+# 16..47 nawierzchnia: 4 strefy (kraweznik ubity -> odsypisko luzne) x 8 odcieni
+SURFACES = {
+    #           strefy ciemne (4)                                  strefy jasne (4)                                       koleiny                   kamyczki
+    "granit":  ([(96, 52, 30), (112, 62, 36), (128, 74, 42), (140, 84, 50)],
+                [(176, 104, 62), (196, 122, 74), (214, 140, 88), (228, 160, 104)], ((70, 36, 22), (100, 56, 34)), ((210, 150, 100), (245, 200, 150))),
+    "bakalar": ([(44, 46, 54), (52, 54, 62), (60, 62, 70), (68, 70, 78)],
+                [(104, 106, 116), (116, 118, 128), (128, 130, 140), (142, 142, 152)], ((28, 30, 36), (46, 48, 56)), ((168, 168, 178), (210, 210, 220))),
+    "piasek":  ([(150, 118, 68), (160, 126, 74), (170, 134, 80), (180, 144, 88)],
+                [(220, 186, 126), (228, 196, 136), (236, 206, 146), (244, 218, 160)], ((118, 90, 50), (148, 116, 68)), ((250, 236, 190), (255, 248, 215))),
+}
+
+
+def track_colors(surface):
+    dark, light, groove, stone = SURFACES[surface]
+    for z in range(4):
+        ramp(16 + z * 8, 8, dark[z], light[z])
+    ramp(48, 4, *groove)                     # koleiny
+    ramp(52, 4, *stone)                      # kamyczki / luzny material
+    for k in range(3):                       # kaluze: na sucho = nawierzchnia
+        setc(59 + k, *pal[16 + 3 + k])
+
+
+track_colors("granit")
 setc(56, 225, 225, 215)                      # malowane linie
 setc(57, 210, 30, 30)                        # kraweznik czerwony
 setc(58, 245, 245, 245)                      # kraweznik bialy
-for k in range(3):                           # kaluze: na sucho = granit
-    setc(59 + k, *pal[16 + 3 + k])
 ramp(64, 8, (24, 70, 30), (60, 130, 50))     # trawa ciemna
 ramp(72, 8, (40, 100, 40), (96, 170, 70))    # trawa jasna (pasy koszenia)
 # 80..95 bandy reklamowe
@@ -107,15 +139,19 @@ for i, c in {241: (16, 16, 20), 242: (70, 72, 80), 243: (170, 175, 190), 244: (2
              253: (255, 214, 0), 254: (60, 60, 72), 255: (225, 185, 70)}.items():
     setc(i, *c)
 
-wet = pal.copy()
-for i in range(16, 56):                      # nawierzchnia i drobiny; linie i kraweznik bez zmian
-    r, g, b = pal[i]
-    wet[i] = (r * 0.52, g * 0.50, b * 0.52 + 10)
-for i in range(56, 59):
-    wet[i] = pal[i] * 0.88
-for k in range(3):                           # kaluze: ciemna woda z odbiciem nieba
-    wet[59 + k] = (48 + k * 14, 56 + k * 16, 82 + k * 22)
-wet = np.clip(wet, 0, 255).astype(np.int32)
+def make_wet():
+    w = pal.copy()
+    for i in range(16, 56):                  # nawierzchnia i drobiny; linie i kraweznik bez zmian
+        r, g, b = pal[i]
+        w[i] = (r * 0.52, g * 0.50, b * 0.52 + 10)
+    for i in range(56, 59):
+        w[i] = pal[i] * 0.88
+    for k in range(3):                       # kaluze: ciemna woda z odbiciem nieba
+        w[59 + k] = (48 + k * 14, 56 + k * 16, 82 + k * 22)
+    return np.clip(w, 0, 255).astype(np.int32)
+
+
+wet = make_wet()
 
 # HUD 32 kolory (Copper laduje je w strefie HUD)
 hud_pal = np.zeros((32, 3), dtype=np.int32)
@@ -154,15 +190,6 @@ def progress(x, y):
     return s
 
 
-yy, xx = np.mgrid[0:H, 0:W].astype(np.float64)
-sx, sy = spine(xx, yy)
-rr = np.hypot(xx - sx, yy - sy)
-nx = np.where(rr > 0, (xx - sx) / np.maximum(rr, 1e-6), 0)
-ny = np.where(rr > 0, (yy - sy) / np.maximum(rr, 1e-6), 0)
-ss = progress(xx, yy)
-LAP = 4 * HALF_L + 2 * math.pi * R_MID
-
-
 def value_noise(a, b, scale_a, scale_b, seed):
     g = np.random.default_rng(seed).random((257, 257))
     fa, fb = a / scale_a, b / scale_b
@@ -177,39 +204,130 @@ def value_noise(a, b, scale_a, scale_b, seed):
 
 # ============================== TOR ======================================
 
-img = np.zeros((H, W), dtype=np.int32)
-lat = rr - R_MID
-fine = rng.random((H, W))
-streak = value_noise(ss, lat + 40, 9.0, 1.3, 5)        # smugi wzdluz kierunku jazdy
-blot = value_noise(xx, yy, 14.0, 14.0, 9)
+def build_track(i):
+    """Tlo toru nr i (geometria + nawierzchnia) -> globalne img, pal, wet."""
+    global yy, xx, sx, sy, rr, nx, ny, ss, LAP, img, lat, fine, streak, blot, wet
+    set_preset(i)
+    track_colors(SURFACE)
+    wet = make_wet()
+    rng_t = np.random.default_rng(1977 + i)
+    yy, xx = np.mgrid[0:H, 0:W].astype(np.float64)
+    sx, sy = spine(xx, yy)
+    rr = np.hypot(xx - sx, yy - sy)
+    nx = np.where(rr > 0, (xx - sx) / np.maximum(rr, 1e-6), 0)
+    ny = np.where(rr > 0, (yy - sy) / np.maximum(rr, 1e-6), 0)
+    ss = progress(xx, yy)
+    LAP = 4 * HALF_L + 2 * math.pi * R_MID
 
-# --- nawierzchnia ---
-track = (rr >= R_IN) & (rr < R_OUT)
-zone = np.clip(((rr - R_IN) * 4 / (R_OUT - R_IN)).astype(int), 0, 3)
-shade = 3.5 + (fine - 0.5) * 2.6 + (streak - 0.5) * 3.2 + (blot - 0.5) * 1.5
-groove = np.exp(-((lat + 20) / 3.0) ** 2) + 0.7 * np.exp(-((lat - 1) / 2.6) ** 2)  # linie jazdy
-shade -= groove * 2.2 * (0.6 + streak)
-light_side = -(nx * -0.707 + ny * -0.707)              # >0: banda od strony swiatla -> cien
-wall_shadow = (rr > R_OUT - 4) & (light_side < -0.25)
-shade = np.where(wall_shadow, shade - 3, shade)
-shade = np.clip(shade.round().astype(int), 0, 7)
-img[track] = (16 + zone * 8 + shade)[track]
-deep_groove = track & (groove * (0.6 + streak) > 1.25) & (fine < 0.5)
-img[deep_groove] = 48 + (fine[deep_groove] * 8).astype(int) % 4
-stones = track & (rr > R_OUT - 9) & (fine > 0.9) & ~wall_shadow
-img[stones] = 52 + ((fine[stones] - 0.9) * 40).astype(int).clip(0, 3)
-pn = value_noise(xx, yy, 3.2, 2.6, 21) + (fine - 0.5) * 0.12      # postrzepione brzegi
-puddle = track & (pn > 0.80) & (lat < -12) & (np.abs(xx - CX) > HALF_L - 20)
-img[puddle] = 59 + (fine[puddle] * 3).astype(int)
 
-# --- kraweznik ---
-kerb = (rr >= R_IN - 2) & (rr < R_IN)
-img[kerb] = np.where(((ss / 6).astype(int) % 2) == 0, 57, 58)[kerb]
 
-# --- murawa ---
-grass_in = rr < R_IN - 2
-stripe = ((xx + yy * 0.5) // 11).astype(int) % 2
-img[grass_in] = (64 + stripe * 8 + (2 + (fine - 0.5) * 3 + blot * 3).clip(0, 7).astype(int))[grass_in]
+    img = np.zeros((H, W), dtype=np.int32)
+    lat = rr - R_MID
+    fine = rng_t.random((H, W))
+    streak = value_noise(ss, lat + 40, 9.0, 1.3, 5)        # smugi wzdluz kierunku jazdy
+    blot = value_noise(xx, yy, 14.0, 14.0, 9)
+
+    # --- nawierzchnia ---
+    track = (rr >= R_IN) & (rr < R_OUT)
+    zone = np.clip(((rr - R_IN) * 4 / (R_OUT - R_IN)).astype(int), 0, 3)
+    shade = 3.5 + (fine - 0.5) * 2.6 + (streak - 0.5) * 3.2 + (blot - 0.5) * 1.5
+    groove = np.exp(-((lat + 20) / 3.0) ** 2) + 0.7 * np.exp(-((lat - 1) / 2.6) ** 2)  # linie jazdy
+    shade -= groove * 2.2 * (0.6 + streak)
+    light_side = -(nx * -0.707 + ny * -0.707)              # >0: banda od strony swiatla -> cien
+    wall_shadow = (rr > R_OUT - 4) & (light_side < -0.25)
+    shade = np.where(wall_shadow, shade - 3, shade)
+    shade = np.clip(shade.round().astype(int), 0, 7)
+    img[track] = (16 + zone * 8 + shade)[track]
+    deep_groove = track & (groove * (0.6 + streak) > 1.25) & (fine < 0.5)
+    img[deep_groove] = 48 + (fine[deep_groove] * 8).astype(int) % 4
+    stones = track & (rr > R_OUT - 9) & (fine > 0.9) & ~wall_shadow
+    img[stones] = 52 + ((fine[stones] - 0.9) * 40).astype(int).clip(0, 3)
+    pn = value_noise(xx, yy, 3.2, 2.6, 21) + (fine - 0.5) * 0.12      # postrzepione brzegi
+    puddle = track & (pn > 0.80) & (lat < -12) & (np.abs(xx - CX) > HALF_L - 20)
+    img[puddle] = 59 + (fine[puddle] * 3).astype(int)
+
+    # --- kraweznik ---
+    kerb = (rr >= R_IN - 2) & (rr < R_IN)
+    img[kerb] = np.where(((ss / 6).astype(int) % 2) == 0, 57, 58)[kerb]
+
+    # --- murawa ---
+    grass_in = rr < R_IN - 2
+    stripe = ((xx + yy * 0.5) // 11).astype(int) % 2
+    img[grass_in] = (64 + stripe * 8 + (2 + (fine - 0.5) * 3 + blot * 3).clip(0, 7).astype(int))[grass_in]
+
+
+    stamp_text("SPEEDWAY", CX - text_w("SPEEDWAY") // 2, 76, 79)
+    stamp_text("PARTY", CX - text_w("PARTY") // 2, 94, 79)
+    for i, c in enumerate([200, 201, 202, 203]):          # klomby w kolorach kaskow
+        fx = CX - 27 + i * 18
+        d = np.hypot(xx - fx, yy - 120)
+        img[d < 5.5] = 204
+        bloom = (d < 4.5) & (fine > 0.35)
+        img[bloom] = c
+        img[(d < 4.5) & (fine > 0.92)] = 205
+
+    tx_l = CX - HALF_L - R_IN // 2 - 6                      # traktory na murawie (kazdy tor)
+    stamp(TRACTOR, tx_l, 96, TCOL)
+    stamp([r[::-1] for r in TRACTOR], 2 * CX - tx_l - 12, 96, {**TCOL, 'G': 210})
+
+    # --- banda, strefa bezpieczenstwa, plot ---
+    wall = (rr >= R_OUT) & (rr < R_OUT + 3)
+    seg = (ss / 22).astype(int)
+    in_bend = np.abs(xx - CX) > HALF_L
+    board_bg = 80 + (seg * 5) % 8
+    board_fg = 88 + (seg * 5) % 8
+    air = np.where((seg % 2) == 0, 80, 95)                 # dmuchane bandy na lukach
+    wall_px = np.where(rr < R_OUT + 1, 88 + 7, np.where(((ss % 22) > 3) & ((ss % 22) < 18) & (rr < R_OUT + 2), board_fg, board_bg))
+    img[wall] = np.where(in_bend, air, wall_px)[wall]
+    safety = (rr >= R_OUT + 3) & (rr < R_OUT + 6)
+    img[safety] = (64 + (fine * 3).astype(int))[safety]
+    fence = (rr >= R_OUT + 6) & (rr < R_OUT + 8)
+    img[fence] = np.where((ss.astype(int) % 8) == 0, 136, 138 + (rr[fence.nonzero()].mean() > 0))[fence] if False else \
+        np.where((ss.astype(int) % 8) == 0, 136, 139)[fence]
+
+    # --- trybuny: koncentryczne rzedy kibicow ---
+    stand = rr >= R_OUT + 8
+    k = (rr - (R_OUT + 8)).astype(int)
+    row_m = k % 3
+    aisle = ((ss / 3).astype(int) % 26) == 0
+    # kibic = komorka 2 px wzdluz rzedu; sektory kibicuja "swoim" kolorem
+    cell = (ss / 2).astype(np.int64)
+    rown = k // 3
+    hsh = (cell * 73856093 ^ rown * 19349663 ^ 0x5bd1e995) & 0xFFFFFF
+    section = (ss / 46).astype(np.int64)
+    team = 140 + (section * 11) % 32
+    own = 140 + (hsh % 32)
+    shirt = np.where((hsh >> 5) % 10 < 6, team, own)
+    empty = (hsh >> 9) % 100 < 14
+    head = np.where((hsh >> 12) % 4 == 3, 174, np.where((hsh >> 14) % 3 == 0, 175, 172 + (hsh >> 16) % 2))
+    gap = (xx.astype(int) + yy.astype(int)) % 2 == 0          # przeswity miedzy glowami
+    st = np.where(row_m == 0, 129 + rown % 2,
+                  np.where(empty, 176 + rown % 2,
+                           np.where(row_m == 1, shirt, np.where(gap & ((hsh >> 18) % 2 == 0), shirt, head))))
+    st = np.where(aisle, 132, st)
+    img[stand] = st[stand]
+
+    # --- reflektory w naroznikach ---
+    for (lx, ly) in [(10, 6), (302, 6), (10, 194), (302, 194)]:
+        img[ly - 1:ly + 7, lx - 1:lx + 9] = 212
+        img[ly:ly + 6, lx:lx + 8] = 193
+        img[ly + 1:ly + 5:2, lx + 1:lx + 7:2] = 192
+
+    # --- wieza sedziowska przy linii startu ---
+    tx0, ty0 = TAPE_X - 16, 199
+    img[ty0:ty0 + 10, tx0:tx0 + 32] = 216
+    img[ty0, tx0:tx0 + 32] = 219
+    img[ty0 + 2:ty0 + 5, tx0 + 2:tx0 + 30] = 220
+    img[ty0 + 2:ty0 + 5, tx0 + 2:tx0 + 30:5] = 217
+
+    # --- linia startu i pola startowe ---
+    for y in range(CY + R_IN, CY + R_OUT):
+        img[y, TAPE_X:TAPE_X + 2] = 56
+    for i in range(5):
+        yb = CY + R_IN + GATE_FIRST - GATE_STEP // 2 + i * GATE_STEP
+        img[yb, TAPE_X - 14:TAPE_X] = 56
+
+    return img
 
 
 def stamp_text(text, x0, y0, color, scale=2, spacing=6):
@@ -226,16 +344,6 @@ def stamp_text(text, x0, y0, color, scale=2, spacing=6):
 def text_w(text, scale=2, spacing=6):
     return len(text) * spacing * scale - scale
 
-
-stamp_text("SPEEDWAY", CX - text_w("SPEEDWAY") // 2, 76, 79)
-stamp_text("PARTY", CX - text_w("PARTY") // 2, 94, 79)
-for i, c in enumerate([200, 201, 202, 203]):          # klomby w kolorach kaskow
-    fx = CX - 27 + i * 18
-    d = np.hypot(xx - fx, yy - 120)
-    img[d < 5.5] = 204
-    bloom = (d < 4.5) & (fine > 0.35)
-    img[bloom] = c
-    img[(d < 4.5) & (fine > 0.92)] = 205
 
 TRACTOR = ["..KKK.......",
            ".KGGGK.KKK..",
@@ -254,65 +362,8 @@ def stamp(rows, x0, y0, cmap):
                 img[y0 + ry, x0 + rx] = cmap[c]
 
 
-stamp(TRACTOR, 70, 96, TCOL)
-stamp([r[::-1] for r in TRACTOR], 238, 96, {**TCOL, 'G': 210})
 
-# --- banda, strefa bezpieczenstwa, plot ---
-wall = (rr >= R_OUT) & (rr < R_OUT + 3)
-seg = (ss / 22).astype(int)
-in_bend = np.abs(xx - CX) > HALF_L
-board_bg = 80 + (seg * 5) % 8
-board_fg = 88 + (seg * 5) % 8
-air = np.where((seg % 2) == 0, 80, 95)                 # dmuchane bandy na lukach
-wall_px = np.where(rr < R_OUT + 1, 88 + 7, np.where(((ss % 22) > 3) & ((ss % 22) < 18) & (rr < R_OUT + 2), board_fg, board_bg))
-img[wall] = np.where(in_bend, air, wall_px)[wall]
-safety = (rr >= R_OUT + 3) & (rr < R_OUT + 6)
-img[safety] = (64 + (fine * 3).astype(int))[safety]
-fence = (rr >= R_OUT + 6) & (rr < R_OUT + 8)
-img[fence] = np.where((ss.astype(int) % 8) == 0, 136, 138 + (rr[fence.nonzero()].mean() > 0))[fence] if False else \
-    np.where((ss.astype(int) % 8) == 0, 136, 139)[fence]
-
-# --- trybuny: koncentryczne rzedy kibicow ---
-stand = rr >= R_OUT + 8
-k = (rr - (R_OUT + 8)).astype(int)
-row_m = k % 3
-aisle = ((ss / 3).astype(int) % 26) == 0
-# kibic = komorka 2 px wzdluz rzedu; sektory kibicuja "swoim" kolorem
-cell = (ss / 2).astype(np.int64)
-rown = k // 3
-hsh = (cell * 73856093 ^ rown * 19349663 ^ 0x5bd1e995) & 0xFFFFFF
-section = (ss / 46).astype(np.int64)
-team = 140 + (section * 11) % 32
-own = 140 + (hsh % 32)
-shirt = np.where((hsh >> 5) % 10 < 6, team, own)
-empty = (hsh >> 9) % 100 < 14
-head = np.where((hsh >> 12) % 4 == 3, 174, np.where((hsh >> 14) % 3 == 0, 175, 172 + (hsh >> 16) % 2))
-gap = (xx.astype(int) + yy.astype(int)) % 2 == 0          # przeswity miedzy glowami
-st = np.where(row_m == 0, 129 + rown % 2,
-              np.where(empty, 176 + rown % 2,
-                       np.where(row_m == 1, shirt, np.where(gap & ((hsh >> 18) % 2 == 0), shirt, head))))
-st = np.where(aisle, 132, st)
-img[stand] = st[stand]
-
-# --- reflektory w naroznikach ---
-for (lx, ly) in [(10, 6), (302, 6), (10, 194), (302, 194)]:
-    img[ly - 1:ly + 7, lx - 1:lx + 9] = 212
-    img[ly:ly + 6, lx:lx + 8] = 193
-    img[ly + 1:ly + 5:2, lx + 1:lx + 7:2] = 192
-
-# --- wieza sedziowska przy linii startu ---
-tx0, ty0 = TAPE_X - 16, 199
-img[ty0:ty0 + 10, tx0:tx0 + 32] = 216
-img[ty0, tx0:tx0 + 32] = 219
-img[ty0 + 2:ty0 + 5, tx0 + 2:tx0 + 30] = 220
-img[ty0 + 2:ty0 + 5, tx0 + 2:tx0 + 30:5] = 217
-
-# --- linia startu i pola startowe ---
-for y in range(CY + R_IN, CY + R_OUT):
-    img[y, TAPE_X:TAPE_X + 2] = 56
-for i in range(5):
-    yb = CY + R_IN + GATE_FIRST - GATE_STEP // 2 + i * GATE_STEP
-    img[yb, TAPE_X - 14:TAPE_X] = 56
+build_track(0)
 
 # ============================ MOTOCYKLE ==================================
 # kolory wzgledne duszka (0..15) -> paleta 240+n
@@ -656,9 +707,15 @@ def main():
     (ROOT / "data").mkdir(exist_ok=True)
     (ROOT / "art").mkdir(exist_ok=True)
 
-    (ROOT / "data/track.pal").write_bytes(bytes(pal.astype(np.uint8).ravel()) + bytes(wet.astype(np.uint8).ravel()))
+    # tory: data/trackN.pal (sucho + mokro) i data/trackN.bpl, podglady art/track_<nazwa>.png
+    for i, (name, *_rest) in enumerate(PRESETS):
+        build_track(i)
+        (ROOT / f"data/track{i}.pal").write_bytes(bytes(pal.astype(np.uint8).ravel()) + bytes(wet.astype(np.uint8).ravel()))
+        (ROOT / f"data/track{i}.bpl").write_bytes(to_planar(img, 8))
+        write_png(ROOT / f"art/track_{name}.png", pal[img], 2)
+        write_png(ROOT / f"art/track_{name}_mokry.png", wet[img], 2)
+    build_track(0)                           # reszta podgladow na torze 0
     (ROOT / "data/hud.pal").write_bytes(bytes(hud_pal.astype(np.uint8).ravel()))
-    (ROOT / "data/track.bpl").write_bytes(to_planar(img, 8))
     (ROOT / "data/referee.bin").write_bytes(to_planar(referee_img(), 5))
 
     print("motocykle: renderowanie 96 klatek...")
@@ -679,8 +736,6 @@ def main():
             cell[m] = pal[240 + f[m]]
     write_png(ROOT / "art/tractors_sheet.png", vs, 3)
 
-    write_png(ROOT / "art/track_dry.png", pal[img], 2)
-    write_png(ROOT / "art/track_wet.png", wet[img], 2)
 
     # arkusz klatek: 32 kierunki x (3 uslizgi) na tle toru, + rzad kaskow
     sheet = np.zeros(((SKIDS + 1) * 34, DIRS * 34, 3), dtype=np.int32) + pal[20]

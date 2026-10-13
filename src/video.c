@@ -158,10 +158,9 @@ BOOL video_init(void)
         g_video.copper[i] = AllocMem(COPPER_WORDS * 2, MEMF_CHIP | MEMF_CLEAR);
         if (!g_video.play[i] || !g_video.copper[i]) return FALSE;
     }
-    /* tlo toru moze byc w Fast RAM? Nie - Blitter kopiuje z niego czasteczki, wiec Chip. */
-    g_video.background = AllocMem(PLAY_SIZE, MEMF_CHIP | MEMF_CLEAR);
-    g_video.hud        = AllocMem(HUD_SIZE,  MEMF_CHIP | MEMF_CLEAR);
-    if (!g_video.background || !g_video.hud) return FALSE;
+    /* tla torow (Chip RAM, Blitter kopiuje z nich) przydziela track.c */
+    g_video.hud = AllocMem(HUD_SIZE, MEMF_CHIP | MEMF_CLEAR);
+    if (!g_video.hud) return FALSE;
 
     for (i = 0; i < 2; i++)
         build_copper(g_video.copper[i], i);
@@ -177,7 +176,6 @@ void video_free(void)
         if (g_video.play[i])   FreeMem(g_video.play[i], PLAY_SIZE);
         if (g_video.copper[i]) FreeMem(g_video.copper[i], COPPER_WORDS * 2);
     }
-    if (g_video.background) FreeMem(g_video.background, PLAY_SIZE);
     if (g_video.hud)        FreeMem(g_video.hud, HUD_SIZE);
 }
 

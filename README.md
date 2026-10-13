@@ -1,11 +1,11 @@
 # Speedway Party
 
-Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. Turniej 15 biegów dla 1–4 graczy przy jednej kanapie, wolne miejsca zajmują boty. Kod w C (Bebbo GCC, NDK 3.9) pisze bezpośrednio do rejestrów, z wyłączonym systemem.
+Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. Turniej 15 biegów dla 1–4 graczy na jednej kanapie, wolne miejsca zajmują boty. Kod w C (Bebbo GCC, NDK 3.9).
 
 | ![Bieg w WinUAE](art/winuae_race.png) | ![Ekran tytułowy w WinUAE](art/winuae_title.png) |
 |---|---|
 
-*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip): bieg z szprychą spod tylnego koła i ekran tytułowy z tęczą z Coppera.*
+*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip): bieg z szprycą spod tylnego koła i ekran tytułowy z tęczą z Coppera.*
 
 Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
@@ -15,13 +15,63 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 | ![Program zawodów](art/screen_03_table.png) | ![Przerwa na tor](art/screen_08_grading.png) | ![Podium](art/screen_10_podium.png) |
 
 
+## Pobierz i zagraj
+
+**[release/SpeedwayParty.zip](release/SpeedwayParty.zip)**: gotowa gra dla Amigi (plik wykonywalny, dane, `s/startup-sequence`, instrukcja `CZYTAJ.TXT`).
+
+Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 3.x. Fast RAM nie jest potrzebny.
+- **Na Amidze:** rozpakuj, w Shellu wejdź do katalogu `SpeedwayParty` i uruchom `SpeedwayParty`.
+- **W emulatorze:** rozpakuj i podepnij katalog `SpeedwayParty` jako dysk startowy (szczegóły niżej w sekcji *Uruchomienie w WinUAE*).
+
 ## Spis treści
-1. [Budowanie](#budowanie)
-2. [Uruchomienie w WinUAE](#uruchomienie-w-winuae)
-3. [Sterowanie](#sterowanie)
-4. [Narzędzia na PC](#narzędzia-na-pc)
-5. [Struktura projektu](#struktura-projektu)
-6. [Znane ograniczenia / do zrobienia](#znane-ograniczenia--do-zrobienia)
+1. [Mechanika gry](#mechanika-gry)
+2. [Budowanie](#budowanie)
+3. [Uruchomienie w WinUAE](#uruchomienie-w-winuae)
+4. [Sterowanie](#sterowanie)
+5. [Narzędzia na PC](#narzędzia-na-pc)
+6. [Struktura projektu](#struktura-projektu)
+7. [Znane ograniczenia / do zrobienia](#znane-ograniczenia--do-zrobienia)
+
+---
+
+## Mechanika gry
+
+### Turniej
+- 15 biegów po 4 okrążenia, punktacja 3–2–1–0. Biegi 1–13 jadą według stałej tabeli, w której każdy startuje z każdego pola. W biegach 14 i 15 (nominowanych) zawodnicy wybierają pola od najlepszego w tabeli.
+- Kolor kasku zależy od pola startowego: A czerwony, B niebieski, C biały, D żółty.
+- Wolne miejsca zajmują boty na trzech poziomach: **Amator** (spóźniony start, łamie za mocno i za późno), **Profi** (dobry refleks, potrafi „zamknąć płot”) i **Mistrz** (czyta przyczepność toru, dozuje minimalny uślizg, umie pojechać szeroko pod bandą).
+
+### Start spod taśmy
+- Trzymasz dowolny kierunek. Po czerwonym świetle, które pali się losowo od 1,5 do 3,5 s, zapala się zielone i brzmi brzęczyk. Wtedy **puszczasz**.
+- Czas reakcji decyduje o tym, jak mocno motocykl wystrzeli spod taśmy.
+- Puszczenie przed zielonym to **taśma**: sędzia pokazuje czerwoną flagę, a druga taśma w biegu oznacza wykluczenie. Trzymanie dłużej niż 0,3 s po zielonym kończy się **mieleniem kołem** w miejscu.
+
+### Fizyka jazdy
+- **Gaz jest automatyczny**, a dwa przyciski sterują wyłącznie kątem złamania motocykla, czyli ustawieniem ramy względem kierunku jazdy.
+- **LEWO** łamie motocykl w łuk, maksymalnie do **40°**. **PRAWO** to kontra: prostuje motocykl i daje najwyżej ok. 14° w prawo, więc skręt w prawo jest wyraźnie słabszy.
+- Kierunek jazdy skręca proporcjonalnie do złamania, prędkości i przyczepności. Przy pełnym złamaniu promień skrętu wynosi ok. 45 px, więc motocykl nie zawróci w miejscu.
+- **Im mocniej złamany, tym wolniej.** Złamanie obniża prędkość, do której motocykl może się rozpędzić (przy 40° o ok. 25%), i zwiększa opór boczny. Najszybsze jest pulsacyjne dozowanie złamania w łuku i prostowanie na wyjściu.
+- **Banda** zabiera ok. 25% prędkości i prostuje motocykl, bez upadku. **Krawężnik** spowalnia lekko i ustawia motocykl równolegle do toru. **Kontakt łokieć w łokieć** spowalnia obu zawodników o ok. 8%, więc taranowanie się nie opłaca.
+
+### Nawierzchnia i przyczepność
+- Tor ma ukrytą **mapę przyczepności** ze strefami: przy krawężniku (ubite), środek, zewnętrzna i **odsypisko pod bandą**.
+- **„Szeroka niesie”:** wjazd w odsypisko z pełną prędkością i w lekkim uślizgu daje dodatkowe przyspieszenie, ale za wolna jazda tam **zakopuje** motocykl.
+- **Trzy tory do wyboru w menu:**
+
+  | Tor | Charakter |
+  |---|---|
+  | **GRANIT** | klasyczny owal, czerwona nawierzchnia |
+  | **BAKAŁAR** | długie proste, ciasne łuki, węższy, szara nawierzchnia, lepsza przyczepność |
+  | **PIASEK** | krótkie proste, duże okrągłe łuki, ślisko, szerokie odsypisko pod bandą |
+
+- **Stan toru** na start turnieju wybierasz w menu: suchy, wilgotny albo mokry. Mokry tor jest ciemniejszy (zamiana palety w Copperze, bez przerysowywania grafiki), ma kałuże przy krawężniku i mniejszą przyczepność, najbardziej przy krawężniku. Motocykl skręca słabiej i wynosi go szerzej.
+- **Polewanie:** po biegach 4, 7, 11 i 13 traktory równają i polewają tor. Potem tor z każdym biegiem **przesycha**, a przyczepność wraca.
+
+### Szpryca
+- Motocykl w uślizgu wyrzuca spod tylnego koła **szprycę** nawierzchni: drobiny lecą do tyłu i wachlarzem na zewnątrz łuku. Rysuje je Blitter, jeden blit z maską na drobinę.
+- Zawodnik jadący **w szprycy** rywala (co najmniej 2 drobiny w strefie przed motocyklem) traci trochę prędkości w każdej klatce. Trzeba więc szukać czystej linii i mijanki.
+
+---
 
 ---
 
@@ -54,7 +104,7 @@ make dist
 Powstaje katalog `dist/`:
 ```
 dist/SpeedwayParty          plik wykonywalny
-dist/data/*                 grafika i dźwięk (ładowane z PROGDIR:data/)
+dist/data/*                 grafika (3 tory), dźwięk - ładowane z PROGDIR:data/
 dist/s/startup-sequence     uruchamia grę od razu po starcie Amigi
 ```
 
@@ -101,9 +151,9 @@ Każdy gracz ma tylko **LEWO i PRAWO**. Gaz jest automatyczny.
 | do wyboru w menu | + adapter 4 graczy (LPT), strzałki | | | |
 
 - **Start spod taśmy:** trzymaj dowolny kierunek. Na zielonym świetle **puść**. Puszczenie przed zielonym to taśma (falstart). Trzymanie dłużej niż 0,3 s po zielonym to mielenie kołem w miejscu.
-- **Jazda:** LEWO łamie motocykl w łuk. Im mocniej złamany, tym większy opór i niższa prędkość, do której może się rozpędzić (przy pełnym złamaniu ok. 25% mniej). PRAWO to kontra: głównie prostuje motocykl, a skręt w prawo jest 3× słabszy niż w lewo. Najszybsze jest pulsacyjne dozowanie uślizgu.
+- **Jazda:** LEWO łamie motocykl w łuk (do 40°), PRAWO to kontra (do ok. 14°, głównie prostuje). Szczegóły w sekcji [Mechanika gry](#mechanika-gry).
 - **Szeroka niesie:** pod bandą, z pełną prędkością i w lekkim uślizgu motocykl dostaje dodatkowe przyspieszenie. Za wolno pod bandą motocykl się zakopuje.
-- **Szprycha:** jazda tuż za rywalem w uślizgu lekko spowalnia. Szukaj czystej linii.
+- **Szpryca:** jazda tuż za rywalem w uślizgu lekko spowalnia. Szukaj czystej linii.
 - **Menu:** joystick (góra/dół/lewo/prawo/fire) albo strzałki i Return. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
 - Liczbę graczy zmieniasz w pierwszym wierszu ekranu ustawień (LEWO/PRAWO).
 
@@ -116,14 +166,15 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | Polecenie | Co robi |
 |---|---|
 | `make assets` | regeneruje grafikę (`tools/genart.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`) i podglądy w `art/` |
+| `make release` | buduje paczkę do pobrania `release/SpeedwayParty.zip` (po `make dist`) |
 | `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |
 | `make sim` | symulator: te same pliki logiki gry rozgrywają turniej botów bez grafiki |
 | `sh tools/sim/batch.sh` | 5 turniejów, średnie punkty dla każdego poziomu AI (do strojenia) |
 | `python tools/sim/plot.py` | tory jazdy z symulacji na tle toru, zapis do `art/sim_lines.png` |
-| `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szprycha, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
+| `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szpryca, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
 | `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z prawdziwego nagrania |
 
-Geometria toru jest zapisana w dwóch miejscach: `src/track.c` i `tools/genart.py` (`CX, CY, HALF_L, R_IN, R_OUT`). Muszą być identyczne.
+Tabela torów jest zapisana w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS` w `tools/genart.py`. Kolejność i geometria (`HALF_L, R_IN, R_OUT`) muszą być identyczne.
 
 ---
 
@@ -135,11 +186,11 @@ src/
   system.c      przejęcie i oddanie sprzętu, własne przerwanie VBL
   video.c       Copper-listy AGA: 8 bitplanów, paleta 24-bit, kolory per linia, HUD, podwójny bufor
   sprites.c     duszki 64 px (pary attached), klatki motocykli
-  blit.c        Blitter: wypełnianie, kopiowanie, kropki „cookie-cut” (szprycha)
+  blit.c        Blitter: wypełnianie, kopiowanie, kropki „cookie-cut” (szpryca)
   start.c       procedura startowa, taśma, refleks
   race.c        model jazdy: auto-gaz, uślizg, banda, kontakt, okrążenia
   ai.c          boty: Amator / Profi / Mistrz
-  roost.c       szprycha i woda z polewaczki (cząsteczki Blittera)
+  roost.c       szpryca i woda z polewaczki (cząsteczki Blittera)
   track.c       geometria owalu, mapa przyczepności, wilgotność
   tractors.c    przerwa na tor (traktory na duszkach)
   tournament.c  tabela 15 biegów, punkty, biegi nominowane

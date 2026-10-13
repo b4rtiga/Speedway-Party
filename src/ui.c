@@ -127,7 +127,11 @@ BOOL ui_title_update(void)
 
 /* ========================= USTAWIENIA ============================= */
 
-#define SETUP_ROWS 6
+#define SETUP_ROWS   8
+#define ROW_TRACK    5
+#define ROW_COND     6
+#define ROW_START    7
+static const char *cond_names[3] = { "SUCHY", "WILGOTNY", "MOKRY" };
 static const char *port_names[INPUT_NONE] = {
     "JOY 1", "JOY 0", "JOY 3 LPT", "JOY 4 LPT", "KLAW Z/X", "KLAW N/M", "STRZAŁKI"
 };
@@ -136,7 +140,7 @@ static const char *level_names[3] = { "AMATOR", "PROFI", "MISTRZ" };
 /* znaki do wyboru joystickiem */
 static const UBYTE charset[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ\x80\x81\x82\x83\x84\x85\x86\x87\x88" "0123456789-.";
 
-static WORD setup_row_y(UBYTE row) { return (WORD)(44 + row * 18); }
+static WORD setup_row_y(UBYTE row) { return (WORD)(36 + row * 15); }
 
 static void draw_setup(UBYTE *b)
 {
@@ -144,7 +148,7 @@ static void draw_setup(UBYTE *b)
     UBYTE i;
 
     text_draw_big_center(b, 6, "USTAWIENIA", U_RAINBOW, U_SHADOW);
-    blit_fill(b, 16, setup_row_y(setup_row) - 4, 288, 17, editing ? U_GOLD : U_CURSOR);
+    blit_fill(b, 16, setup_row_y(setup_row) - 3, 288, 15, editing ? U_GOLD : U_CURSOR);
 
     p = text_cat(s, "LICZBA GRACZY:   < ");
     p = text_uint(p, g_tour.num_humans, 1);
@@ -164,7 +168,17 @@ static void draw_setup(UBYTE *b)
         text_draw(b, 168, y, human ? "GRACZ" : "AI", human ? U_GREEN : U_GREY, U_SHADOW);
         text_draw(b, 216, y, human ? port_names[r->input] : level_names[r->ai_level], U_GOLD, U_SHADOW);
     }
-    text_draw_center(b, setup_row_y(5), "START TURNIEJU", setup_row == 5 ? U_RAINBOW : U_WHITE, U_SHADOW);
+    text_draw(b, 40, setup_row_y(ROW_TRACK), "TOR:", U_WHITE, U_SHADOW);
+    p = text_cat(s, "< ");
+    p = text_cat(p, track_name(g_tour.track.type));
+    text_cat(p, " >");
+    text_draw(b, 168, setup_row_y(ROW_TRACK), s, U_GOLD, U_SHADOW);
+    text_draw(b, 40, setup_row_y(ROW_COND), "STAN TORU:", U_WHITE, U_SHADOW);
+    p = text_cat(s, "< ");
+    p = text_cat(p, cond_names[g_tour.start_condition]);
+    text_cat(p, " >");
+    text_draw(b, 168, setup_row_y(ROW_COND), s, U_GOLD, U_SHADOW);
+    text_draw_center(b, setup_row_y(ROW_START), "START TURNIEJU", setup_row == ROW_START ? U_RAINBOW : U_WHITE, U_SHADOW);
 
     text_draw_center(b, 168, editing ? "PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA"
                                      : "GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", U_GREY, 0);
@@ -266,11 +280,15 @@ BOOL ui_setup_update(void)
                 r->input = (InputPort)((r->input + INPUT_NONE + d) % INPUT_NONE);
             else
                 r->ai_level = (AiLevel)((r->ai_level + 3 + d) % 3);
+        } else if (setup_row == ROW_TRACK) {
+            track_select((UBYTE)((g_tour.track.type + NUM_TRACKS + d) % NUM_TRACKS));
+        } else if (setup_row == ROW_COND) {
+            g_tour.start_condition = (UBYTE)((g_tour.start_condition + 3 + d) % 3);
         }
     }
     if (m & BTN_FIRE) {
-        if (setup_row == 5) return TRUE;
-        if (setup_row >= 1) { editing = TRUE; changed = TRUE; }
+        if (setup_row == ROW_START) return TRUE;
+        if (setup_row >= 1 && setup_row <= MAX_RIDERS) { editing = TRUE; changed = TRUE; }
     }
     if (changed) ui_invalidate();
     return FALSE;
@@ -281,7 +299,8 @@ BOOL ui_setup_update(void)
 static void wetness_text(char *s)
 {
     UBYTE w = g_tour.track.wetness;
-    text_cat(text_cat(s, "TOR: "), w > 170 ? "MOKRY - PO POLEWANIU" : w > 60 ? "WILGOTNY" : "SUCHY");
+    char *p = text_cat(text_cat(s, "TOR "), track_name(g_tour.track.type));
+    text_cat(p, w > 170 ? ": MOKRY" : w > 60 ? ": WILGOTNY" : ": SUCHY");
 }
 
 static void draw_standings(UBYTE *b, WORD y)
@@ -578,11 +597,11 @@ static void restore_px(UBYTE *buf, WORD x, WORD y)
 
 static UBYTE tape_style(void)
 {
-    if (g_tour.state != GS_HEAT) return 3;
+    if (g_tour.state != GS_HEAT) return TAPE_GONE;
     switch (g_tour.heat.phase) {
     case HEAT_TAPE_UP:  return g_tour.heat.tape_anim;
     case HEAT_RACING:
-    case HEAT_FINISHED: return 3;
+    case HEAT_FINISHED: return TAPE_GONE;
     default:            return 0;
     }
 }
@@ -596,13 +615,28 @@ static void render_tape(UBYTE *buf)
     if (tape_drawn[g_video.back] == style) return;
     hw_wait_blit();
     for (y = t->tape_y0; y <= t->tape_y1; y++) {
-        restore_px(buf, x - 1, y);
-        restore_px(buf, x, y);
-        restore_px(buf, x + 1, y);
+        WORD k;
+        for (k = -3; k <= 4; k += 1) restore_px(buf, x + k, y);
         switch (style) {
-        case 0: plot(buf, x, y, 1); plot(buf, x + 1, y, 1); break;
-        case 1: if (y & 2) plot(buf, (y & 1) ? x + 1 : x - 1, y, 1); break;
-        case 2: if ((y & 3) == 0) plot(buf, x, y, 1); break;
+        case 0:                                         /* napieta: 3 px bieli + cien */
+            plot(buf, x - 1, y, 1); plot(buf, x, y, 1); plot(buf, x + 1, y, 1);
+            plot(buf, x + 2, y, U_SHADOW);
+            break;
+        case 1: case 2: {                               /* zrywa sie: rozmyta, drgajaca */
+            WORD j = (WORD)(((y >> 1) + style) & 1 ? 1 : -1);
+            plot(buf, x - 1 + j, y, 1); plot(buf, x + j, y, 1); plot(buf, x + 1 + j, y, 1);
+            plot(buf, x + 2 + j, y, U_SHADOW);
+            break;
+        }
+        case 3: case 4:                                 /* gruba przerywana, odlatuje */
+            if (((y + style) & 3) < 2) { plot(buf, x - 2, y, 1); plot(buf, x - 1, y, 1); plot(buf, x, y, 1); }
+            break;
+        case 5: case 6:                                 /* strzepy */
+            if (((y + style) & 7) < 2) { plot(buf, x - 3, y, 1); plot(buf, x - 2, y, 1); }
+            break;
+        case 7:                                         /* ostatnie punkty */
+            if ((y & 7) == 0) plot(buf, x - 3, y, 1);
+            break;
         default: break;
         }
     }

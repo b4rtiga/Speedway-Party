@@ -1,6 +1,6 @@
 /* sim.c - symulator turnieju bez grafiki: te same pliki logiki co gra (race/start/ai/
  * tournament/track/roost). 4 boty, 15 biegow, statystyki + slad biegu 1 do CSV.
- * Budowanie i uruchomienie: sh tools/sim/run.sh */
+ * Budowanie i uruchomienie: sh tools/sim/run.sh [biegi] [ziarno] [tor 0-2] */
 #include <stdio.h>
 #include <stdlib.h>
 #include "game.h"
@@ -27,6 +27,7 @@ int main(int argc, char **argv)
     g_tour.riders[2].ai_level = AI_MASTER;
     g_tour.riders[3].ai_level = AI_PRO;
     track_init();
+    if (argc > 3) track_select((UBYTE)atoi(argv[3]));    /* 0 granit, 1 bakalar, 2 piasek */
     fprintf(trace, "frame,bike,gate,x,y,speed,drift,lap,state\n");
 
     for (h = 0; h < heats; h++) {
@@ -80,7 +81,7 @@ int main(int argc, char **argv)
             Rider *r = &g_tour.riders[b->rider];
             int place = -1, k;
             for (k = 0; k < ht->finished_count; k++) if (ht->finish_order[k] == b->rider) place = k + 1;
-            printf("   pole %c %-11s %s  miejsce %s  meta %5.1f s  reakcja %3d ms  śr.v %.2f  śr.|drift| %4.1f  banda %3d  szprycha %4d kl.\n",
+            printf("   pole %c %-11s %s  miejsce %s  meta %5.1f s  reakcja %3d ms  śr.v %.2f  śr.|drift| %4.1f  banda %3d  szpryca %4d kl.\n",
                    'A' + i, r->name, lvl_name[r->ai_level],
                    place > 0 ? (char[]){(char)('0' + place), 0} : (b->state == BIKE_EXCLUDED ? "W" : "-"),
                    place > 0 ? b->finish_frame / 50.0 : 0.0, b->reaction_frames * 20,

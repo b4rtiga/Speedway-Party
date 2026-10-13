@@ -3,7 +3,8 @@
  *  HEAT_PRE        1 s: zawodnicy ustawiaja sie pod tasma
  *  HEAT_READY      czekamy, az kazdy czlowiek trzyma DOWOLNY kierunek przez 0.2 s
  *  HEAT_RED_LIGHT  losowo 1.5-3.5 s (75-175 klatek). Puszczenie = TASMA (falstart)
- *  HEAT_TAPE_UP    zielone + brzeczyk; tasma: ciagla -> przerywana (2-3 klatki) -> brak
+ *  HEAT_TAPE_UP    zielone + brzeczyk; tasma odlatuje przez TAPE_GONE klatek:
+ *                  rozmyta -> gruba przerywana -> strzepy -> punkty -> brak
  *                  Start = PUSZCZENIE przycisku. Czas reakcji = klatki od zielonego.
  *                  Trzymanie > WHEELSPIN_FRAMES po zielonym = mielenie kolem w miejscu.
  *  HEAT_FALSE_START czerwona flaga sedziego, 3 s, ostrzezenie; druga tasma = wykluczenie. */
@@ -148,10 +149,9 @@ void start_update(void)
         break;
 
     case HEAT_TAPE_UP:
-        /* tasma: klatki 0-1 rozmyta przerywana, 2 rzadka, od 3 brak */
-        h->tape_anim = (UBYTE)(h->phase_timer < 2 ? 1 : h->phase_timer < 3 ? 2 : 3);
+        h->tape_anim = (UBYTE)(h->phase_timer < TAPE_GONE ? h->phase_timer : TAPE_GONE);
         update_launches(h->phase_timer);
-        if (h->tape_anim == 3) h->phase = HEAT_RACING;   /* timer liczy dalej od zielonego */
+        if (h->tape_anim == TAPE_GONE) h->phase = HEAT_RACING;   /* timer liczy dalej od zielonego */
         break;
 
     case HEAT_RACING:

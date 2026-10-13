@@ -1,4 +1,4 @@
-"""preview_roost.py - podglad szprychy: ten sam model emisji/ruchu co src/roost.c
+"""preview_roost.py - podglad szprycy: ten sam model emisji/ruchu co src/roost.c
 (liczony na float), nalozony na makiete toru. Zapisuje art/mockup_roost.png."""
 import math
 import pathlib
@@ -51,7 +51,7 @@ def simulate(riders, frames=40):
 
 
 def main():
-    riders = [(0.30, 6, 44), (0.18, 4, 30)]             # lider szeroko, rywal tuz za nim w szprysze
+    riders = [(0.30, 6, 44), (0.18, 4, 30)]             # lider szeroko, rywal tuz za nim w szprycy
     parts, bikes = simulate(riders)
     frames = {}
     for (_, _, d, k) in bikes:

@@ -1,16 +1,23 @@
-/* race.c - pierwsza wersja modelu jazdy (auto-gaz, LEWO/PRAWO = kat uslizgu).
- * Wartosci do strojenia na prawdziwym sprzecie - celowo zebrane w #define. */
+/* race.c - model jazdy (auto-gaz, LEWO/PRAWO = kat zlamania motocykla).
+ *
+ * Motocykl ma KIERUNEK JAZDY (course88, kat 8.8) i RAME ustawiona pod katem
+ * zlamania (drift) do kierunku jazdy: heading = course - drift.
+ *   LEWO  -> drift rosnie do 40 st. (rama w luk), PRAWO -> kontra do ~14 st. w prawo.
+ *   Kierunek jazdy skreca proporcjonalnie do zlamania, predkosci i przyczepnosci,
+ *   wiec przy pelnym zlamaniu promien skretu ma ok. 45 px - motocykl nie zawraca w miejscu.
+ *   Im mocniej zlamany, tym nizsza predkosc maksymalna i wiekszy opor boczny.
+ * Wartosci do strojenia zebrane w #define (symulator: tools/sim). */
 #include "game.h"
 
 #define MAX_SPEED       ((fix16)(FIX_ONE * 18 / 10))   /* px/klatke */
-#define DRIFT_MAX       48
-#define DRIFT_MIN       (-8)         /* kontra: w prawo motocykl glownie sie prostuje */
-#define RIGHT_TURN_DIV  3            /* skret w prawo 3x slabszy niz w lewo */
-#define DRIFT_CAP_DIV   190          /* uslizg obniza predkosc maks.: drift 48 -> ok. -25% */
-#define DRIFT_IN        3            /* LEWO: lamanie */
-#define DRIFT_OUT       4            /* PRAWO: kontra */
+#define DRIFT_MAX       28           /* 40 st. (256 jednostek = 360 st.) */
+#define DRIFT_MIN       (-10)        /* ~14 st. kontry w prawo */
+#define DRIFT_IN        2            /* LEWO: lamanie na klatke (pelne zlamanie w ~0.3 s) */
+#define DRIFT_OUT       3            /* PRAWO: kontra na klatke */
+#define TURN_K          17           /* skret kierunku [1/256 jedn./klatke] na jednostke zlamania */
+#define DRIFT_CAP_DIV   112          /* zlamanie obniza predkosc maks.: 40 st. -> ok. -25% */
 #define ACCEL_SHIFT     6            /* przyspieszenie = (max-v)>>6 * grip */
-#define DRAG_DIV        4096         /* opor boczny: v*|drift|/DRAG_DIV */
+#define DRAG_DIV        3200         /* opor boczny: v*|drift|/DRAG_DIV */
 #define LAUNCH_FRAMES   50
 #define BUMP_DIST2      (8 * 8)      /* kontakt lokiec w lokiec (motocykl ~9 px szerokosci) */
 #define BUMP_COOLDOWN   12
@@ -39,6 +46,7 @@ void race_init_heat(void)
         b->x = INT2FIX(t->gate_x);
         b->y = INT2FIX(t->gate_y[g]);
         b->heading = 0;
+        b->course88 = 0;
         b->speed = 0;
         b->max_speed = MAX_SPEED;
         b->drift = 0;
@@ -64,9 +72,9 @@ void race_launch(Bike *b)
 }
 
 static void push_to_lateral(Bike *b, WORD lat) { track_snap_lateral(&b->x, &b->y, lat); }
-static void align_to_tangent(Bike *b)          { b->heading = track_tangent(b->x, b->y); }
+static void align_to_tangent(Bike *b)          { b->course88 = (UWORD)(track_tangent(b->x, b->y) << 8); }
 
-/* Szprycha: >= ROOST_HITS cudzych drobin w strefie przed motocyklem (roost.c)
+/* Szpryca: >= ROOST_HITS cudzych drobin w strefie przed motocyklem (roost.c)
  * -> minimalna kara predkosci; zmusza do szukania czystej linii ("mijanki"). */
 #define ROOST_HITS 2
 
@@ -85,7 +93,7 @@ static void update_bike(Bike *b)
     in = (g_tour.riders[b->rider].control == CTRL_AI) ? ai_steer(b) : b->input;
     b->prev_input = in;
 
-    /* --- kat uslizgu --- */
+    /* --- kat zlamania --- */
     if (in & BTN_LEFT)       b->drift = (BYTE)(b->drift + DRIFT_IN);
     else if (in & BTN_RIGHT) b->drift = (BYTE)(b->drift - DRIFT_OUT);
     else if (b->drift > 0 && (g_tour.heat.race_frames & 1)) b->drift--;
@@ -93,19 +101,20 @@ static void update_bike(Bike *b)
     if (b->drift > DRIFT_MAX) b->drift = DRIFT_MAX;
     if (b->drift < DRIFT_MIN) b->drift = DRIFT_MIN;
 
-    /* skret ramy proporcjonalny do uslizgu i przyczepnosci; w prawo (kontra) duzo slabiej */
+    /* --- skret kierunku jazdy: zlamanie x predkosc x przyczepnosc (dokladnosc 1/256) --- */
     {
-        WORD turn = (WORD)((b->drift * (WORD)grip) >> 11);
-        if (turn < 0) turn /= RIGHT_TURN_DIV;
-        b->heading = (angle8)(b->heading - turn);
+        LONG vfrac = (b->speed << 8) / MAX_SPEED;                       /* 0..~280 */
+        LONG gripf = 128 + grip / 2;                                    /* mokro: skret ~20% slabszy */
+        LONG turn88 = (LONG)b->drift * TURN_K * vfrac / 256 * gripf / 256;
+        b->course88 = (UWORD)(b->course88 - (UWORD)turn88);
     }
-    /* slaby grip = tyl ucieka, motocykl jedzie szerzej niz wskazuje rama */
-    travel = (angle8)(b->heading + ((b->drift * (WORD)(300 - grip)) >> 9));
+    travel = (angle8)(b->course88 >> 8);
+    b->heading = (angle8)(travel - b->drift);                           /* rama w luk */
 
     /* --- predkosc: auto-gaz minus subtelny opor boczny --- */
     if (zone == GRIP_DEEP_OUTER) {
         if (b->speed < FIXPCT(MAX_SPEED, 70)) b->speed -= b->speed >> 6;          /* zakopuje */
-        else if (b->drift >= 4 && b->drift <= 20) {                               /* szeroka niesie */
+        else if (b->drift >= 3 && b->drift <= 14) {                               /* szeroka niesie */
             cap = FIXPCT(MAX_SPEED, 108);
             b->speed += MAX_SPEED >> 8;
         }
@@ -160,7 +169,7 @@ static void update_bike(Bike *b)
         if (h->finished_count == 1) winner_frame = h->race_frames;
     }
 
-    b->skid_frame = (UBYTE)((b->drift > 26 || b->drift < -10) ? 2 : (b->drift > 10) ? 1 : 0);
+    b->skid_frame = (UBYTE)(b->drift > 18 ? 2 : (b->drift > 8 || b->drift < -6) ? 1 : 0);
     b->sprite_frame = ANGLE_TO_FRAME(b->heading);
 }
 

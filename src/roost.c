@@ -1,4 +1,4 @@
-/* roost.c - szprycha zuzlowa: drobiny nawierzchni spod tylnego kola.
+/* roost.c - szpryca zuzlowa: drobiny nawierzchni spod tylnego kola.
  *
  * Emisja: motocykl w uslizgu (drift > ROOST_DRIFT) albo mielacy kolem pod tasma.
  * Drobiny leca do tylu i na zewnatrz luku (przy lewym skrecie - w prawo),
@@ -14,7 +14,7 @@
 #include "video.h"
 #include "blit.h"
 
-#define ROOST_DRIFT     14
+#define ROOST_DRIFT     9
 #define SPEED_MIN       (FIX_ONE / 2)
 #define LIFE_MIN        8
 #define LIFE_RAND       8
@@ -62,8 +62,8 @@ static void emit(UBYTE owner, const Bike *b, BOOL spin)
         back = FIX_ONE * 2;                                      /* mielenie: prosto do tylu */
         side = 0;
     } else {
-        back = (b->speed >> 1) + (fix16)b->drift * (FIX_ONE / 20);
-        side = (fix16)b->drift * (FIX_ONE / 22);                 /* wachlarz na zewnatrz luku */
+        back = (b->speed >> 1) + (fix16)b->drift * (FIX_ONE / 12);
+        side = (fix16)b->drift * (FIX_ONE / 13);                 /* wachlarz na zewnatrz luku */
     }
     back += jitter(FIX_ONE);
     side += jitter(FIX_ONE);
@@ -124,13 +124,13 @@ void roost_update(BOOL bikes)
             emit(i, b, TRUE);
             emit(i, b, TRUE);
         } else if (b->state == BIKE_RACING && b->drift > ROOST_DRIFT && b->speed > SPEED_MIN) {
-            UBYTE n = (UBYTE)(1 + (b->drift - ROOST_DRIFT) / 10);     /* 1..4 na klatke */
+            UBYTE n = (UBYTE)(1 + (b->drift - ROOST_DRIFT) / 6);      /* 1..4 na klatke */
             while (n--) emit(i, b, FALSE);
         }
     }
 }
 
-/* Drobiny innych zawodnikow w strefie przed motocyklem (jezdziec "jedzie w szprysze"). */
+/* Drobiny innych zawodnikow w strefie przed motocyklem (jezdziec "jedzie w szprycy"). */
 UBYTE roost_hits(const Bike *b)
 {
     UBYTE i, hits = 0, me = (UBYTE)(b - g_tour.bikes);

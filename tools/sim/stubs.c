@@ -5,6 +5,9 @@
 #include "blit.h"
 
 Video g_video;
+
+APTR AllocMem(ULONG size, ULONG flags) { (void)flags; return calloc(1, size); }
+void FreeMem(APTR p, ULONG size) { (void)size; free(p); }
 UWORD *g_blank_sprite;
 
 void video_set_play_palette(const RGB24 *pal) { (void)pal; }

@@ -3,19 +3,45 @@
  * Owal = dwie proste + dwa luki. Jazda przeciwnie do ruchu wskazowek zegara
  * (lewe skrety): prosta startowa na dole w prawo, luk prawy w gore, prosta
  * przeciwlegla w lewo, luk lewy w dol. Kat 0 = wschod, 64 = poludnie (y w dol). */
+#include <exec/memory.h>
+#include <proto/exec.h>
+
 #include "game.h"
 #include "video.h"
+#include "text.h"
+
+/* Tory - MUSZA byc zgodne z PRESETS w tools/genart.py (kolejnosc i liczby).
+ * Ograniczenia ekranu: HALF_L + R_OUT <= 156 (szerokosc), R_OUT <= 96 (motocykl
+ * przy bandzie nie moze wejsc w HUD od linii 208). */
+typedef struct {
+    const char *name;
+    WORD half_l, r_in, r_out;    /* pol prostej, kraweznik, banda */
+    BYTE grip_adj;               /* przyczepnosc wzgledem granitu */
+    BYTE deep;                   /* poczatek odsypiska pod banda (0..39, mniej = szersze) */
+} TrackDef;
+
+static const TrackDef track_defs[NUM_TRACKS] = {
+    { "GRANIT",  60, 40, 96,   0, 33 },     /* klasyczny */
+    { "BAKAŁAR", 72, 36, 84,  15, 35 },     /* dlugie proste, ciasne luki, wezszy, przyczepny */
+    { "PIASEK",  44, 40, 96, -15, 29 },     /* krotkie proste, duze luki, slisko, duze odsypisko */
+};
+static const TrackDef *def = &track_defs[0];
 
 #define CX      160
 #define CY      100
-#define HALF_L  60          /* polowa dlugosci prostych */
-#define R_IN    40          /* kraweznik */
-#define R_OUT   96          /* banda: szerokosc toru 52 px; dol bandy y=196, motocykl
-                               przy bandzie (srodek <= 193, +8 px grafiki) nie wchodzi w HUD (208) */
+#define HALF_L  (def->half_l)
+#define R_IN    (def->r_in)
+#define R_OUT   (def->r_out)
 #define R_MID   ((R_IN + R_OUT) / 2)
 #define GATE_FIRST 7        /* pole A: 7 px od kraweznika */
-#define GATE_STEP  13       /* odstep pol startowych (motocykl ~9 px szerokosci) */
+#define GATE_STEP  ((R_OUT - R_IN - 2 * GATE_FIRST) / 3)
 #define PI_RMID ((LONG)R_MID * 355 / 113)
+
+/* tla wszystkich torow w Chip RAM (Blitter kopiuje z nich) i ich palety */
+static UBYTE *track_bg[NUM_TRACKS];
+static RGB24  track_pal[NUM_TRACKS][2][256];     /* [tor][sucho/mokro] */
+
+const char *track_name(UBYTE type) { return track_defs[type % NUM_TRACKS].name; }
 
 /* indeksy palety pola gry */
 #define C_LINE      1
@@ -68,6 +94,16 @@ void track_snap_lateral(fix16 *x, fix16 *y, WORD lat)
     *y = (((LONG)CY << 8) + dy * t / r) << 8;
 }
 
+/* Promien luku w punkcie s (dla linii lat), 0 na prostej. */
+WORD track_bend_radius(LONG s, WORD lat)
+{
+    LONG len = g_tour.track.lap_length;
+    s %= len; if (s < 0) s += len;
+    if ((s >= 2 * HALF_L && s < 2 * HALF_L + PI_RMID) || s >= 4 * HALF_L + PI_RMID)
+        return (WORD)(R_MID + lat);
+    return 0;
+}
+
 /* Kierunek jazdy rownolegly do toru (przeciwnie do wskazowek zegara). */
 angle8 track_tangent(fix16 x, fix16 y)
 {
@@ -83,7 +119,7 @@ GripZone track_zone_at(WORD x, WORD y)
     r = (UWORD)((r - R_IN) * 40 / (R_OUT - R_IN));   /* 0..39 niezaleznie od szerokosci */
     if (r < 10) return GRIP_INNER;
     if (r < 25) return GRIP_MIDDLE;
-    if (r < 33) return GRIP_OUTER;
+    if (r < def->deep) return GRIP_OUTER;
     return GRIP_DEEP_OUTER;                     /* odsypisko pod banda */
 }
 
@@ -162,8 +198,17 @@ static void rebuild_grip(void)
     for (gy = 0; gy < GRIP_H; gy++)
         for (gx = 0; gx < GRIP_W; gx++) {
             GripZone z = (GripZone)t->zone[gy][gx];
-            t->grip[gy][gx] = (UBYTE)(base[z] - (wet_loss[z] * t->wetness >> 8));
+            WORD g = (WORD)(base[z] - (wet_loss[z] * t->wetness >> 8));
+            if (z != GRIP_WALL) g += def->grip_adj;
+            t->grip[gy][gx] = (UBYTE)(g < 0 ? 0 : g > 255 ? 255 : g);
         }
+}
+
+void track_set_wetness(UBYTE wet)
+{
+    g_tour.track.wetness = wet;
+    rebuild_grip();
+    video_blend_track_palette(wet);
 }
 
 void track_apply_watering(void)
@@ -237,15 +282,37 @@ static void build_palettes(void)
 }
 
 /* track.pal: 256 RGB sucho + 256 RGB mokro; hud.pal: 32 RGB */
-static void load_art_palettes(void)
+static char asset_name[32];
+static const char *track_file(UBYTE type, const char *ext)
+{
+    char *p = text_cat(asset_name, "PROGDIR:data/track");
+    *p++ = (char)('0' + type);
+    text_cat(p, ext);
+    return asset_name;
+}
+
+/* trackN.pal: 256 RGB sucho + 256 RGB mokro (bez pliku: palety zastepcze z build_palettes) */
+static void load_track_palette(UBYTE type)
 {
     static UBYTE buf[256 * 3 * 2];
     UWORD i;
-    if (asset_load("PROGDIR:data/track.pal", buf, sizeof(buf)))
+    if (!asset_load(track_file(type, ".pal"), buf, sizeof(buf))) {
         for (i = 0; i < 256; i++) {
-            set_rgb(&g_video.pal_dry[i], buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
-            set_rgb(&g_video.pal_wet[i], buf[768 + i * 3], buf[768 + i * 3 + 1], buf[768 + i * 3 + 2]);
+            track_pal[type][0][i] = g_video.pal_dry[i];
+            track_pal[type][1][i] = g_video.pal_wet[i];
         }
+        return;
+    }
+    for (i = 0; i < 256; i++) {
+        set_rgb(&track_pal[type][0][i], buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
+        set_rgb(&track_pal[type][1][i], buf[768 + i * 3], buf[768 + i * 3 + 1], buf[768 + i * 3 + 2]);
+    }
+}
+
+static void load_hud_palette(void)
+{
+    static UBYTE buf[32 * 3];
+    UWORD i;
     if (asset_load("PROGDIR:data/hud.pal", buf, 32 * 3)) {
         RGB24 hud[32];
         for (i = 0; i < 32; i++) set_rgb(&hud[i], buf[i * 3], buf[i * 3 + 1], buf[i * 3 + 2]);
@@ -280,11 +347,17 @@ void track_render(UBYTE *dst)
         }
 }
 
-void track_init(void)
+/* Przelaczenie toru: geometria, mapa przyczepnosci, tasma i pola, tlo i palety. */
+void track_select(UBYTE type)
 {
     Track *t = &g_tour.track;
     WORD gx, gy, i;
+    UWORD c;
 
+    type %= NUM_TRACKS;
+    def = &track_defs[type];
+    t->type = type;
+    t->half_width = (WORD)((R_OUT - R_IN) / 2);
     t->lap_length = 4 * HALF_L + 2 * PI_RMID;
     for (gy = 0; gy < GRIP_H; gy++)
         for (gx = 0; gx < GRIP_W; gx++)
@@ -294,8 +367,8 @@ void track_init(void)
     t->num_wp = MAX_WAYPOINTS;
     for (i = 0; i < MAX_WAYPOINTS; i++) {
         track_point(t->lap_length * i / MAX_WAYPOINTS, 0, &t->wp[i].x, &t->wp[i].y);
-        t->wp[i].inner_ofs = -(R_MID - R_IN - 4);
-        t->wp[i].outer_ofs =  (R_OUT - R_MID - 4);
+        t->wp[i].inner_ofs = (BYTE)-(R_MID - R_IN - 4);
+        t->wp[i].outer_ofs = (BYTE)(R_OUT - R_MID - 4);
     }
 
     t->tape_x = CX - 20;
@@ -306,12 +379,38 @@ void track_init(void)
     for (i = 0; i < 4; i++)
         t->gate_y[i] = (WORD)(CY + R_IN + GATE_FIRST + i * GATE_STEP);
 
-    t->wetness = 0;
-    build_palettes();
-    load_art_palettes();
+    for (c = 0; c < 256; c++) {
+        g_video.pal_dry[c] = track_pal[type][0][c];
+        g_video.pal_wet[c] = track_pal[type][1][c];
+    }
+    g_video.background = track_bg[type];
     rebuild_grip();
-    video_blend_track_palette(0);
-    /* pikselart z tools/genart.py; bez pliku - zastepcza grafika generowana tutaj */
-    if (!asset_load("PROGDIR:data/track.bpl", g_video.background, PLAY_SIZE))
-        track_render(g_video.background);
+    video_blend_track_palette(t->wetness);
+}
+
+/* Wszystkie tory wczytywane z gory - po przejeciu sprzetu nie ma juz dos.library. */
+BOOL track_init(void)
+{
+    UBYTE i;
+    g_tour.track.wetness = 0;
+    build_palettes();                     /* zastepcze palety + paleta HUD */
+    load_hud_palette();
+    for (i = 0; i < NUM_TRACKS; i++) {
+        track_bg[i] = AllocMem(PLAY_SIZE, MEMF_CHIP | MEMF_CLEAR);
+        if (!track_bg[i]) return FALSE;
+        def = &track_defs[i];
+        load_track_palette(i);
+        /* pikselart z tools/genart.py; bez pliku - zastepcza grafika generowana tutaj */
+        if (!asset_load(track_file(i, ".bpl"), track_bg[i], PLAY_SIZE))
+            track_render(track_bg[i]);
+    }
+    track_select(0);
+    return TRUE;
+}
+
+void track_free(void)
+{
+    UBYTE i;
+    for (i = 0; i < NUM_TRACKS; i++)
+        if (track_bg[i]) FreeMem(track_bg[i], PLAY_SIZE);
 }
