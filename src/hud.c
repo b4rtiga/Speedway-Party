@@ -23,7 +23,7 @@ static BOOL  have_referee;
  *   czerwona    - przerwanie biegu (np. tasma)         czarna    - wykluczenie zawodnika
  *   biala       - ostatnie okrazenie lidera            niebieska - zaraz zostaniesz zdublowany
  *   narodowa    - awaryjny start (awaria maszyny startowej i swiatel) */
-typedef enum { FLAG_NONE = 0, FLAG_RED, FLAG_WHITE, FLAG_CHECKERED, FLAG_YELLOW, FLAG_BLUE, FLAG_BLACK,
+typedef enum { FLAG_NONE = 0, FLAG_RED, FLAG_LAST_LAP, FLAG_CHECKERED, FLAG_YELLOW, FLAG_BLUE, FLAG_BLACK,
                FLAG_NATIONAL } Flag;
 #define LAP_WARN 90                     /* niebieska: strata do lidera > okrazenie - 90 px */
 
@@ -128,9 +128,11 @@ static void hline_thick(WORD x0, WORD y0, WORD x1, WORD y1, UBYTE c)
     }
 }
 
+#define ABSW(v) ((v) < 0 ? -(v) : (v))
+
 static void set_flag_color(UBYTE flag)
 {
-    static const UBYTE rgb[8][3] = { {0,0,0}, {240,30,30}, {250,250,250}, {250,250,250},
+    static const UBYTE rgb[8][3] = { {0,0,0}, {240,30,30}, {255,215,0}, {250,250,250},
                                      {255,215,0}, {30,90,255}, {28,28,32}, {250,250,250} };
     video_set_hud_color(H_FLAG, rgb[flag][0], rgb[flag][1], rgb[flag][2]);
     video_set_hud_color(H_FLAG_SH, (UBYTE)(rgb[flag][0] * 3 / 5), (UBYTE)(rgb[flag][1] * 3 / 5),
@@ -172,6 +174,8 @@ static void draw_referee(void)
             UBYTE c;
             if (shown.flag == FLAG_CHECKERED) c = ((i >> 2) ^ (j >> 2)) & 1 ? H_FLAG_K : H_FLAG_W;
             else if (shown.flag == FLAG_NATIONAL) c = j < 7 ? H_FLAG_W : H_RED_ON;     /* bialo-czerwona */
+            else if (shown.flag == FLAG_LAST_LAP &&                  /* "kosa": zolta z czarnym krzyzem */
+                     (ABSW(j - i * 12 / 19) <= 1 || ABSW(j - (12 - i * 12 / 19)) <= 1)) c = H_FLAG_K;
             else c = ph >= 5 ? H_FLAG_SH : H_FLAG;
             hplot(hx - 20 + i, hy - 22 + j + dy, c);
         }
@@ -245,7 +249,7 @@ void hud_update(void)
             if (g_tour.bikes[i].state == BIKE_RACING &&
                 lead - g_tour.bikes[i].race_distance > g_tour.track.lap_length - LAP_WARN)
                 flag = FLAG_BLUE;                            /* ktos zaraz zostanie zdublowany */
-        if (flag == FLAG_NONE && lap == LAPS_PER_HEAT) flag = FLAG_WHITE;
+        if (flag == FLAG_NONE && lap == LAPS_PER_HEAT) flag = FLAG_LAST_LAP;   /* ostatnie okrazenie: "kosa" */
         if (flag == FLAG_NONE && h->emergency && h->race_frames < 60) flag = FLAG_NATIONAL;   /* machniecie = start */
     } else if (h->emergency && (h->phase == HEAT_READY || h->phase == HEAT_RED_LIGHT)) {
         flag = FLAG_NATIONAL;                                /* sedzia trzyma flage w gorze */
