@@ -5,15 +5,15 @@ Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. 
 | ![Bieg w WinUAE](art/winuae_race.png) | ![Plansza tytułowa w WinUAE](art/winuae_title.png) |
 |---|---|
 
-*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip): bieg ze szprycą spod tylnego koła i plansza tytułowa z tęczą z Coppera.*
+*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip): bieg ze szprycą spod tylnych kół i plansza tytułowa z tęczą z Coppera.*
 
 Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
 | | | |
 |---|---|---|
-| ![Tytuł](art/screen_01_title.png) | ![Start spod taśmy](art/screen_04_gate_red.png) | ![Taśma!](art/screen_06_false_start.png) |
-| ![Program zawodów](art/screen_03_table.png) | ![Przerwa na tor](art/screen_08_grading.png) | ![Podium](art/screen_10_podium.png) |
-| ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Wyniki biegu](art/screen_07_result.png) | ![Awaria maszyny startowej](art/screen_16_awaria.png) |
+| ![Ustawienia](art/screen_02_setup.png) | ![Program zawodów i tabela](art/screen_03_table.png) | ![Start spod taśmy](art/screen_04_gate_red.png) |
+| ![Taśma!](art/screen_06_false_start.png) | ![Wyniki biegu](art/screen_07_result.png) | ![Przerwa na tor](art/screen_08_grading.png) |
+| ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Awaria maszyny startowej](art/screen_16_awaria.png) | ![Podium](art/screen_10_podium.png) |
 
 
 ## Pobierz i zagraj
@@ -48,6 +48,8 @@ Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, 
 
 Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko zawodnicy z remisu, a pola startowe są losowane. Nie ma liczenia zwycięstw ani kombinowania, decyduje tor.
 
+Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę. Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
+
 Puste miejsca przy kanapie zajmują boty:
 - **Nowicjusz** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.
 - **Profesjonalista** ma refleks i nie zawaha się „zamknąć płotu”, gdy próbujesz go minąć po wewnętrznej.
@@ -60,7 +62,7 @@ Zielone, brzęczyk, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśm
 
 Kto nie wytrzyma nerwowo i puści za wcześnie, usłyszy gwizdek: **TAŚMA!** Sędzia macha czerwoną flagą, a druga taśma w biegu oznacza wykluczenie. Kto z kolei przegapi zielone, będzie mielił kołem w miejscu, patrząc na plecy rywali.
 
-W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową: taśmę i lampkę. Na zielonym taśma płynnie odlatuje w górę, a okienko znika zaraz po ruszeniu.
+W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową: lampkę i taśmę z dwóch wstęg połączonych cienkimi tasiemkami. Na zielonym taśma płynnie odlatuje w górę, a okienko znika zaraz po ruszeniu.
 
 Raz na jakiś czas maszyna startowa odmawia posłuszeństwa: światła gasną, taśma znika, a sędzia startuje bieg **flagą narodową**. Trzeba wtedy patrzeć na jego rękę.
 
@@ -95,7 +97,7 @@ To tam rodzi się najpiękniejszy manewr: **„szeroka niesie”**. Jeśli wjedz
 
 Tor **wyjeżdża się na Twoich oczach**. Każdy przejazd rozpędzonego motocykla ubija nawierzchnię, więc linia, którą jeździ cała stawka, z biegu na bieg ciemnieje, gładnieje, trzyma coraz lepiej i robi się najszybsza. Grudki szprycy spadające obok spulchniają tor, a równarka podczas przerwy zaciera ścieżki i wszystko zaczyna się od nowa. Po polewaniu wyjeżdżona linia przesycha pierwsza. Pytanie tylko, czy wolisz jechać sprawdzoną ścieżką za rywalem, prosto w jego szprycę, czy szukać własnej drogi.
 
-Zawody odbywają się na klasycznym owalu z ciemnoszarą nawierzchnią z **bakałaru**.
+Zawody odbywają się na klasycznym owalu z ciemnoszarą nawierzchnią z **bakałaru**. Na murawie stoją banery sponsora (3DPJOY).
 
 ### 💧 Polewaczka, czyli tor zmienia się w trakcie zawodów
 Na start turnieju **stan toru jest losowany**: suchy, wilgotny albo mokry. Jeśli wolisz inny, zmienisz go w menu.
@@ -190,6 +192,7 @@ Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
 | Menu samo się przełącza | mysz w porcie 0: menu czyta tylko port 1 i klawiaturę, ale gracz 2 ustawiony na JOY 0 będzie „jechał” myszą |
 | Zamiast grafiki są proste kształty | brak `data/` obok programu (gra wtedy rysuje grafikę zastępczą) |
 | Brak dźwięku | brak `data/*.raw` |
+| Brak muzyki w menu | `MUSIC = BRAK` w `build.cfg`, brak `data/music.raw` albo opcja MUZYKA: NIE w ustawieniach |
 | Gracze 3–4 na adapterze LPT nie reagują | bity adaptera w `src/input.c`, oznaczone „sprawdzić” |
 
 ---
@@ -226,8 +229,9 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `python tools/sim/plot.py` | tory jazdy z symulacji na tle toru, zapis do `art/sim_lines.png` |
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szpryca, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
 | `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z prawdziwego nagrania |
+| `python tools/mksocial.py` | miniaturka do podglądu linków na GitHubie, `art/social_preview.png` (1280×640) |
 
-Tabela torów jest zapisana w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS` w `tools/genart.py`. Kolejność i geometria (`HALF_L, R_IN, R_OUT`) muszą być identyczne.
+Geometria toru jest zapisana w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS` w `tools/genart.py`. Wartości (`HALF_L, R_IN, R_OUT`) muszą być identyczne.
 
 ---
 
@@ -238,7 +242,7 @@ src/
   main.c        pętla 50 Hz, maszyna stanów turnieju
   system.c      przejęcie i oddanie sprzętu, własne przerwanie VBL
   video.c       Copper-listy AGA: 8 bitplanów, paleta 24-bit, kolory per linia, HUD, podwójny bufor
-  sprites.c     duszki 64 px (pary attached), klatki motocykli
+  sprites.c     duszki 32 px (pary attached), klatki motocykli
   blit.c        Blitter: wypełnianie, kopiowanie, kropki „cookie-cut” (szpryca)
   start.c       procedura startowa, taśma, refleks
   race.c        model jazdy: auto-gaz, uślizg, banda, kontakt, okrążenia
@@ -252,6 +256,10 @@ src/
   audio.c       Paula: silniki, kibice, brzęczyk, gwizdek, muzyka w menu
   input.c       joysticki, adapter LPT, klawiatura (CIA)
   assets.c      ładowanie data/ przed przejęciem sprzętu
+  records.c     rekordy toru zapisywane na dysk (records.dat)
+  music/        utwory do menu (gotowe miksy *_s8.raw), wybór w build.cfg
+  banners/      logo na banery (źródło SVG)
+build.cfg       ustawienia budowania (wybór muzyki)
 data/           gotowe dane binarne (generowane narzędziami)
 art/            podglądy PNG/WAV (nie trafiają na Amigę)
 tools/          generatory, sprawdzanie kodu, symulator
@@ -262,7 +270,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 ## Znane ograniczenia / do zrobienia
 
 ### Stan
-- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS) przy stałych 50 FPS: plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu.
+- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS) w 50 FPS: plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Pojedyncze klatki gubią się jeszcze przy wejściu na bieg, przed startem.
 - **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
 - Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
 - Gra zajmuje ok. 1,2–1,4 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka: 208 KiB „Black Motor” albo 428 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Na Amidze z Fast RAM muzyka ląduje w Fast RAM.
@@ -276,15 +284,14 @@ tools/          generatory, sprawdzanie kodu, symulator
 - **Boty** jeżdżą głównie wewnętrzną połową toru. Szeroka linia pod bandą to szansa dla ludzi.
 - Tylko **PAL** (50 Hz).
 
-### Pomysły na dalsze wersje
-- [ ] obraz dyskietki **ADF** do Gotka i emulatorów
-- [x] widoczne wyjeżdżone ścieżki (tor ciemnieje tam, gdzie jeździ stawka)
-- [x] bieg dodatkowy przy remisie o miejsce na podium
-- [x] tabela rekordów (najlepsze czasy biegu i okrążenia na każdym torze) zapisywana na dysk
-- [ ] tryb treningu: pojedynczy bieg albo jazda na czas
-- [x] muzyka w menu na planszy tytułowej i w ustawieniach (opcja MUZYKA: TAK/NIE), utwór wybierany w `build.cfg`
-- [ ] więcej torów i stadionów
-- [ ] prawdziwe nagranie silnika żużlowego (z licencją)
+### Do zrobienia
+- obraz dyskietki **ADF** do Gotka i emulatorów
+- tryb treningu: pojedynczy bieg albo jazda na czas
+- więcej torów i stadionów
+- prawdziwe nagranie silnika żużlowego (z licencją)
+- test na prawdziwym A1200 i z oryginalnym Kickstartem 3.1
+- usunięcie zgubionych klatek przy wejściu na bieg
+- sprawdzenie zapisu rekordów toru (`records.dat`) na Amidze
 
 ---
 
