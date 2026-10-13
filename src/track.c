@@ -180,6 +180,14 @@ void track_point(LONG s, WORD lateral, WORD *x, WORD *y)
     }
 }
 
+/* strefa z tablicy (bez pierwiastka) - do uzycia co klatke */
+GripZone track_zone_fast(WORD x, WORD y)
+{
+    WORD cx = x / GRIP_CELL, cy = y / GRIP_CELL;
+    if (cx < 0 || cy < 0 || cx >= GRIP_W || cy >= GRIP_H) return GRIP_WALL;
+    return (GripZone)g_tour.track.zone[cy][cx];
+}
+
 UBYTE track_grip_at(WORD x, WORD y)
 {
     WORD cx = x / GRIP_CELL, cy = y / GRIP_CELL;
@@ -225,6 +233,7 @@ static UBYTE *pristine;                    /* oryginal tla wybranego toru (dowol
 static BYTE   pristine_type = -1;
 static UBYTE  level_drawn[GRIP_H][GRIP_W];
 static UBYTE  wear_dirty[2][GRIP_H][GRIP_W];
+static UWORD  wear_dirty_n[2];             /* ile komorek czeka - 0 = nic do roboty */
 
 static UBYTE get_px(const UBYTE *buf, WORD x, WORD y)
 {
@@ -270,7 +279,8 @@ static void cell_visual(WORD gx, WORD gy)
             }
             plot(g_video.background, x, y, c);
         }
-    wear_dirty[0][gy][gx] = wear_dirty[1][gy][gx] = 1;
+    if (!wear_dirty[0][gy][gx]) { wear_dirty[0][gy][gx] = 1; wear_dirty_n[0]++; }
+    if (!wear_dirty[1][gy][gx]) { wear_dirty[1][gy][gx] = 1; wear_dirty_n[1]++; }
 }
 
 static void all_cells_visual(void)
@@ -285,10 +295,12 @@ static void all_cells_visual(void)
 void track_flush_wear(UBYTE bi, UBYTE *buf)
 {
     WORD gx, gy;
+    if (!wear_dirty_n[bi]) return;
     for (gy = 0; gy < GRIP_H; gy++)
         for (gx = 0; gx < GRIP_W; gx++)
             if (wear_dirty[bi][gy][gx]) {
                 wear_dirty[bi][gy][gx] = 0;
+                wear_dirty_n[bi]--;
                 blit_copy(buf, g_video.background, (WORD)((gx * GRIP_CELL) & ~15), (WORD)(gy * GRIP_CELL),
                           16, GRIP_CELL);
             }
@@ -301,6 +313,7 @@ void track_forget_wear(UBYTE bi)
     for (gy = 0; gy < GRIP_H; gy++)
         for (gx = 0; gx < GRIP_W; gx++)
             wear_dirty[bi][gy][gx] = 0;
+    wear_dirty_n[bi] = 0;
 }
 
 void track_wear(WORD x, WORD y)
@@ -530,6 +543,7 @@ void track_select(UBYTE type)
             level_drawn[gy][gx] = 0;
             wear_dirty[0][gy][gx] = wear_dirty[1][gy][gx] = 0;
         }
+    wear_dirty_n[0] = wear_dirty_n[1] = 0;
     rebuild_grip();
     video_blend_track_palette(t->wetness);
 }

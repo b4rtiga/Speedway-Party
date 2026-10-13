@@ -66,7 +66,7 @@ static WORD pro_line(const Bike *b, LONG s)
 /* gain4: wzmocnienie bledu kierunku x4; ff4: mnoznik przewidywania luku x4 (0 = brak) */
 typedef struct { BYTE gain4, cap, tol, hold, ff4; } SteerTune;
 static const SteerTune tune[3] = {
-    { 10, 28, 3, 3, 7 },   /* AMATOR: lamie ~1.75x za mocno i za pozno - marnuje predkosc */
+    {  8, 28, 3, 3, 7 },   /* AMATOR: lamie za mocno i za pozno - marnuje predkosc */
     {  6, 26, 1, 0, 4 },   /* PROFESJONALISTA */
     {  5, 24, 1, 0, 4 },   /* MISTRZ */
 };
@@ -87,19 +87,33 @@ UBYTE ai_steer(Bike *b)
 {
     AiLevel lvl = g_tour.riders[b->rider].ai_level;
     const SteerTune *t = &tune[lvl];
-    LONG s = bike_s(b);
-    LONG ahead = s + 28 + FIX2INT(b->speed * 8);
+    LONG s, ahead;
     WORD lat, tx, ty, tw;
     BYTE err;
     UBYTE out = 0;
+    UBYTE idx = (UBYTE)(b - g_tour.bikes);
 
     if (b->ai_timer) { b->ai_timer--; return b->prev_input; }
+
+    /* Wybor linii i przewidywanie luku (atan2, pierwiastki, dzielenia) tylko co 4 klatki,
+     * kazdy bot w innej klatce; pomiedzy - samo porownanie uslizgu z zapamietanym celem.
+     * A1200 bez Fast RAM ma na klatke tylko kilkadziesiat tysiecy instrukcji. */
+    if (!t->hold && ((g_tour.heat.race_frames + idx) & 3) != 0) {   /* Amator i tak decyduje co hold+1 klatek */
+        tw = b->ai_target;
+        goto decide;
+    }
+    s = bike_s(b);
+    ahead = s + 28 + FIX2INT(b->speed * 8);
 
     switch (lvl) {
     case AI_AMATEUR: lat = LW(-14); break;                  /* kurczowo przy krawezniku */
     case AI_PRO:     lat = pro_line(b, s); break;
     default:         lat = master_line(b, ahead); break;
     }
+    /* linia zmienia sie stopniowo (2 px na decyzje): po starcie bot zjezdza ze swojego pola
+     * do kraweznika lagodnie, zamiast ciac przez caly tor */
+    if (lat > b->ai_line_offset + 2) lat = (WORD)(b->ai_line_offset + 2);
+    else if (lat < b->ai_line_offset - 2) lat = (WORD)(b->ai_line_offset - 2);
     b->ai_line_offset = (BYTE)lat;
     track_point(ahead, lat, &tx, &ty);
     err = (BYTE)(atan2_8(ty - FIX2INT(b->y), tx - FIX2INT(b->x)) - (angle8)(b->course88 >> 8));
@@ -116,6 +130,8 @@ UBYTE ai_steer(Bike *b)
         if (tw > cap) tw = cap;
     }
     if (tw < -10) tw = -10;                             /* kontra ograniczona jak w race.c */
+    b->ai_target = (BYTE)tw;
+decide:
     if (b->drift < tw - t->tol) out = BTN_LEFT;
     else if (b->drift > tw + t->tol) out = BTN_RIGHT;
     b->ai_timer = (UWORD)t->hold;

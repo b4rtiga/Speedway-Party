@@ -27,7 +27,7 @@ enum { U_PANEL = 96, U_PANEL2, U_BORDER, U_WHITE, U_RAINBOW, U_GOLD, U_GREY,
 #define PANEL_H 112
 #define NAME_EDIT_MAX 12
 
-typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING } Overlay;
+typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE } Overlay;
 
 static UBYTE serial = 1, drawn_serial[2];
 static UBYTE buf_is_track[2];
@@ -292,7 +292,7 @@ BOOL ui_setup_update(void)
         changed = TRUE;
         if (setup_row == 0) {
             WORD n = g_tour.num_humans + d;
-            g_tour.num_humans = (UBYTE)(n < 1 ? 1 : n > MAX_RIDERS ? MAX_RIDERS : n);
+            g_tour.num_humans = (UBYTE)(n < 0 ? 0 : n > MAX_RIDERS ? MAX_RIDERS : n);   /* 0 = pokaz: same boty */
         } else if (setup_row <= MAX_RIDERS) {
             Rider *r = &g_tour.riders[setup_row - 1];
             if (setup_row - 1 < g_tour.num_humans)
@@ -339,33 +339,94 @@ static void record_text(char *s, BOOL lap)
 static void wetness_text(char *s)
 {
     UBYTE w = g_tour.track.wetness;
-    char *p = text_cat(text_cat(s, "TOR "), track_name(g_tour.track.type));
-    text_cat(p, w > 170 ? ": MOKRY" : w > 60 ? ": WILGOTNY" : ": SUCHY");
+    text_cat(text_cat(s, "TOR: "), w > 170 ? "MOKRY" : w > 60 ? "WILGOTNY" : "SUCHY");
 }
 
+/* cyfry 3x5 do naglowka tabeli (numery biegow) - bity: 5 wierszy po 3 */
+static const UWORD tiny_digit[10] = {
+    0x7B6F, 0x2C97, 0x73E7, 0x73CF, 0x5BC9, 0x79CF, 0x79EF, 0x7249, 0x7BEF, 0x7BCF
+};
+
+static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c);
+
+/* prostokat z dokladnoscia do piksela (blit_fill dziala tylko na pelnych slowach 16 px) */
+static void rect_px(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c)
+{
+    WORD x1 = x + w - 1, bx0 = x >> 3, bx1 = x1 >> 3, bx, j;
+    UBYTE m0 = (UBYTE)(0xFF >> (x & 7)), m1 = (UBYTE)(0xFF << (7 - (x1 & 7)));
+    if (w <= 0 || h <= 0) return;
+    if (bx0 == bx1) m0 &= m1;
+    hw_wait_blit();
+    for (j = 0; j < h; j++) {
+        UBYTE *row = b + (LONG)(y + j) * PLAY_STRIDE, pl, col = c;
+        for (pl = 0; pl < PLAY_DEPTH; pl++, row += ROW_BYTES, col >>= 1) {
+            BOOL set = (BOOL)(col & 1);
+            row[bx0] = set ? (UBYTE)(row[bx0] | m0) : (UBYTE)(row[bx0] & ~m0);
+            if (bx1 > bx0) {
+                for (bx = bx0 + 1; bx < bx1; bx++) row[bx] = set ? 0xFF : 0x00;
+                row[bx1] = set ? (UBYTE)(row[bx1] | m1) : (UBYTE)(row[bx1] & ~m1);
+            }
+        }
+    }
+}
+
+static void tiny_number(UBYTE *b, WORD x, WORD y, UBYTE v, UBYTE c)
+{
+    UBYTE d[2], n = 0, i, k;
+    if (v >= 10) d[n++] = (UBYTE)(v / 10);
+    d[n++] = (UBYTE)(v % 10);
+    x -= (WORD)(n * 4 - 1) / 2;                          /* x = srodek liczby */
+    for (i = 0; i < n; i++, x += 4)
+        for (k = 0; k < 15; k++)
+            if (tiny_digit[d[i]] & (0x4000 >> k)) plot(b, (WORD)(x + k % 3), (WORD)(y + k / 3), c);
+}
+
+/* Tabela turnieju: wiersz = zawodnik (kolejnosc wg punktow), kolumna = bieg,
+ * w komorce punkty z biegu (W = wykluczenie), puste = jeszcze nie jechal. */
+#define TB_X     8
+#define TB_NAME  14
+#define TB_GRID  98                 /* pierwsza kolumna biegow */
+#define TB_CELL  12
+#define TB_PTS   (TB_GRID + NUM_HEATS * TB_CELL)
+#define TB_HEAD  9
+#define TB_ROW   13
 static void draw_standings(UBYTE *b, WORD y)
 {
-    UBYTE order[MAX_RIDERS], i, h;
+    UBYTE order[MAX_RIDERS], i, h, next = g_tour.current_heat;
+    WORD bottom = (WORD)(y + TB_HEAD + MAX_RIDERS * TB_ROW);
     char s[48], *p;
 
     tournament_sort(order);
-    text_draw(b, 16, y, "ZAWODNIK", U_GREY, 0);
-    text_draw(b, 112, y, "123456789012345", U_GREY, 0);
-    text_draw(b, 256, y, "PKT", U_GREY, 0);
+    rect_px(b, TB_X, y - 2, SCREEN_W - 2 * TB_X, bottom - y + 3, U_BORDER);
+    rect_px(b, TB_X + 1, y - 1, SCREEN_W - 2 * TB_X - 2, bottom - y + 1, U_PANEL);
+    if (next < NUM_HEATS)                                 /* najblizszy bieg podswietlony */
+        rect_px(b, (WORD)(TB_GRID + next * TB_CELL + 1), y - 1, TB_CELL - 1, bottom - y + 1, U_CURSOR);
+    text_draw(b, TB_NAME, y, "ZAWODNIK", U_GREY, 0);
+    text_draw(b, TB_PTS + 4, y, "PKT", U_GREY, 0);
+    for (h = 0; h < NUM_HEATS; h++)
+        tiny_number(b, (WORD)(TB_GRID + h * TB_CELL + TB_CELL / 2), (WORD)(y + 2), (UBYTE)(h + 1),
+                    h == next ? U_GOLD : U_GREY);
+    /* siatka */
+    for (h = 0; h <= NUM_HEATS; h++)
+        rect_px(b, (WORD)(TB_GRID + h * TB_CELL), y - 1, 1, bottom - y + 1, U_BORDER);
+    for (i = 0; i < MAX_RIDERS; i++)
+        rect_px(b, TB_X + 1, (WORD)(y + TB_HEAD + i * TB_ROW), SCREEN_W - 2 * TB_X - 2, 1, U_BORDER);
+
     for (i = 0; i < MAX_RIDERS; i++) {
         Rider *r = &g_tour.riders[order[i]];
-        WORD yy = (WORD)(y + 14 + i * 13);
-        name_trunc(s, r->name, 11);
-        text_draw(b, 16, yy, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
+        WORD yy = (WORD)(y + TB_HEAD + i * TB_ROW + 2);
+        name_trunc(s, r->name, 10);
+        text_draw(b, TB_NAME, yy, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
         for (h = 0; h < NUM_HEATS; h++) {
             UBYTE v = r->heat_points[h];
-            s[h] = v == HP_NONE ? '.' : v == HP_EXCLUDED ? 'W' : (char)('0' + v);
+            if (v == HP_NONE) continue;
+            s[0] = v == HP_EXCLUDED ? 'W' : (char)('0' + v); s[1] = 0;
+            text_draw(b, (WORD)(TB_GRID + h * TB_CELL + 3), yy, s,
+                      v == HP_EXCLUDED ? U_BORDER : v == 3 ? U_GOLD : U_WHITE, 0);
         }
-        s[NUM_HEATS] = 0;
-        text_draw(b, 112, yy, s, U_WHITE, 0);
         p = text_uint(s, r->points, 1);
-        pad_to(s, p, 1);
-        text_draw(b, r->points >= 10 ? 256 : 264, yy, s, U_GOLD, U_SHADOW);
+        *p = 0;
+        text_draw(b, (WORD)(SCREEN_W - TB_X - 6 - text_len(s) * 8), yy, s, U_GOLD, U_SHADOW);
     }
 }
 
@@ -529,10 +590,21 @@ static void draw_podium(UBYTE *b)
 
 static Overlay current_overlay(void)
 {
+    if (g_paused) return OV_PAUSE;
     if (g_tour.state == GS_HEAT && g_tour.heat.phase == HEAT_FALSE_START) return OV_FALSE_START;
     if (g_tour.state == GS_HEAT_RESULT) return OV_RESULT;
     if (g_tour.state == GS_TRACK_GRADING) return OV_GRADING;
     return OV_NONE;
+}
+
+/* pauza: panel z pytaniem (na torze w prostokacie nakladek, w menu na srodku ekranu) */
+static void draw_pause(UBYTE *b, WORD y)
+{
+    panel(b, PANEL_X, y, PANEL_W, 92, U_PANEL, U_GOLD);
+    text_draw_big_center(b, y + 8, "PAUZA", U_GOLD, U_SHADOW);
+    text_draw_center(b, y + 38, g_pause_quit ? "ZAKOŃCZYĆ GRĘ?" : "WYJŚĆ DO MENU GŁÓWNEGO?", U_WHITE, U_SHADOW);
+    text_draw_center(b, y + 56, "ESC - TAK", U_GOLD, U_SHADOW);
+    text_draw_center(b, y + 72, "FIRE - GRAJ DALEJ", U_WHITE, U_SHADOW);
 }
 
 static void draw_false_start(UBYTE *b)
@@ -792,14 +864,19 @@ static BOOL state_uses_track(GameState s)
     return s == GS_HEAT || s == GS_HEAT_RESULT || s == GS_TRACK_GRADING;
 }
 
+static UBYTE race_lines_ok[2];          /* lista biegu ma juz stale kolory linii */
+
 static void update_line_colors(void)
 {
     UWORD i;
     if (state_uses_track(g_tour.state)) {
+        if (race_lines_ok[g_video.back]) return;    /* stale - nie zapisuj co klatke */
+        race_lines_ok[g_video.back] = 1;
         /* ramka obrazu (overscan) w kolorze betonu trybun - bez czarnych pasow po bokach toru */
         for (i = 0; i < PLAY_H; i++) { line_bg[i] = BORDER_RACE; line_fg[i] = 0xFFF; }
     } else {
         UWORD ph = (UWORD)(g_frame >> 1);
+        race_lines_ok[0] = race_lines_ok[1] = 0;
         for (i = 0; i < FULL_H; i++) {
             /* tlo: granat -> fiolet -> granat; tekst: przesuwajaca sie tecza */
             UWORD t = (UWORD)((i < FULL_H / 2 ? i : FULL_H - 1 - i) * 13 / 16);
@@ -838,6 +915,7 @@ void ui_render(void)
             case OV_FALSE_START: draw_false_start(b); break;
             case OV_RESULT:      draw_result(b); break;
             case OV_GRADING:     draw_grading(b); break;
+            case OV_PAUSE:       draw_pause(b, PANEL_Y + 10); break;
             default: break;
             }
             drawn_serial[bi] = serial;
@@ -859,4 +937,5 @@ void ui_render(void)
     case GS_PODIUM:    draw_podium(b); break;
     default: break;
     }
+    if (g_paused) draw_pause(b, 82);
 }

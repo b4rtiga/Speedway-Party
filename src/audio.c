@@ -164,7 +164,9 @@ static void update_engines(void)
     UBYTE pick[2], c;
     UWORD target_rpm[2] = { 0, 0 }, target_vol[2] = { 0, 0 };
 
-    if (g_tour.state == GS_HEAT && g_tour.heat.phase != HEAT_FALSE_START) {
+    if (g_paused) {
+        /* pauza: silniki cichna */
+    } else if (g_tour.state == GS_HEAT && g_tour.heat.phase != HEAT_FALSE_START) {
         pick_engines(pick);
         for (c = 0; c < 2; c++)
             if (pick[c] != 0xFF) {
@@ -216,6 +218,7 @@ static void update_crowd(void)
         last_finished = 0;
     }
     if (crowd_boost) { crowd_boost--; if (crowd_target < 48) crowd_target = 48; }
+    if (g_paused) crowd_target = 4;
 
     if (crowd_vol < crowd_target) crowd_vol += 2;
     else if (crowd_vol > crowd_target) crowd_vol--;

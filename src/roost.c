@@ -16,15 +16,15 @@
 
 #define ROOST_DRIFT     9
 #define SPEED_MIN       (FIX_ONE / 2)
-#define LIFE_MIN        8
-#define LIFE_RAND       8
+#define LIFE_MIN        7
+#define LIFE_RAND       6
 #define HIT_RADIUS2     (6 * 6)
 #define HIT_MIN_LIFE    3
 #define REAR_OFFSET     7          /* tylne kolo za srodkiem motocykla [px] */
 #define FRONT_OFFSET    4
 
 /* kolory drobin: koleiny i ciemny granit (po polewaniu paleta sama je przyciemnia) */
-static const UBYTE dust_colors[4] = { 48, 49, 50, 17 };
+static const UBYTE dust_colors[4] = { 29, 37, 45, 53 };   /* odcienie nawierzchni + kamyczek */
 
 typedef struct { WORD x, y; UBYTE big; } Drawn;
 static Drawn drawn[2][MAX_PARTICLES];
@@ -126,7 +126,7 @@ void roost_update(BOOL bikes)
             emit(i, b, TRUE);
             emit(i, b, TRUE);
         } else if (b->state == BIKE_RACING && b->drift > ROOST_DRIFT && b->speed > SPEED_MIN) {
-            UBYTE n = (UBYTE)(1 + (b->drift - ROOST_DRIFT) / 6);      /* 1..4 na klatke */
+            UBYTE n = (UBYTE)(1 + (b->drift - ROOST_DRIFT) / 8);      /* 1..3 na klatke */
             while (n--) emit(i, b, FALSE);
         }
     }
@@ -140,10 +140,12 @@ UBYTE roost_hits(const Bike *b)
     WORD fy = (WORD)(FIX2INT(b->y) + ((SIN(b->heading) * FRONT_OFFSET) >> 14));
     for (i = 0; i < MAX_PARTICLES; i++) {
         const Particle *p = &g_tour.particles[i];
-        LONG dx, dy;
+        WORD dx, dy;
         if (p->life < HIT_MIN_LIFE || p->owner == me) continue;
-        dx = FIX2INT(p->x) - fx;
-        dy = FIX2INT(p->y) - fy;
+        dx = (WORD)(FIX2INT(p->x) - fx);
+        if (dx > 6 || dx < -6) continue;               /* szybkie odrzucenie bez mnozenia */
+        dy = (WORD)(FIX2INT(p->y) - fy);
+        if (dy > 6 || dy < -6) continue;
         if (dx * dx + dy * dy < HIT_RADIUS2) hits++;
     }
     return hits;
@@ -153,6 +155,8 @@ void roost_erase(void)
 {
     UBYTE bi = g_video.back, i;
     UBYTE *buf = g_video.play[bi];
+    if (!drawn_n[bi]) return;
+    blit_restores_begin();
     for (i = 0; i < drawn_n[bi]; i++)
         blit_restore(buf, g_video.background, drawn[bi][i].x, drawn[bi][i].y, drawn[bi][i].big);
     drawn_n[bi] = 0;
@@ -167,6 +171,7 @@ void roost_draw(void)
     if (g_tour.state == GS_TRACK_GRADING) ph = HEAT_RACING;     /* zraszacz */
     else if (g_tour.state != GS_HEAT) return;
     if (ph == HEAT_FALSE_START || ph < HEAT_TAPE_UP) return;
+    blit_dots_begin();
     for (i = 0; i < MAX_PARTICLES; i++) {
         const Particle *p = &g_tour.particles[i];
         WORD x, y;

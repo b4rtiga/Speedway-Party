@@ -18,6 +18,8 @@ BOOL blit_init(void) { return TRUE; }
 void blit_free(void) {}
 void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color) { (void)buf; (void)x; (void)y; (void)big; (void)color; }
 void blit_restore(UBYTE *d, const UBYTE *s, WORD x, WORD y, BOOL big) { (void)d; (void)s; (void)x; (void)y; (void)big; }
+void blit_dots_begin(void) {}
+void blit_restores_begin(void) {}
 void blit_copy(UBYTE *d, const UBYTE *s, WORD x, WORD y, WORD w, WORD h) { (void)d; (void)s; (void)x; (void)y; (void)w; (void)h; }
 void sfx_buzzer(void) {}
 void sfx_whistle(void) {}

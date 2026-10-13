@@ -110,10 +110,13 @@ void system_restore(void)
     CloseLibrary((struct Library *)GfxBase);
 }
 
+ULONG g_lag;                    /* zgubione klatki (diagnostyka, make EXTRA=-DSHOW_LAG) */
+
 void system_wait_vbl(void)
 {
     static ULONG last;
     while (g_frame == last)
         ;
+    if (last && g_frame - last > 1) g_lag += g_frame - last - 1;
     last = g_frame;
 }

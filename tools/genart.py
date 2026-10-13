@@ -31,9 +31,9 @@ VEH_SCALE = 0.85
 # Tory - MUSZA byc zgodne z tabela track_defs w src/track.c (kolejnosc i liczby).
 #   name, half_l (pol prostej), r_in (kraweznik), r_out (banda), nawierzchnia
 PRESETS = [
-    ("granit",  60, 40, 96, "granit"),    # klasyczny
+    ("granit",  60, 40, 96, "bakalar"),    # klasyczny
     ("bakalar", 72, 36, 84, "bakalar"),   # dlugie proste, ciasne luki, wezszy
-    ("piasek",  44, 40, 96, "piasek"),    # krotkie proste, duze okragle luki
+    ("piasek",  44, 40, 96, "bakalar"),    # krotkie proste, duze okragle luki
 ]
 
 
@@ -92,7 +92,7 @@ def track_colors(surface):
         setc(59 + k, *pal[16 + 3 + k])
 
 
-track_colors("granit")
+track_colors("bakalar")
 setc(56, 225, 225, 215)                      # malowane linie
 setc(57, 210, 30, 30)                        # kraweznik czerwony
 setc(58, 245, 245, 245)                      # kraweznik bialy
@@ -134,8 +134,8 @@ ramp(216, 4, (110, 120, 135), (190, 200, 215))  # wieza sedziowska
 setc(220, 60, 120, 170)                      # szyby
 # 240..255 duszki (pary attached dziela te kolory)
 for i, c in {241: (16, 16, 20), 242: (70, 72, 80), 243: (170, 175, 190), 244: (255, 255, 255),
-             245: (52, 58, 80), 246: (112, 124, 160), 247: (250, 120, 20), 248: (205, 150, 100),
-             249: (140, 92, 58), 250: (232, 30, 30), 251: (30, 95, 255), 252: (236, 236, 240),
+             245: (52, 58, 80), 246: (112, 124, 160), 247: (250, 120, 20), 248: (150, 152, 162),
+             249: (88, 90, 100), 250: (232, 30, 30), 251: (30, 95, 255), 252: (236, 236, 240),
              253: (255, 214, 0), 254: (60, 60, 72), 255: (225, 185, 70)}.items():
     setc(i, *c)
 
@@ -638,7 +638,7 @@ def referee_img():
 
 def make_title():
     set_preset(0)
-    track_colors("granit")
+    track_colors("bakalar")
     TH = 256
     rg = np.random.default_rng(2026)
     ty, tx = np.mgrid[0:TH, 0:W].astype(np.float64)

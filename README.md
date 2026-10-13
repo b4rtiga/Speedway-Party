@@ -69,8 +69,7 @@ Sędzia w rogu ekranu pokazuje flagi jak na prawdziwych zawodach:
 
 | Flaga | Znaczenie |
 |---|---|
-| 🏁 szachownica | koniec biegu: od mety zwycięzcy do ostatniego zawodnika |
-| 🟨 żółta | niebezpieczeństwo na torze: ktoś właśnie uderzył w bandę |
+| 🏁 szachownica | koniec biegu: od mety zwycięzcy do ostatniego zawodnika. Plansza z wynikami pojawia się 2 sekundy po tym, jak metę minie ostatni |
 | 🟥 czerwona | przerwanie biegu, np. po dotknięciu taśmy |
 | ⬛ czarna | wykluczenie zawodnika (np. druga taśma w biegu) |
 | ⬜ biała | lider zaczyna ostatnie okrążenie |
@@ -96,16 +95,16 @@ To tam rodzi się najpiękniejszy manewr: **„szeroka niesie”**. Jeśli wjedz
 
 Tor **wyjeżdża się na Twoich oczach**. Każdy przejazd rozpędzonego motocykla ubija nawierzchnię, więc linia, którą jeździ cała stawka, z biegu na bieg ciemnieje, gładnieje, trzyma coraz lepiej i robi się najszybsza. Grudki szprycy spadające obok spulchniają tor, a równarka podczas przerwy zaciera ścieżki i wszystko zaczyna się od nowa. Po polewaniu wyjeżdżona linia przesycha pierwsza. Pytanie tylko, czy wolisz jechać sprawdzoną ścieżką za rywalem, prosto w jego szprycę, czy szukać własnej drogi.
 
-W menu wybierasz jeden z trzech stadionów:
+Wszystkie tory mają ciemnoszarą nawierzchnię z **bakałaru**. W menu wybierasz jeden z trzech kształtów:
 
 | Tor | Charakter |
 |---|---|
-| 🔴 **GRANIT** | Klasyczny owal z czerwonej nawierzchni. Dobry na początek. |
-| ⚫ **BAKAŁAR** | Długie proste i ciasne łuki na ciemnym żużlu. Węższy i bardziej techniczny, ale trzyma koło lepiej niż inne. |
-| 🟡 **PIASEK** | Krótkie proste i wielkie, okrągłe łuki. Ślisko, za to pod bandą czeka szerokie odsypisko dla odważnych. |
+| ⚫ **GRANIT** | Klasyczny owal. Dobry na początek. |
+| ⚫ **BAKAŁAR** | Długie proste i ciasne łuki. Węższy i bardziej techniczny, ale trzyma koło lepiej niż inne. |
+| ⚫ **PIASEK** | Krótkie proste i wielkie, okrągłe łuki. Ślisko, za to pod bandą czeka szerokie odsypisko dla odważnych. |
 
 ### 💧 Polewaczka, czyli tor zmienia się w trakcie zawodów
-Na start turnieju wybierasz **stan toru**: suchy, wilgotny albo mokry.
+Na start turnieju **stan toru jest losowany**: suchy, wilgotny albo mokry. Jeśli wolisz inny, zmienisz go w menu.
 
 Mokry tor ciemnieje, przy krawężniku zbierają się kałuże, a koło łapie wyraźnie gorzej. Motocykl skręca słabiej, wynosi go szerzej i trzeba łamać mocniej.
 
@@ -172,7 +171,9 @@ Gotowa konfiguracja jest w [tools/winuae/SpeedwayParty-A1200.uae](tools/winuae/S
 
 Jeśli wolisz Workbench: podepnij `dist/` jako dodatkowy dysk i w Shellu wpisz `cd Speedway:` i `SpeedwayParty`.
 
-**ESC** wychodzi z gry i oddaje sterowanie systemowi.
+**ESC** to pauza z pytaniem. W trakcie turnieju gra pyta, czy wrócić do menu głównego, a w menu, czy zakończyć grę. Drugie ESC oznacza „tak”, a FIRE wraca do gry.
+
+Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
 
 ### Gdy coś nie działa
 | Objaw | Gdzie szukać |
@@ -271,7 +272,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - [ ] obraz dyskietki **ADF** do Gotka i emulatorów
 - [x] widoczne wyjeżdżone ścieżki (tor ciemnieje tam, gdzie jeździ stawka)
 - [x] bieg dodatkowy przy remisie o miejsce na podium
-- [ ] tabela rekordów (najlepsze czasy biegu i okrążenia na każdym torze) zapisywana na dysk
+- [x] tabela rekordów (najlepsze czasy biegu i okrążenia na każdym torze) zapisywana na dysk
 - [ ] tryb treningu: pojedynczy bieg albo jazda na czas
 - [ ] muzyka w menu (moduł Protrackera)
 - [ ] więcej torów i stadionów

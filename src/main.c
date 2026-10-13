@@ -27,6 +27,22 @@
 #define GRADING_SKIP    (2 * FPS)      /* FIRE po 2 s pomija animacje */
 
 UWORD g_grading_progress;
+
+#ifdef SHOW_LAG
+UWORD g_prof[4];                         /* maks. liczba linii z ostatnich 32 klatek */
+static void prof_add(UBYTE i, UWORD a, UWORD b)
+{
+    static UWORD peak[4];
+    static UBYTE n;
+    UWORD d = (UWORD)(b >= a ? b - a : b + 313 - a);
+    if (d > peak[i]) peak[i] = d;
+    if (i == 3 && ++n >= 32) {
+        UBYTE k;
+        for (k = 0; k < 4; k++) { g_prof[k] = peak[k]; peak[k] = 0; }
+        n = 0;
+    }
+}
+#endif
 static UWORD state_timer;
 static UBYTE grading_start_wet;
 static HeatPhase last_phase;
@@ -64,6 +80,13 @@ static void enter(GameState s)
 {
     g_tour.state = s;
     state_timer = 0;
+    if (s == GS_SETUP) {
+        /* stan toru losowy przy kazdym wejsciu do ustawien (gracz moze go zmienic);
+         * do ziarna dokladamy pozycje wiazki i licznik klatek - zalezne od chwili nacisniecia */
+        g_rng ^= ((ULONG)g_frame << 16) ^ hw_vpos();
+        if (!g_rng) g_rng = 0x2026B4u;
+        g_tour.start_condition = (UBYTE)rng_range(0, 2);
+    }
     while (key_get() != 0xFF) ;      /* stare wcisniecia nie przechodza do nowego ekranu */
     ui_invalidate();
 }
@@ -76,6 +99,7 @@ static void begin_heat(void)
     h->restarts = 0;
     for (g = 0; g < 4; g++) h->gate_rider[g] = g_tour.heat_table[g_tour.current_heat][g];
     start_begin();
+    g_lag = 0;                          /* diagnostyka: licz zgubione klatki od startu biegu */
     last_phase = h->phase;
     enter(GS_HEAT);
 }
@@ -125,10 +149,40 @@ static void next_heat(void)
     enter(GS_TABLE);
 }
 
+BOOL g_paused, g_pause_quit;
+
+/* ESC: pauza z pytaniem. W turnieju - "wyjsc do menu glownego?", w menu glownym -
+ * "zakonczyc gre?". Drugie ESC = tak, FIRE/Return = graj dalej. */
+static BOOL handle_pause(void)
+{
+    static BOOL esc_prev;
+    BOOL esc = (BOOL)(key_down(KEY_ESC) && !ui_editing());
+    BOOL edge = (BOOL)(esc && !esc_prev);
+    esc_prev = esc;
+    if (g_paused) {
+        if (edge) {
+            g_paused = FALSE;
+            if (g_pause_quit) enter(GS_QUIT);
+            else enter(GS_SETUP);
+        } else if (ui_confirm()) {
+            g_paused = FALSE;
+            ui_invalidate();
+        }
+        return TRUE;
+    }
+    if (edge) {
+        g_paused = TRUE;
+        g_pause_quit = (BOOL)(g_tour.state == GS_SETUP || g_tour.state == GS_TITLE);
+        ui_invalidate();
+        return TRUE;
+    }
+    return FALSE;
+}
+
 static void update_state(void)
 {
+    if (handle_pause()) return;          /* pauza: logika gry zatrzymana */
     state_timer++;
-    if (key_down(KEY_ESC) && !ui_editing()) { enter(GS_QUIT); return; }
 
     switch (g_tour.state) {
     case GS_TITLE:                       /* plansza tytulowa: kilka sekund albo FIRE */
@@ -231,17 +285,34 @@ int main(void)
     enter(GS_TITLE);
 
     while (g_tour.state != GS_QUIT) {
+#ifdef SHOW_LAG
+        UWORD v0, v1, v2, v3;
+#endif
         system_wait_vbl();
+#ifdef SHOW_LAG
+        v0 = hw_vpos();
+#endif
         input_update();
         update_state();
+#ifdef SHOW_LAG
+        v1 = hw_vpos();
+#endif
 
         roost_erase();                  /* stare drobiny z tego bufora (sprzed 2 klatek) */
         ui_render();
         roost_draw();                   /* aktualne drobiny - Blitter, cookie-cut */
+#ifdef SHOW_LAG
+        v2 = hw_vpos();
+#endif
         render_sprites();
         hud_update();
         audio_update();
         hw_wait_blit();                 /* bufor musi byc gotowy, zanim go pokazemy */
+#ifdef SHOW_LAG
+        /* profil: linie wiazki (313 na klatke PAL) zuzyte przez logike, rysowanie, reszte */
+        v3 = hw_vpos();
+        prof_add(0, v0, v1); prof_add(1, v1, v2); prof_add(2, v2, v3); prof_add(3, v0, v3);
+#endif
         video_swap();
     }
 

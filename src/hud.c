@@ -3,6 +3,7 @@
  * Rysowane tylko przy zmianie stanu - HUD nie jest podwojnie buforowany. */
 #include "game.h"
 #include "video.h"
+#include "system.h"
 
 #define HUD_TOP 6               /* pierwszy widoczny wiersz (4 linie przerwy w Copperze) */
 
@@ -26,7 +27,7 @@ typedef enum { FLAG_NONE = 0, FLAG_RED, FLAG_WHITE, FLAG_CHECKERED, FLAG_YELLOW,
                FLAG_NATIONAL } Flag;
 #define LAP_WARN 90                     /* niebieska: strata do lidera > okrazenie - 90 px */
 
-static struct { UBYTE order[4], lap, lights, flag, wave, menu; } shown;
+static struct { UBYTE order[4], lap, lights, flag, wave, menu; UWORD lag; } shown;
 
 static void hplot(WORD x, WORD y, UBYTE c)
 {
@@ -37,10 +38,33 @@ static void hplot(WORD x, WORD y, UBYTE c)
         if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
 }
 
+/* Prostokat w HUD bajtami (maski na brzegach) - wielokrotnie szybciej niz piksel po pikselu;
+ * HUD nie jest podwojnie buforowany, wiec rysowanie musi zdazyc, zanim wiazka dojdzie do HUD. */
 static void hrect(WORD x, WORD y, WORD w, WORD h, UBYTE c)
 {
-    WORD i, j;
-    for (j = 0; j < h; j++) for (i = 0; i < w; i++) hplot(x + i, y + j, c);
+    WORD x1, j, bx0, bx1, bx;
+    UBYTE m0, m1;
+    if (x < 0) { w += x; x = 0; }
+    if (y < 0) { h += y; y = 0; }
+    if (x + w > SCREEN_W) w = SCREEN_W - x;
+    if (y + h > HUD_H) h = HUD_H - y;
+    if (w <= 0 || h <= 0) return;
+    x1 = x + w - 1;
+    bx0 = x >> 3; bx1 = x1 >> 3;
+    m0 = (UBYTE)(0xFF >> (x & 7));
+    m1 = (UBYTE)(0xFF << (7 - (x1 & 7)));
+    if (bx0 == bx1) m0 &= m1;
+    for (j = 0; j < h; j++) {
+        UBYTE *row = g_video.hud + (LONG)(y + j) * HUD_STRIDE, pl, col = c;
+        for (pl = 0; pl < HUD_DEPTH; pl++, row += ROW_BYTES, col >>= 1) {
+            BOOL set = (BOOL)(col & 1);
+            row[bx0] = set ? (UBYTE)(row[bx0] | m0) : (UBYTE)(row[bx0] & ~m0);
+            if (bx1 > bx0) {
+                for (bx = bx0 + 1; bx < bx1; bx++) row[bx] = set ? 0xFF : 0x00;
+                row[bx1] = set ? (UBYTE)(row[bx1] | m1) : (UBYTE)(row[bx1] & ~m1);
+            }
+        }
+    }
 }
 
 /* cyfry 3x5 + '/', skalowane x3 */
@@ -86,6 +110,9 @@ static void draw_lap(void)
 
 static void draw_lights(void)
 {
+#ifdef SHOW_LAG
+    return;                              /* diagnostyka: w miejscu swiatel profil */
+#endif
     hrect(172, HUD_TOP + 8, 18, 18, shown.lights == 1 ? H_RED_ON : H_RED_OFF);
     hrect(196, HUD_TOP + 8, 18, 18, shown.lights == 2 ? H_GREEN_ON : H_GREEN_OFF);
 }
@@ -200,7 +227,7 @@ void hud_update(void)
     lights = h->emergency ? 0 :                              /* awaria: swiatla nie dzialaja */
              h->phase == HEAT_RED_LIGHT ? 1 : (h->phase == HEAT_TAPE_UP || h->phase == HEAT_RACING) ? 2 : 0;
     flag = FLAG_NONE;
-    wave = (UBYTE)((h->phase_timer >> 3) & 1);
+    wave = (UBYTE)((h->phase_timer >> 4) & 1);       /* machniecie co 16 klatek */
     if (h->phase == HEAT_FALSE_START) {
         /* czerwona: przerwanie biegu; potem czarna, jesli tasma skonczyla sie wykluczeniem */
         BOOL excl = h->false_starter < MAX_RIDERS && g_tour.bikes[h->false_starter].state == BIKE_EXCLUDED;
@@ -231,5 +258,30 @@ void hud_update(void)
     if (changed) draw_order();
     if (lap != shown.lap) { shown.lap = lap; draw_lap(); }
     if (lights != shown.lights) { shown.lights = lights; draw_lights(); }
+#ifdef SHOW_LAG
+    {
+        /* profil (linie wiazki): logika, rysowanie, sprite+HUD+dzwiek, razem */
+        extern UWORD g_prof[4];
+        static UWORD shown_prof[4] = { 999, 999, 999, 999 };
+        UBYTE k;
+        for (k = 0; k < 4; k++)
+            if (g_prof[k] != shown_prof[k]) {
+                UWORD v = (UWORD)(g_prof[k] % 1000);
+                WORD x = (WORD)(176 + k * 26);
+                shown_prof[k] = g_prof[k];
+                hglyph_s(x, HUD_TOP + 9, (UBYTE)(v / 100), H_WHITE, 2, H_BG);
+                hglyph_s(x + 8, HUD_TOP + 9, (UBYTE)(v / 10 % 10), H_WHITE, 2, H_BG);
+                hglyph_s(x + 16, HUD_TOP + 9, (UBYTE)(v % 10), H_WHITE, 2, H_BG);
+            }
+    }
+    /* diagnostyka: zgubione klatki w biegu (gra nie zdazyla w 1/50 s) - 3 cyfry obok okrazen */
+    if (g_lag != shown.lag) {
+        UWORD v = (UWORD)(g_lag % 1000);
+        shown.lag = (UWORD)g_lag;
+        hglyph_s(146, HUD_TOP + 9, (UBYTE)(v / 100), H_RED_ON, 2, H_BG);
+        hglyph_s(154, HUD_TOP + 9, (UBYTE)(v / 10 % 10), H_RED_ON, 2, H_BG);
+        hglyph_s(162, HUD_TOP + 9, (UBYTE)(v % 10), H_RED_ON, 2, H_BG);
+    }
+#endif
     if (flag != shown.flag || wave != shown.wave) { shown.flag = flag; shown.wave = wave; draw_referee(); }
 }

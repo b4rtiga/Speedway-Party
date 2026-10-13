@@ -13,7 +13,9 @@ void blit_copy(UBYTE *dst, const UBYTE *src, WORD x, WORD y, WORD w, WORD h);
  * x <= SCREEN_W - 17, y <= PLAY_H - 2. */
 BOOL blit_init(void);
 void blit_free(void);
+void blit_dots_begin(void);                                           /* raz przed seria blit_dot */
 void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color);     /* cookie-cut, minterm $CA */
+void blit_restores_begin(void);                                       /* raz przed seria blit_restore */
 void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, BOOL big);
 
 #endif

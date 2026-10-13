@@ -26,6 +26,8 @@
 #define DRY_EVERY       (10 * FPS)
 
 static UWORD winner_frame;
+static UBYTE end_wait;                   /* odliczanie od przejazdu ostatniego przez mete */
+#define END_WAIT_FRAMES (2 * FPS)
 
 void race_init_heat(void)
 {
@@ -37,6 +39,7 @@ void race_init_heat(void)
     h->race_frames = 0;
     h->danger_timer = 0;
     winner_frame = 0;
+    end_wait = 0;
     for (g = 0; g < 4; g++) {
         Bike *b = &g_tour.bikes[g];
         UBYTE r = h->gate_rider[g];
@@ -53,6 +56,7 @@ void race_init_heat(void)
         b->max_speed = MAX_SPEED;
         b->drift = 0;
         b->lap = 0;
+        b->ai_line_offset = (BYTE)track_lateral(t->gate_x, t->gate_y[g]);   /* bot rusza ze swojego pola */
         b->race_distance = track_progress(t->gate_x, t->gate_y[g]) - t->tape_s;
         if (b->race_distance < 0) b->race_distance += t->lap_length;
         b->skid_frame = 0;
@@ -87,7 +91,7 @@ static void update_bike(Bike *b)
     Track *t = &g_tour.track;
     WORD px = FIX2INT(b->x), py = FIX2INT(b->y);
     UBYTE grip = track_grip_at(px, py);
-    GripZone zone = track_zone_at(px, py);
+    GripZone zone = track_zone_fast(px, py);
     UBYTE in;
     angle8 travel;
     fix16 cap = b->max_speed;
@@ -132,7 +136,8 @@ static void update_bike(Bike *b)
         b->launch_timer--;
     }
     b->speed -= (fix16)((b->speed >> 4) * (b->drift < 0 ? -b->drift : b->drift) / (DRAG_DIV >> 4));
-    b->in_roost = (UBYTE)(roost_hits(b) >= ROOST_HITS);
+    if (((g_tour.heat.race_frames + (b - g_tour.bikes)) & 1) == 0)     /* co 2 klatki */
+        b->in_roost = (UBYTE)(roost_hits(b) >= ROOST_HITS);
     if (b->in_roost) b->speed -= b->speed >> 8;
     if (b->state == BIKE_FINISHED && b->speed > MAX_SPEED / 2) b->speed -= b->speed >> 5;
     if (b->speed < 0) b->speed = 0;
@@ -148,7 +153,6 @@ static void update_bike(Bike *b)
     lat = track_lateral(FIX2INT(b->x), FIX2INT(b->y));
     if (lat > OUTER_LIMIT) {
         b->speed -= b->speed >> 2;            /* -25% */
-        g_tour.heat.danger_timer = 75;        /* zolta flaga: niebezpieczenstwo na torze */
         b->drift = 0;
         push_to_lateral(b, OUTER_LIMIT - 1);
         align_to_tangent(b);
@@ -255,6 +259,9 @@ void race_update(void)
 
     if (h->race_frames % DRY_EVERY == 0) track_dry_step();
 
-    if (done == active || (winner_frame && h->race_frames - winner_frame > DNF_FRAMES))
-        h->phase = HEAT_FINISHED;
+    /* ostatni na mecie -> jeszcze 2 s jazdy wybiegu, dopiero potem plansza wynikow */
+    if (end_wait) {
+        if (--end_wait == 0) h->phase = HEAT_FINISHED;
+    } else if (done == active || (winner_frame && h->race_frames - winner_frame > DNF_FRAMES))
+        end_wait = END_WAIT_FRAMES;
 }

@@ -65,8 +65,12 @@ static void draw_pass(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color)
         WORD r;
         for (r = 0; r < FONT_H; r++) {
             WORD yy = y + r;
-            if (g[r] && yy >= 0 && yy < FULL_H)
-                put_byte(buf + (LONG)yy * PLAY_STRIDE + (x >> 3), g[r], color);
+            if (g[r] && yy >= 0 && yy < FULL_H) {
+                UBYTE *d = buf + (LONG)yy * PLAY_STRIDE + (x >> 3);
+                UBYTE sh = (UBYTE)(x & 7);                 /* x nie musi byc wielokrotnoscia 8 */
+                put_byte(d, (UBYTE)(g[r] >> sh), color);
+                if (sh && (x >> 3) < ROW_BYTES - 1) put_byte(d + 1, (UBYTE)(g[r] << (8 - sh)), color);
+            }
         }
         x += FONT_W;
     }

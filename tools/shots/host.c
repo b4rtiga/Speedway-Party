@@ -10,6 +10,8 @@
 
 volatile UWORD g_fake_custom[0x100];
 volatile ULONG g_frame;
+BOOL g_paused, g_pause_quit;
+ULONG g_lag;
 struct ExecBase *SysBase;
 Video g_video;
 
@@ -97,6 +99,8 @@ void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color)
     put_px(buf, x, y, color);
     if (big) { put_px(buf, x + 1, y, color); put_px(buf, x, y + 1, color); put_px(buf, x + 1, y + 1, color); }
 }
+void blit_dots_begin(void) {}
+void blit_restores_begin(void) {}
 void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, BOOL big)
 {
     WORD r, pl;

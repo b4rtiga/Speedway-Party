@@ -117,10 +117,11 @@ typedef struct Bike {
     WORD    ai_reaction;      /* klatki od zielonego do puszczenia; <0 = antycypacja (tasma!) */
     UWORD   ai_timer;
     BYTE    ai_line_offset;   /* preferowany tor jazdy: - krawężnik, + banda */
+    BYTE    ai_target;        /* docelowy uslizg (przeliczany co 4 klatki - oszczednosc CPU) */
 } Bike;
 
 /* ----------------------- CZASTECZKI (szpryca) --------------------- */
-#define MAX_PARTICLES 128
+#define MAX_PARTICLES 64          /* kazda drobina = 2 blity na klatke; A1200 bez Fast RAM */
 typedef struct Particle {
     fix16 x, y;          /* pozycja 16.16 */
     fix16 dx, dy;        /* predkosc 16.16 px/klatke */
@@ -230,6 +231,8 @@ typedef struct Tournament {
 } Tournament;
 
 extern Tournament g_tour;
+extern BOOL g_paused;             /* ESC: pauza z pytaniem (main.c) */
+extern BOOL g_pause_quit;         /* TRUE: pytanie o wyjscie z gry (menu glowne), FALSE: do menu */
 
 /* tournament.c */
 void tournament_defaults(void);                  /* nazwiska, AI - raz przy starcie programu */
@@ -261,6 +264,7 @@ const char *track_name(UBYTE type);
 void     track_render(UBYTE *dst);
 UBYTE    track_grip_at(WORD x, WORD y);
 GripZone track_zone_at(WORD x, WORD y);
+GripZone track_zone_fast(WORD x, WORD y);          /* z tablicy komorek 8x8 */
 LONG     track_progress(WORD x, WORD y);          /* 0..lap_length */
 void     track_point(LONG s, WORD lateral, WORD *x, WORD *y);
 WORD     track_lateral(WORD x, WORD y);           /* odleglosc od osi: - do kraweznika, + do bandy */

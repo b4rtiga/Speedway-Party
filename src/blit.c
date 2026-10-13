@@ -107,36 +107,49 @@ void blit_free(void)
     if (mask_big) FreeMem(mask_big, MASK_BYTES * 2 + PAT_BYTES);
 }
 
+/* Serie blitow czasteczek: rejestry wspolne ustawiane raz (blit_dots_begin /
+ * blit_restores_begin), na drobine zostaje 5-6 zapisow. Kazdy zapis do rejestru to
+ * dostep do szyny Chip - na A1200 bez Fast RAM to sie liczy. */
+void blit_dots_begin(void)
+{
+    hw_wait_blit();
+    REG16(R_BLTCON1) = 0;
+    REG16(R_BLTAFWM) = 0xFFFF;
+    REG16(R_BLTALWM) = 0xFFFF;
+    REG16(R_BLTAMOD) = 0;
+    REG16(R_BLTBMOD) = 0;
+    REG16(R_BLTCMOD) = ROW_BYTES - DOT_WORDS * 2;
+    REG16(R_BLTDMOD) = ROW_BYTES - DOT_WORDS * 2;
+}
+
 void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color)
 {
     UBYTE *d = buf + (LONG)y * PLAY_STRIDE + ((x >> 4) << 1);
     hw_wait_blit();
     REG16(R_BLTCON0) = (UWORD)(((x & 15) << 12) | 0x0F00 | 0xCA);
-    REG16(R_BLTCON1) = 0;
-    REG16(R_BLTAFWM) = 0xFFFF;
-    REG16(R_BLTALWM) = 0xFFFF;
     REG32(R_BLTAPT) = (ULONG)(big ? mask_big : mask_small);
     REG32(R_BLTBPT) = (ULONG)(color_pat + color * PAT_WORDS);
     REG32(R_BLTCPT) = (ULONG)d;
     REG32(R_BLTDPT) = (ULONG)d;
-    REG16(R_BLTAMOD) = 0;
-    REG16(R_BLTBMOD) = 0;
-    REG16(R_BLTCMOD) = ROW_BYTES - DOT_WORDS * 2;
-    REG16(R_BLTDMOD) = ROW_BYTES - DOT_WORDS * 2;
     REG16(R_BLTSIZE) = (UWORD)(((big ? DOT_ROWS_BIG : PLAY_DEPTH) << 6) | DOT_WORDS);
+}
+
+void blit_restores_begin(void)
+{
+    hw_wait_blit();
+    REG16(R_BLTCON0) = 0x09F0;                 /* A -> D */
+    REG16(R_BLTCON1) = 0;
+    REG16(R_BLTAFWM) = 0xFFFF;
+    REG16(R_BLTALWM) = 0xFFFF;
+    REG16(R_BLTAMOD) = ROW_BYTES - DOT_WORDS * 2;
+    REG16(R_BLTDMOD) = ROW_BYTES - DOT_WORDS * 2;
 }
 
 void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, BOOL big)
 {
     LONG o = (LONG)y * PLAY_STRIDE + ((x >> 4) << 1);
     hw_wait_blit();
-    REG16(R_BLTCON0) = 0x09F0;                 /* A -> D */
-    REG16(R_BLTCON1) = 0;
-    REG16(R_BLTAFWM) = 0xFFFF;
-    REG16(R_BLTALWM) = 0xFFFF;
     REG32(R_BLTAPT) = (ULONG)(src + o);
     REG32(R_BLTDPT) = (ULONG)(dst + o);
-    REG16(R_BLTAMOD) = ROW_BYTES - DOT_WORDS * 2;
-    REG16(R_BLTDMOD) = ROW_BYTES - DOT_WORDS * 2;
     REG16(R_BLTSIZE) = (UWORD)(((big ? DOT_ROWS_BIG : PLAY_DEPTH) << 6) | DOT_WORDS);
 }
