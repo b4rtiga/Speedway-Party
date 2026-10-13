@@ -124,8 +124,8 @@ for i, c in enumerate([(240, 190, 150), (200, 140, 100), (120, 80, 50), (60, 40,
 ramp(176, 4, (20, 50, 120), (50, 90, 180))   # puste krzeselka
 ramp(192, 4, (255, 255, 200), (180, 170, 90))  # reflektory
 ramp(196, 4, (70, 75, 85), (150, 155, 165))  # dachy
-setc(200, 230, 30, 40); setc(201, 30, 90, 240); setc(202, 245, 245, 245); setc(203, 255, 210, 0)
-setc(204, 40, 110, 40); setc(205, 255, 120, 180)  # klomby
+setc(200, 230, 30, 40); setc(201, 30, 90, 240); setc(202, 245, 245, 245); setc(203, 255, 210, 0)  # baner: 200 czerwony, 202 bialy
+setc(204, 40, 110, 40); setc(205, 255, 120, 180)  # (dawne klomby)
 ramp(208, 4, (20, 90, 30), (90, 190, 70))    # traktor
 setc(212, 25, 25, 25); setc(213, 80, 80, 80); setc(214, 160, 200, 230); setc(215, 230, 230, 230)
 ramp(216, 4, (110, 120, 135), (190, 200, 215))  # wieza sedziowska
@@ -256,13 +256,7 @@ def build_track(i):
 
     stamp_text("SPEEDWAY", CX - text_w("SPEEDWAY") // 2, 76, 79)
     stamp_text("PARTY", CX - text_w("PARTY") // 2, 94, 79)
-    for i, c in enumerate([200, 201, 202, 203]):          # klomby w kolorach kaskow
-        fx = CX - 27 + i * 18
-        d = np.hypot(xx - fx, yy - 120)
-        img[d < 5.5] = 204
-        bloom = (d < 4.5) & (fine > 0.35)
-        img[bloom] = c
-        img[(d < 4.5) & (fine > 0.92)] = 205
+    stamp_banner(CX - BANNER_W // 2, 110)                  # baner sponsora pod napisem
 
     tx_l = CX - HALF_L - R_IN // 2 - 6                      # traktory na murawie (kazdy tor)
     stamp(TRACTOR, tx_l, 96, TCOL)
@@ -326,6 +320,53 @@ def build_track(i):
         img[yb, TAPE_X - 14:TAPE_X] = 56
 
     return img
+
+
+# Baner z logo 3DPJOY (zrodlo: src/banners/Logo_3DPJOY.svg - obraz 1024x1024 zbudowany
+# z duzych "pikseli"): przerysowany recznie 1:1 w siatce 29x22, litery 4x5 px.
+# '#' czarny, 'R' czerwony przycisk, '.' biala tablica.
+_LOGO_LETTERS = {
+    '3': ["####", "...#", ".###", "...#", "####"], 'D': ["###.", "#..#", "#..#", "#..#", "###."],
+    'P': ["####", "#..#", "####", "#...", "#..."], 'J': ["...#", "...#", "...#", "#..#", ".##."],
+    'O': ["####", "#..#", "#..#", "#..#", "####"], 'Y': ["#..#", "#..#", ".##.", ".##.", ".##."],
+}
+BANNER_LOGO = [
+    "............####.............",
+    "............####.............",
+    "............####.............",
+    ".............##..............",
+    ".............##..............",
+    ".............##..............",
+    ".............##..............",
+    ".............##..............",
+    "...........######..RR........",
+    "..........#......######......",
+    "........##############.......",
+    "........#............#.......",
+    "........##############.......",
+    "........#............#.......",
+    ".........#..........#........",
+    "..........##########.........",
+    ".............................",
+] + [".".join(_LOGO_LETTERS[c][r] for c in "3DPJOY") for r in range(5)]
+BANNER_PAD_X, BANNER_PAD_Y = 2, 1                         # bialy margines wokol logo
+BANNER_W = len(BANNER_LOGO[0]) + 2 * BANNER_PAD_X + 2    # + ramka
+BANNER_H = len(BANNER_LOGO) + 2 * BANNER_PAD_Y + 2
+
+
+def stamp_banner(x0, y0):
+    """tablica na murawie: cien na trawie, ciemna ramka, biale tlo, logo"""
+    for y in range(y0 + 1, y0 + BANNER_H + 1):            # cien: najciemniejszy odcien pasa trawy
+        for x in range(x0 + 1, x0 + BANNER_W + 1):
+            if 64 <= img[y, x] < 80:
+                img[y, x] = 64 + (img[y, x] - 64) // 8 * 8
+    img[y0:y0 + BANNER_H, x0:x0 + BANNER_W] = 213          # ramka
+    img[y0 + 1:y0 + BANNER_H - 1, x0 + 1:x0 + BANNER_W - 1] = 202
+    lx, ly = x0 + 1 + BANNER_PAD_X, y0 + 1 + BANNER_PAD_Y
+    for ry, row in enumerate(BANNER_LOGO):
+        for rx, c in enumerate(row):
+            if c != '.':
+                img[ly + ry, lx + rx] = 212 if c == '#' else 200
 
 
 def stamp_text(text, x0, y0, color, scale=2, spacing=6):
