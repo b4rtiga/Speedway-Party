@@ -194,7 +194,13 @@ static void update_state(void)
         break;
 
     case GS_SETUP:
+#ifdef AUTOPLAY
+        /* test bez klawiatury: po 3 s pokaz (same boty) i start turnieju */
+        if (state_timer == 3 * FPS) { g_tour.num_humans = 0; tournament_default_names(); ui_invalidate(); }
+        if (state_timer > 4 * FPS || ui_setup_update()) {
+#else
         if (ui_setup_update()) {
+#endif
             tournament_reset();
             g_tour.current_heat = 0;
             {
@@ -208,6 +214,9 @@ static void update_state(void)
         break;
 
     case GS_TABLE:
+#ifdef AUTOPLAY
+        if (state_timer > 3 * FPS) { begin_heat(); break; }
+#endif
         if (state_timer > FPS / 2 && ui_confirm()) begin_heat();
         break;
 

@@ -301,8 +301,8 @@ void track_random_surface(void)
         WORD lat0 = (WORD)((WORD)rng_range(0, (UWORD)(hw * 13 / 10)) - hw * 7 / 10);   /* -0.7..+0.6 szer. */
         WORD amp = (WORD)rng_range(0, (UWORD)(hw * 3 / 10));
         UBYTE waves = (UBYTE)rng_range(1, 3), ph = (UBYTE)rng_range(0, 255);
-        UWORD strength = rng_range(150, 235);
-        WORD w = (WORD)rng_range(4, 8);
+        UWORD strength = rng_range(210, 255);
+        WORD w = (WORD)rng_range(6, 10);
         LONG s;
         for (s = 0; s < t->lap_length; s += 3) {
             UBYTE ang = (UBYTE)(s * 256 * waves / t->lap_length + ph);
@@ -317,6 +317,30 @@ void track_random_surface(void)
                 if (gx < 0 || gy < 0 || gx >= GRIP_W || gy >= GRIP_H || t->zone[gy][gx] == GRIP_WALL) continue;
                 if (v > t->pack[gy][gx]) t->pack[gy][gx] = (UBYTE)v;
             }
+        }
+    }
+    /* rozmycie: kilka przebiegow 3x3 po komorkach toru - lagodne brzegi sciezek */
+    {
+        static UBYTE tmp[GRIP_H][GRIP_W];
+        UBYTE pass;
+        WORD gx, gy;
+        for (pass = 0; pass < 3; pass++) {
+            for (gy = 0; gy < GRIP_H; gy++)
+                for (gx = 0; gx < GRIP_W; gx++) {
+                    UWORD sum = 0, n = 0;
+                    WORD dx, dy;
+                    if (t->zone[gy][gx] == GRIP_WALL) { tmp[gy][gx] = t->pack[gy][gx]; continue; }
+                    for (dy = -1; dy <= 1; dy++)
+                        for (dx = -1; dx <= 1; dx++) {
+                            WORD x = (WORD)(gx + dx), y = (WORD)(gy + dy);
+                            if (x < 0 || y < 0 || x >= GRIP_W || y >= GRIP_H || t->zone[y][x] == GRIP_WALL) continue;
+                            sum += t->pack[y][x];
+                            n++;
+                        }
+                    tmp[gy][gx] = (UBYTE)(sum / n);
+                }
+            for (gy = 0; gy < GRIP_H; gy++)
+                for (gx = 0; gx < GRIP_W; gx++) t->pack[gy][gx] = tmp[gy][gx];
         }
     }
     rebuild_grip();

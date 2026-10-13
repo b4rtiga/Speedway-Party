@@ -250,6 +250,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z prawdziwego nagrania |
 | `python tools/mksocial.py` | miniaturka do podglądu linków na GitHubie, `art/social_preview.png` (1280×640) |
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` z prawdziwego kodu gry (wymaga ffmpeg) |
+| `make dist EXTRA=-DAUTOPLAY` | wersja testowa bez klawiatury: sama przechodzi przez menu i rozgrywa turniej botów (do sprawdzania w emulatorze) |
 
 Geometria toru jest zapisana w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS` w `tools/genart.py`. Wartości (`HALF_L, R_IN, R_OUT`) muszą być identyczne.
 

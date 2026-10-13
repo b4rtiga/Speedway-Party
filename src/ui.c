@@ -42,6 +42,7 @@ static UBYTE pick_cursor, pick_prev;
 #define BORDER_RACE 0x334          /* 12-bit: ciemny beton trybun */
 static UWORD line_bg[FULL_H], line_fg[FULL_H], rainbow[48];
 static UBYTE *title_img;            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
+static UBYTE *sw_cache;             /* tlo okienka startu bez tasmy (wiersze okienka, uklad ekranu) */
 /* okienko maszyny startowej (prawy dolny rog toru) */
 #define SW_X 208
 #define SW_Y 138                   /* ponizej obszaru nakladek (PANEL_Y + PANEL_H = 136) */
@@ -77,6 +78,7 @@ void ui_init(void)
         FreeMem(title_img, FULL_SIZE);
         title_img = 0;
     }
+    sw_cache = AllocMem((ULONG)SW_H * PLAY_STRIDE, MEMF_ANY);   /* bez pamieci: pelne przerysowanie */
     if (title_img) {
         /* ilustracja ma wlasna palete (kolory napisow menu bez zmian) - dla list Coppera menu;
          * przy pierwszej zmianie wilgotnosci menu wraca do palety toru (napisy te same) */
@@ -93,6 +95,7 @@ void ui_init(void)
 void ui_free(void)
 {
     if (title_img) FreeMem(title_img, FULL_SIZE);
+    if (sw_cache) FreeMem(sw_cache, (ULONG)SW_H * PLAY_STRIDE);
 }
 
 static UBYTE *back(void) { return video_backbuffer(); }
@@ -841,7 +844,7 @@ static void render_tape(UBYTE *buf)
 static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
 
 /* stan okienka: SW_NONE albo (klatka odlotu << 2) | lampka (0 zgaszona, 1 czerwona, 2 zielona); 3 = awaria */
-#define SW_FLY   12                /* klatki odlotu tasmy w okienku (0.24 s) - okienko znika po nich */
+#define SW_FLY   8                 /* klatki odlotu tasmy w okienku (0.16 s) - okienko znika po nich */
 #define SW_RISE  54                /* o ile tasma idzie w gore (az za gorna krawedz okienka) */
 #define SW_BOW   8                 /* ugiecie srodka w polowie odlotu */
 #define SW_TAPE_REST (SW_Y + 38)   /* tasma w spoczynku */
@@ -922,13 +925,37 @@ static void draw_lamp(UBYTE *b, UBYTE lamp)
         for (x = SW_X + 52; x < SW_X + 60; x++) plot(b, x, y, startwin_px(x, y, lamp));
 }
 
+/* wiersze y0..y1 obszaru okienka z zapamietanego tla do bufora - procesorem (bez Blittera) */
+static void startwin_from_cache(UBYTE *b, WORD y0, WORD y1)
+{
+    WORD y;
+    UBYTE pl, k;
+    for (y = y0; y <= y1; y++) {
+        LONG o = (LONG)y * PLAY_STRIDE + SW_X / 8;
+        const UBYTE *src = sw_cache + (LONG)(y - SW_Y) * PLAY_STRIDE + SW_X / 8;
+        for (pl = 0; pl < PLAY_DEPTH; pl++, o += ROW_BYTES, src += ROW_BYTES)
+            for (k = 0; k < SW_W / 8; k += 2)
+                *(UWORD *)(b + o + k) = *(const UWORD *)(src + k);
+    }
+}
+
+static void startwin_to_cache(const UBYTE *b)
+{
+    ULONG n;
+    const ULONG *src = (const ULONG *)(b + (LONG)SW_Y * PLAY_STRIDE);
+    ULONG *d = (ULONG *)sw_cache;
+    hw_wait_blit();
+    for (n = 0; n < (ULONG)SW_H * PLAY_STRIDE / 4; n++) *d++ = *src++;
+}
+
+static WORD tape_rows[2][2];        /* wiersze tasmy narysowanej w buforze (do zmazania) */
+
 /* Tasma (dwie wstegi z tasiemkami) w klatce odlotu t (0 = spoczynek).
  * Odlot "ease-out": od razu wyskakuje w gore i wyhamowuje za gorna krawedzia okienka,
- * srodek zostaje troche w tyle (luk w dol najwiekszy w polowie odlotu).
- * Rysowana na swiezo narysowanym tle okienka - bez zmazywania. */
-static void draw_tape_ribbon(UBYTE *b, WORD t)
+ * srodek zostaje troche w tyle (luk w dol najwiekszy w polowie odlotu). */
+static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t)
 {
-    WORD x, r, half = (SW_TAPE_X1 - SW_TAPE_X0) / 2, mid = SW_TAPE_X0 + half;
+    WORD x, r, half = (SW_TAPE_X1 - SW_TAPE_X0) / 2, mid = SW_TAPE_X0 + half, lo = 32767, hi = -1;
     WORD q = (WORD)(SW_FLY - t);
     LONG rise = (LONG)SW_RISE * (SW_FLY * SW_FLY - q * q) / (SW_FLY * SW_FLY);
     LONG bow_max = (LONG)4 * SW_BOW * t * q / (SW_FLY * SW_FLY);
@@ -945,15 +972,19 @@ static void draw_tape_ribbon(UBYTE *b, WORD t)
             else if (((x - SW_TAPE_X0) & 7) == 3) c = U_SILVER;
             else continue;
             plot(b, x, py, c);
+            if (py < lo) lo = py;
+            if (py > hi) hi = py;
         }
     }
+    tape_rows[bi][0] = hi >= 0 ? lo : -1;
+    tape_rows[bi][1] = hi;
 }
 
 static UBYTE sw_clear;              /* klatki, przez ktore jeszcze czyscimy obszar okienka */
 
-/* Okienko rysowane w calosci przy kazdej zmianie stanu (lampka, klatka odlotu) - proste
- * i odporne; po zniknieciu obszar wraca z tla toru przez kilka klatek w obu buforach. */
-
+/* Tlo okienka rysowane w calosci przy pojawieniu sie i zmianie lampki (i zapamietane);
+ * w klatkach odlotu tylko pas pod stara tasma wraca z pamieci i rysuje sie nowa tasma.
+ * Po zniknieciu obszar wraca z tla toru przez kilka klatek w obu buforach. */
 static void update_startwin(UBYTE *b, UBYTE bi)
 {
     UBYTE st = startwin_state(), old = startwin_drawn[bi];
@@ -967,8 +998,14 @@ static void update_startwin(UBYTE *b, UBYTE bi)
         return;
     }
     if (st == old) return;
-    draw_startwin_static(b, (UBYTE)(st & 3));
-    if ((st & 3) != 3) draw_tape_ribbon(b, (WORD)(st >> 2));
+    if (!sw_cache || old == SW_NONE || (old & 3) != (st & 3)) {
+        draw_startwin_static(b, (UBYTE)(st & 3));
+        if (sw_cache) startwin_to_cache(b);
+        tape_rows[bi][0] = -1;
+    } else if (tape_rows[bi][0] >= 0) {
+        startwin_from_cache(b, tape_rows[bi][0], tape_rows[bi][1]);
+    }
+    if ((st & 3) != 3) draw_tape_ribbon(b, bi, (WORD)(st >> 2));
     startwin_drawn[bi] = st;
 }
 
