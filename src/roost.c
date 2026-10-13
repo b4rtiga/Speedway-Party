@@ -178,6 +178,9 @@ void roost_draw(void)
         if (!p->life) continue;
         x = FIX2INT(p->x);
         y = FIX2INT(p->y);
+        /* tylko w obrebie ekranu: drobina wyemitowana w tej klatce nie przeszla jeszcze
+         * kontroli granic w roost_update, a blit poza buforem nadpisalby dane gry w Chip RAM */
+        if (x < 0 || y < 0 || x > SCREEN_W - 17 || y > PLAY_H - 2) continue;
         blit_dot(buf, x, y, p->big, p->color);
         drawn[bi][n].x = x;
         drawn[bi][n].y = y;

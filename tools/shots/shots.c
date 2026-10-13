@@ -14,7 +14,7 @@
 #include "video.h"
 #include "ui.h"
 
-extern RGB24 cur_play[256], cur_hud[32];
+extern RGB24 cur_play[256], cur_hud[32], cur_menu[256];
 extern UWORD cap_bg[FULL_H], cap_fg[FULL_H];
 extern const UWORD *cap_spr[8];
 extern volatile ULONG g_frame;
@@ -77,7 +77,7 @@ static void compose(BOOL sprites)
             UBYTE c = planar_px(pb, PLAY_STRIDE, PLAY_DEPTH, x, y);
             if (c == 0) set12(rgb[y][x], cap_bg[y]);
             else if (c == 100) set12(rgb[y][x], cap_fg[y]);
-            else set24(rgb[y][x], &cur_play[c]);
+            else set24(rgb[y][x], g_video.menu ? &cur_menu[c] : &cur_play[c]);
         }
     for (y = 0; y < HUD_H && !g_video.menu; y++)
         for (x = 0; x < 320; x++) {
@@ -177,6 +177,8 @@ static void tframe(BOOL sprites)
     compose(sprites);
     fwrite(rgb, 1, sizeof(rgb), stdout);
     trailer_frames++;
+    g_video.front = g_video.back;                 /* podwojny bufor jak na Amidze */
+    g_video.back ^= 1;
 }
 
 static void thold(int n, BOOL sprites) { while (n-- > 0) tframe(sprites); }
@@ -211,6 +213,7 @@ static int trailer(void)
     tournament_reset();                                       /* START TURNIEJU */
     g_tour.current_heat = 0;
     track_reset_wear();
+    track_random_surface();
     track_set_wetness(start_wet[g_tour.start_condition]);
     tenter(GS_TABLE);  thold(FPS * 7 / 2, FALSE);             /* program zawodow */
 

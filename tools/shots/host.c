@@ -15,7 +15,7 @@ ULONG g_lag;
 struct ExecBase *SysBase;
 Video g_video;
 
-RGB24  cur_play[256], cur_hud[32];
+RGB24  cur_play[256], cur_hud[32], cur_menu[256];
 UWORD  cap_bg[FULL_H], cap_fg[FULL_H];
 const UWORD *cap_spr[8];
 
@@ -36,7 +36,8 @@ BOOL asset_load(const char *name, void *dst, LONG size)
     return n == size;
 }
 
-void video_set_play_palette(const RGB24 *pal) { memcpy(cur_play, pal, sizeof(cur_play)); }
+void video_set_play_palette(const RGB24 *pal) { memcpy(cur_play, pal, sizeof(cur_play)); memcpy(cur_menu, pal, sizeof(cur_menu)); }
+void video_set_menu_palette(const RGB24 *pal) { memcpy(cur_menu, pal, sizeof(cur_menu)); }
 void video_set_hud_palette(const RGB24 *pal) { memcpy(cur_hud, pal, sizeof(cur_hud)); }
 void video_set_hud_color(UBYTE i, UBYTE r, UBYTE g, UBYTE b) { cur_hud[i].r = r; cur_hud[i].g = g; cur_hud[i].b = b; }
 void video_blend_track_palette(UBYTE wet)
@@ -48,6 +49,7 @@ void video_blend_track_palette(UBYTE wet)
         cur_play[i].g = (UBYTE)(d->g + (((WORD)w->g - d->g) * wet >> 8));
         cur_play[i].b = (UBYTE)(d->b + (((WORD)w->b - d->b) * wet >> 8));
     }
+    memcpy(cur_menu, cur_play, sizeof(cur_menu));       /* jak w grze: obie listy Coppera */
 }
 void video_set_lines(const UWORD *bg, const UWORD *fg)
 {

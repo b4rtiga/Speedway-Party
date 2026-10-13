@@ -53,6 +53,7 @@ BOOL  video_init(void);
 void  video_free(void);
 void  video_start(void);                 /* wlacza DMA i Copper */
 void  video_set_play_palette(const RGB24 *pal);
+void video_set_menu_palette(const RGB24 *pal);   /* tylko listy menu (plansza tytulowa) */
 void  video_set_hud_palette(const RGB24 *pal);
 void  video_set_hud_color(UBYTE index, UBYTE r, UBYTE g, UBYTE b);
 void  video_blend_track_palette(UBYTE wet); /* 0 = sucho, 255 = mokro */

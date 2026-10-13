@@ -217,6 +217,16 @@ void video_set_play_palette(const RGB24 *pal)
                 write_palette(g_video.cop_play_pal[m][b], i, &pal[i]);
 }
 
+/* paleta tylko dla list Coppera menu (plansza tytulowa z wlasna paleta ilustracji) */
+void video_set_menu_palette(const RGB24 *pal)
+{
+    UWORD i;
+    UBYTE b;
+    for (b = 0; b < 2; b++)
+        for (i = 0; i < 256; i++)
+            write_palette(g_video.cop_play_pal[1][b], i, &pal[i]);
+}
+
 void video_set_hud_palette(const RGB24 *pal)
 {
     UBYTE b, i;

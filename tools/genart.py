@@ -40,7 +40,7 @@ def set_preset(i):
     global HALF_L, R_IN, R_OUT, R_MID, TAPE_X, GATE_X, GATE_STEP, GATE_Y, SURFACE
     _, HALF_L, R_IN, R_OUT, SURFACE = PRESETS[i]
     R_MID = (R_IN + R_OUT) // 2
-    TAPE_X = CX - 20
+    TAPE_X = CX                              # linia startu na srodku prostej (jak track.c)
     GATE_X = TAPE_X - 9
     GATE_STEP = (R_OUT - R_IN - 2 * GATE_FIRST) // 3
     GATE_Y = [CY + R_IN + GATE_FIRST + i * GATE_STEP for i in range(4)]
@@ -122,7 +122,7 @@ for k in range(32):                          # koszulki kibicow
 for i, c in enumerate([(240, 190, 150), (200, 140, 100), (120, 80, 50), (60, 40, 30)]):
     setc(172 + i, *c)                        # glowy / wlosy
 ramp(176, 4, (20, 50, 120), (50, 90, 180))   # puste krzeselka
-ramp(192, 4, (255, 255, 200), (180, 170, 90))  # (wolne - dawne reflektory)
+setc(192, 107, 224, 255); setc(193, 40, 115, 150)   # baner DEV84: cyjan jasny / ciemny
 ramp(196, 4, (70, 75, 85), (150, 155, 165))  # dachy
 setc(200, 230, 30, 40); setc(201, 30, 90, 240); setc(202, 245, 245, 245); setc(203, 255, 210, 0)  # baner: 200 czerwony, 202 bialy
 setc(204, 40, 110, 40); setc(205, 255, 120, 180)  # (dawne klomby)
@@ -256,8 +256,8 @@ def build_track(i):
 
     stamp_text("SPEEDWAY", CX - text_w("SPEEDWAY") // 2, 76, 79)
     stamp_text("PARTY", CX - text_w("PARTY") // 2, 94, 79)
-    for bx in (CX - 48, CX + 48):                          # banery sponsora po bokach, pod napisem
-        stamp_banner(bx - BANNER_W // 2, 112)
+    stamp_banner('3dpjoy', CX - 48, 121)                   # banery po bokach, pod napisem
+    stamp_banner('dev84', CX + 48, 121)
 
     tx_l = CX - HALF_L - R_IN // 2 - 6                      # traktory na murawie (kazdy tor)
     stamp(TRACTOR, tx_l, 96, TCOL)
@@ -337,24 +337,45 @@ BANNER_LOGO = [
     ".......#########.......",
     ".......................",
 ] + [".".join(_LOGO_LETTERS[c][r] for c in "3DPJOY") for r in range(5)]
-BANNER_PAD_X, BANNER_PAD_Y = 2, 1                         # bialy margines wokol logo
-BANNER_W = len(BANNER_LOGO[0]) + 2 * BANNER_PAD_X + 2    # + ramka
-BANNER_H = len(BANNER_LOGO) + 2 * BANNER_PAD_Y + 2
+# Drugi baner: logo DEV84 (zrodlo: src/banners/dev84-logo.svg - konturowe litery w kolorze
+# cyjan), przerysowane recznie 34x9: '#' jasny kontur, 'c' ciemniejsza linia wewnetrzna, tlo czarne.
+_DEV84_LETTERS = {
+    'D': ["#####..", "#....#.", "#.cc..#", "#.c.c.#", "#.c.c.#", "#.c.c.#", "#.cc..#", "#....#.", "#####.."],
+    'E': ["######", "#.....", "#.cccc", "#.c...", "#.ccc.", "#.c...", "#.cccc", "#.....", "######"],
+    'V': ["#.....#", "#.c.c.#", "#.c.c.#", ".#.c.#.", ".#.c.#.", ".#.c.#.", "..#.#..", "..#.#..", "...#..."],
+    '8': [".#####.", "#.....#", "#.ccc.#", "#.....#", ".#####.", "#.....#", "#.ccc.#", "#.....#", ".#####."],
+    '4': ["....##.", "...#.#.", "..#c.#.", ".#c..#.", "#c...#.", "#######", ".....#.", ".....#.", ".....#."],
+}
+DEV84_LOGO = [".".join(_DEV84_LETTERS[c][r] for c in "DEV84") for r in range(9)]
+
+# baner: logo, kolory znakow, tlo, margines (x, y); ramka 213 (ciemnoszara)
+BANNERS = {
+    '3dpjoy': (BANNER_LOGO, {'#': 212, 'R': 200}, 202, (2, 1)),
+    'dev84': (DEV84_LOGO, {'#': 192, 'c': 193}, 108, (2, 2)),
+}
 
 
-def stamp_banner(x0, y0):
-    """tablica na murawie: cien na trawie, ciemna ramka, biale tlo, logo"""
-    for y in range(y0 + 1, y0 + BANNER_H + 1):            # cien: najciemniejszy odcien pasa trawy
-        for x in range(x0 + 1, x0 + BANNER_W + 1):
+def banner_size(name):
+    logo, _, _, (px, py) = BANNERS[name]
+    return len(logo[0]) + 2 * px + 2, len(logo) + 2 * py + 2
+
+
+def stamp_banner(name, cx, cy):
+    """tablica na murawie, wysrodkowana w (cx, cy): cien na trawie, ramka, tlo, logo"""
+    logo, colors, bg, (px, py) = BANNERS[name]
+    bw, bh = banner_size(name)
+    x0, y0 = cx - bw // 2, cy - bh // 2
+    for y in range(y0 + 1, y0 + bh + 1):                  # cien: najciemniejszy odcien pasa trawy
+        for x in range(x0 + 1, x0 + bw + 1):
             if 64 <= img[y, x] < 80:
                 img[y, x] = 64 + (img[y, x] - 64) // 8 * 8
-    img[y0:y0 + BANNER_H, x0:x0 + BANNER_W] = 213          # ramka
-    img[y0 + 1:y0 + BANNER_H - 1, x0 + 1:x0 + BANNER_W - 1] = 202
-    lx, ly = x0 + 1 + BANNER_PAD_X, y0 + 1 + BANNER_PAD_Y
-    for ry, row in enumerate(BANNER_LOGO):
+    img[y0:y0 + bh, x0:x0 + bw] = 213                      # ramka
+    img[y0 + 1:y0 + bh - 1, x0 + 1:x0 + bw - 1] = bg
+    lx, ly = x0 + 1 + px, y0 + 1 + py
+    for ry, row in enumerate(logo):
         for rx, c in enumerate(row):
-            if c != '.':
-                img[ly + ry, lx + rx] = 212 if c == '#' else 200
+            if c in colors:
+                img[ly + ry, lx + rx] = colors[c]
 
 
 def stamp_text(text, x0, y0, color, scale=2, spacing=6):
@@ -866,11 +887,7 @@ def main():
         write_png(ROOT / f"art/track_{name}.png", pal[img], 2)
         write_png(ROOT / f"art/track_{name}_mokry.png", wet[img], 2)
     build_track(0)                           # reszta podgladow na torze 0
-    print("plansza tytulowa...")
-    title = make_title()
-    (ROOT / "data/title.bpl").write_bytes(to_planar(title, 8))
-    write_png(ROOT / "art/title_art.png", title_preview(title), 2)
-    build_track(0)
+    # plansza tytulowa: tools/gentitle.py (ilustracja src/title.png, wlasna paleta)
     (ROOT / "data/hud.pal").write_bytes(bytes(hud_pal.astype(np.uint8).ravel()))
     (ROOT / "data/referee.bin").write_bytes(to_planar(referee_img(), 5))
 

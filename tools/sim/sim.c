@@ -27,6 +27,7 @@ int main(int argc, char **argv)
     g_tour.riders[2].ai_level = AI_MASTER;
     g_tour.riders[3].ai_level = AI_PRO;
     track_init();
+    track_random_surface();                 /* jak w grze: losowe sciezki na start turnieju */
     fprintf(trace, "frame,bike,gate,x,y,speed,drift,lap,state\n");
 
     for (h = 0; h < heats; h++) {

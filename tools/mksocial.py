@@ -1,10 +1,10 @@
 """Miniaturka do podgladu linkow na GitHubie (Settings -> Social preview): art/social_preview.png, 1280x640.
 
-Sklada zrzuty z prawdziwego kodu gry (sh tools/shots/run.sh): plansza tytulowa i ekran
-biegu, oba 2x, obok siebie na granatowym tle z pasami kraweznika.
-Tylko calkowite powiekszenia - piksele zostaja ostre.
-"""
+Kadr ilustracji z planszy tytulowej (src/title.png) z napisem SPEEDWAY PARTY pikselowym
+fontem gry (tools/genfont.py), w kolorach planszy tytulowej. Bez zaleznosci poza numpy.
+Funkcje read_png / write_png uzywaja tez inne narzedzia (gentitle.py)."""
 import struct
+import sys
 import zlib
 from pathlib import Path
 
@@ -16,7 +16,7 @@ W, H = 1280, 640
 
 
 def read_png(path):
-    """Dekoder PNG 8 bit RGB/RGBA (wszystkie filtry) - wystarczy do naszych zrzutow."""
+    """Dekoder PNG 8 bit RGB/RGBA (wszystkie filtry)."""
     data = path.read_bytes()
     pos, idat = 8, b""
     while pos < len(data):
@@ -37,12 +37,12 @@ def read_png(path):
     for y in range(h):
         f = raw[y * (stride + 1)]
         line = np.frombuffer(raw, dtype=np.uint8, count=stride, offset=y * (stride + 1) + 1).astype(np.int32)
-        cur = np.zeros(stride, dtype=np.int32)
         if f == 0:
             cur = line
         elif f == 2:
             cur = (line + prev) & 255
         else:
+            cur = np.zeros(stride, dtype=np.int32)
             for x in range(stride):
                 a = cur[x - bpp] if x >= bpp else 0
                 b = prev[x]
@@ -61,7 +61,7 @@ def read_png(path):
 
 
 def write_png(path, rgb):
-    rgb = rgb.astype(np.uint8)
+    rgb = np.clip(rgb, 0, 255).astype(np.uint8)
     h, w, _ = rgb.shape
     raw = b"".join(b"\x00" + rgb[y].tobytes() for y in range(h))
 
@@ -72,39 +72,50 @@ def write_png(path, rgb):
                      + chunk(b"IDAT", zlib.compress(raw, 9)) + chunk(b"IEND", b""))
 
 
-def native(img):
-    """zrzuty sa zapisane w 3x - z powrotem do 320x256"""
-    return img[::3, ::3]
+def resize_bilinear(img, w, h):
+    sh, sw = img.shape[:2]
+    ys = (np.arange(h) + 0.5) * sh / h - 0.5
+    xs = (np.arange(w) + 0.5) * sw / w - 0.5
+    y0 = np.clip(np.floor(ys).astype(int), 0, sh - 1); y1 = np.clip(y0 + 1, 0, sh - 1)
+    x0 = np.clip(np.floor(xs).astype(int), 0, sw - 1); x1 = np.clip(x0 + 1, 0, sw - 1)
+    fy = np.clip(ys - y0, 0, 1)[:, None, None]; fx = np.clip(xs - x0, 0, 1)[None, :, None]
+    a = img[y0][:, x0]; b = img[y0][:, x1]; c = img[y1][:, x0]; d = img[y1][:, x1]
+    return (a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy
 
 
-def up(img, k):
-    return np.repeat(np.repeat(img, k, 0), k, 1)
+def draw_text(canvas, text, x, y, scale, color, shadow=(10, 12, 30)):
+    """napis fontem gry (litery 5x7, odstep 6) - kazdy piksel fontu = kwadrat scale x scale"""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from genfont import G
+    for pass_, col, off in ((0, shadow, scale // 2 + 1), (1, color, 0)):
+        cx = x
+        for ch in text:
+            rows = G.get(ch, G[' ']).split('|')
+            for ry, row in enumerate(rows):
+                for rx, c in enumerate(row):
+                    if c == '#':
+                        X, Y = cx + rx * scale + off, y + ry * scale + off
+                        canvas[Y:Y + scale, X:X + scale] = col
+            cx += 6 * scale
 
 
 def main():
-    race = native(read_png(ART / "screen_05_racing.png"))
-    title = native(read_png(ART / "screen_01_title.png"))
-
-    # tlo: granat z pasami kraweznika (czerwono-biale) u gory i u dolu
-    canvas = np.zeros((H, W, 3)) + np.array([10, 12, 34])
-    white = ((np.arange(W) // 16) & 1)[:, None]
-    stripe = white * np.array([235, 235, 235]) + (1 - white) * np.array([210, 30, 30])
-    for y in (34, 598):
-        canvas[y:y + 8] = stripe
-
-    # dwa ekrany 2x obok siebie: plansza tytulowa i bieg (boki 8 px przyciete)
-    panels = [up(title, 2)[:, 16:-16], up(race, 2)[:, 16:-16]]
-    ph, pw = panels[0].shape[:2]
-    gap = (W - 2 * pw) // 3
-    y0 = (H - ph) // 2
-    for i, p in enumerate(panels):
-        x0 = gap + i * (pw + gap)
-        canvas[y0 - 3:y0 + ph + 3, x0 - 3:x0 + pw + 3] = (245, 245, 245)
-        canvas[y0:y0 + ph, x0:x0 + pw] = p
-
+    src = read_png(ROOT / "src/title.png").astype(np.float64)
+    sh, sw = src.shape[:2]
+    # kadr 2:1 z zawodnikami (od reflektorow po nawierzchnie)
+    ch = int(sw / 2)
+    y0 = int(sh * 0.30)
+    canvas = resize_bilinear(src[y0:y0 + ch], W, H)
+    # lewa gorna czesc przyciemniona pod napis
+    yy, xx = np.mgrid[0:H, 0:W]
+    dark = np.clip(1.0 - 0.6 * np.clip(1 - xx / 900, 0, 1) * np.clip(1 - yy / 420, 0, 1), 0.35, 1)
+    canvas *= dark[..., None]
+    draw_text(canvas, "SPEEDWAY", 56, 48, 13, (60, 230, 60))
+    draw_text(canvas, "PARTY", 56, 48 + 9 * 13, 13, (255, 200, 40))
+    draw_text(canvas, "AMIGA 1200 AGA", 60, 48 + 18 * 13 + 6, 5, (245, 245, 245))
     out = ART / "social_preview.png"
-    write_png(out, np.clip(canvas, 0, 255))
-    print(out, canvas.shape[1], "x", canvas.shape[0])
+    write_png(out, canvas)
+    print(out, W, "x", H)
 
 
 if __name__ == "__main__":

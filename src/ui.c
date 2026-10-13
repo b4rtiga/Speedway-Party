@@ -27,7 +27,7 @@ enum { U_PANEL = 96, U_PANEL2, U_BORDER, U_WHITE, U_RAINBOW, U_GOLD, U_GREY,
 #define PANEL_H 112
 #define NAME_EDIT_MAX 13
 
-typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE } Overlay;
+typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE, OV_HOLD } Overlay;
 
 static UBYTE serial = 1, drawn_serial[2];
 static UBYTE buf_is_track[2];
@@ -41,14 +41,13 @@ static UBYTE pick_cursor, pick_prev;
 
 #define BORDER_RACE 0x334          /* 12-bit: ciemny beton trybun */
 static UWORD line_bg[FULL_H], line_fg[FULL_H], rainbow[48];
-static UBYTE *title_img;
+static UBYTE *title_img;            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
 /* okienko maszyny startowej (prawy dolny rog toru) */
 #define SW_X 208
 #define SW_Y 138                   /* ponizej obszaru nakladek (PANEL_Y + PANEL_H = 136) */
 #define SW_W 112
 #define SW_H 66
-#define SW_CACHE_SIZE ((ULONG)SW_H * PLAY_STRIDE)
-static UBYTE *sw_cache;                 /* tlo okienka startu (wiersze okienka, uklad ekranu), Chip RAM */            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
+
 
 /* ------------------------------------------------------------------ */
 
@@ -78,13 +77,22 @@ void ui_init(void)
         FreeMem(title_img, FULL_SIZE);
         title_img = 0;
     }
-    sw_cache = AllocMem(SW_CACHE_SIZE, MEMF_CHIP);      /* bez pamieci: taśma zmazywana pikselami */
+    if (title_img) {
+        /* ilustracja ma wlasna palete (kolory napisow menu bez zmian) - dla list Coppera menu;
+         * przy pierwszej zmianie wilgotnosci menu wraca do palety toru (napisy te same) */
+        static UBYTE raw[256 * 3];
+        static RGB24 pal[256];
+        UWORD i;
+        if (asset_load("PROGDIR:data/title.pal", raw, sizeof(raw))) {
+            for (i = 0; i < 256; i++) { pal[i].r = raw[i * 3]; pal[i].g = raw[i * 3 + 1]; pal[i].b = raw[i * 3 + 2]; }
+            video_set_menu_palette(pal);
+        }
+    }
 }
 
 void ui_free(void)
 {
     if (title_img) FreeMem(title_img, FULL_SIZE);
-    if (sw_cache) FreeMem(sw_cache, SW_CACHE_SIZE);
 }
 
 static UBYTE *back(void) { return video_backbuffer(); }
@@ -144,7 +152,7 @@ static void draw_title(UBYTE *b)
     text_draw_center(b, 64, "AMIGA 1200 AGA", U_WHITE, U_SHADOW);
     if (blink) text_draw_center(b, 206, "NACIŚNIJ FIRE", U_RAINBOW, U_SHADOW);
     text_draw_center(b, 224, "TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", U_WHITE, U_SHADOW);
-    text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GREY, 0);
+    text_draw_center(b, 240, "MIT © 2026 dev84", U_GREY, 0);
 }
 
 BOOL ui_title_update(void)
@@ -613,13 +621,46 @@ static void draw_podium(UBYTE *b)
 
 /* ========================== NAKLADKI ============================== */
 
+/* ludzie, ktorzy pod tasma nie trzymaja kierunku (bit = pole) - bieg na nich czeka */
+static UBYTE not_holding_mask(void)
+{
+    const Heat *h = &g_tour.heat;
+    UBYTE g, m = 0;
+    if (g_tour.state != GS_HEAT || h->phase != HEAT_READY || h->phase_timer < 2 * FPS) return 0;
+    for (g = 0; g < MAX_RIDERS; g++) {
+        const Bike *b = &g_tour.bikes[g];
+        if (b->empty || b->state == BIKE_EXCLUDED) continue;
+        if (g_tour.riders[b->rider].control == CTRL_HUMAN && !(b->input & BTN_DIRS)) m |= (UBYTE)(1 << g);
+    }
+    return m;
+}
+
 static Overlay current_overlay(void)
 {
     if (g_paused) return OV_PAUSE;
+    if (not_holding_mask()) return OV_HOLD;
     if (g_tour.state == GS_HEAT && g_tour.heat.phase == HEAT_FALSE_START) return OV_FALSE_START;
     if (g_tour.state == GS_HEAT_RESULT) return OV_RESULT;
     if (g_tour.state == GS_TRACK_GRADING) return OV_GRADING;
     return OV_NONE;
+}
+
+/* bieg czeka: ktos z ludzi nie trzyma kierunku pod tasma */
+static void draw_hold(UBYTE *b)
+{
+    UBYTE m = not_holding_mask(), g;
+    WORD y = PANEL_Y + 34;
+    char s[48];
+    panel(b, PANEL_X, PANEL_Y + 10, PANEL_W, 92, U_PANEL, U_GOLD);
+    text_draw_center(b, PANEL_Y + 18, "CZEKAMY NA START", U_GOLD, U_SHADOW);
+    for (g = 0; g < MAX_RIDERS && y < PANEL_Y + 60; g++)
+        if (m & (1 << g)) {
+            name_trunc(s, g_tour.riders[g_tour.bikes[g].rider].name, NAME_EDIT_MAX);
+            text_draw_center(b, y, s, U_WHITE, U_SHADOW);
+            y += 12;
+        }
+    text_draw_center(b, PANEL_Y + 66, "TRZYMAJ LEWO LUB PRAWO", U_WHITE, U_SHADOW);
+    text_draw_center(b, PANEL_Y + 82, "WINUAE: STRZAŁKI = JOY 1", U_GREY, 0);
 }
 
 /* pauza: panel z pytaniem (na torze w prostokacie nakladek, w menu na srodku ekranu) */
@@ -699,11 +740,11 @@ static void draw_result(UBYTE *b)
         text_cat(p, " S");
         text_draw_center(b, PANEL_Y + 84, s, g_tour.new_records & REC_HEAT ? U_GOLD : U_GREY, 0);
     }
-    /* nowy rekord: na zmiane z "FIRE - DALEJ" */
-    if (g_tour.new_records && !blink)
+    /* na stale, bez migania (plansza i tak sama przechodzi dalej po kilku sekundach) */
+    if (g_tour.new_records)
         text_draw_center(b, PANEL_Y + 98, g_tour.new_records & REC_HEAT ? "NOWY REKORD TORU!" : "REKORD OKRĄŻENIA!",
                          U_GOLD, U_SHADOW);
-    else if (blink) text_draw_center(b, PANEL_Y + 98, "FIRE - DALEJ", U_RAINBOW, 0);
+    else text_draw_center(b, PANEL_Y + 98, "FIRE - DALEJ", U_GREY, 0);
 }
 
 extern UWORD g_grading_progress;   /* 0..255, z main.c */
@@ -807,8 +848,6 @@ static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
 #define SW_TAPE_H 7                /* dwie wstegi po 2 px + 3 px przerwy z tasiemkami */
 #define SW_TAPE_X0 (SW_X + 11)     /* miedzy slupkami maszyny */
 #define SW_TAPE_X1 (SW_X + SW_W - 11)
-static WORD tape_prev[2][SW_W];    /* gorna krawedz tasmy w kolumnie (na bufor), -1 = brak */
-static WORD tape_rows[2][2];       /* zakres wierszy poprzedniej tasmy (na bufor), [0] < 0 = brak */
 
 static UBYTE startwin_state(void)
 {
@@ -827,8 +866,7 @@ static UBYTE startwin_state(void)
     }
 }
 
-/* Statyczne tlo okienka w punkcie (x, y) - tym zamazujemy poprzednie polozenie tasmy.
- * Musi dawac to samo co draw_startwin_static (trybuna, kibice, poprzeczka, lampka, nawierzchnia). */
+/* kolor statycznego tla okienka w punkcie (x, y): trybuna, kibice, poprzeczka, lampka, nawierzchnia */
 static UBYTE startwin_px(WORD x, WORD y, UBYTE lamp)
 {
     static const UBYTE lamp_col[3] = { U_PANEL, U_RED, U_GREEN };
@@ -844,17 +882,6 @@ static UBYTE startwin_px(WORD x, WORD y, UBYTE lamp)
 }
 
 static void draw_lamp(UBYTE *b, UBYTE lamp);
-
-/* zapamietuje tlo okienka (z lampka) - potem Blitter zmazuje nim tasme jednym kopiowaniem */
-static void startwin_cache(const UBYTE *b)
-{
-    ULONG *d = (ULONG *)sw_cache;
-    const ULONG *src = (const ULONG *)(b + (LONG)SW_Y * PLAY_STRIDE);
-    UWORD n;
-    if (!d) return;
-    hw_wait_blit();
-    for (n = 0; n < SW_CACHE_SIZE / 4; n++) *d++ = *src++;
-}
 
 static void draw_startwin_static(UBYTE *b, UBYTE lamp)
 {
@@ -886,7 +913,6 @@ static void draw_startwin_static(UBYTE *b, UBYTE lamp)
         plot(b, x, SW_Y + 7, U_GREY);
     }
     draw_lamp(b, lamp);
-    startwin_cache(b);
 }
 
 static void draw_lamp(UBYTE *b, UBYTE lamp)
@@ -899,33 +925,17 @@ static void draw_lamp(UBYTE *b, UBYTE lamp)
 /* Tasma (dwie wstegi z tasiemkami) w klatce odlotu t (0 = spoczynek).
  * Odlot "ease-out": od razu wyskakuje w gore i wyhamowuje za gorna krawedzia okienka,
  * srodek zostaje troche w tyle (luk w dol najwiekszy w polowie odlotu).
- * Stara tasme zmazuje Blitter jednym kopiowaniem tla (sw_cache), procesor rysuje tylko nowa. */
-static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t, UBYTE lamp)
+ * Rysowana na swiezo narysowanym tle okienka - bez zmazywania. */
+static void draw_tape_ribbon(UBYTE *b, WORD t)
 {
     WORD x, r, half = (SW_TAPE_X1 - SW_TAPE_X0) / 2, mid = SW_TAPE_X0 + half;
-    WORD q = (WORD)(SW_FLY - t), lo = 32767, hi = -1;
+    WORD q = (WORD)(SW_FLY - t);
     LONG rise = (LONG)SW_RISE * (SW_FLY * SW_FLY - q * q) / (SW_FLY * SW_FLY);
     LONG bow_max = (LONG)4 * SW_BOW * t * q / (SW_FLY * SW_FLY);
     const WORD top = SW_Y + 3, bottom = SW_Y + SW_H - 6;       /* obszar, w ktorym widac tasme */
-
-    if (sw_cache) {
-        if (tape_rows[bi][0] >= 0) {
-            hw_wait_blit();
-            blit_copy(b, sw_cache - (LONG)SW_Y * PLAY_STRIDE, SW_X, tape_rows[bi][0], SW_W,
-                      (WORD)(tape_rows[bi][1] - tape_rows[bi][0] + 1));
-            hw_wait_blit();
-        }
-    }
     for (x = SW_TAPE_X0; x < SW_TAPE_X1; x++) {
-        WORD *prev = &tape_prev[bi][x - SW_X];
         WORD d = (WORD)(x - mid);
         WORD yy = (WORD)(SW_TAPE_REST - rise + bow_max * (half * half - d * d) / (half * half));
-        if (!sw_cache && *prev >= 0 && *prev != yy)                  /* awaryjnie: zmazywanie pikselami */
-            for (r = 0; r < SW_TAPE_H; r++) {
-                WORD py = (WORD)(*prev + r);
-                if (py >= top && py < bottom) plot(b, x, py, startwin_px(x, py, lamp));
-            }
-        *prev = yy;
         for (r = 0; r < SW_TAPE_H; r++) {
             WORD py = (WORD)(yy + r);
             UBYTE c;
@@ -933,38 +943,32 @@ static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t, UBYTE lamp)
             /* dwie biale wstegi (wiersze 0-1 i 5-6), miedzy nimi co 8 px cienka tasiemka */
             if (r < 2 || r >= SW_TAPE_H - 2) c = U_WHITE;
             else if (((x - SW_TAPE_X0) & 7) == 3) c = U_SILVER;
-            else continue;                                   /* przerwa - widac tlo */
+            else continue;
             plot(b, x, py, c);
-            if (py < lo) lo = py;
-            if (py > hi) hi = py;
         }
     }
-    tape_rows[bi][0] = hi >= 0 ? lo : -1;
-    tape_rows[bi][1] = hi;
 }
+
+static UBYTE sw_clear;              /* klatki, przez ktore jeszcze czyscimy obszar okienka */
+
+/* Okienko rysowane w calosci przy kazdej zmianie stanu (lampka, klatka odlotu) - proste
+ * i odporne; po zniknieciu obszar wraca z tla toru przez kilka klatek w obu buforach. */
 
 static void update_startwin(UBYTE *b, UBYTE bi)
 {
-    UBYTE st = startwin_state(), lamp, old = startwin_drawn[bi];
-    WORD x;
-    if (st == old) return;
+    UBYTE st = startwin_state(), old = startwin_drawn[bi];
     if (st == SW_NONE) {
-        blit_copy(b, g_video.background, SW_X, SW_Y, SW_W, SW_H);
+        if (old != SW_NONE) sw_clear = 6;
+        if (sw_clear) {
+            sw_clear--;
+            blit_copy(b, g_video.background, SW_X, SW_Y, SW_W, SW_H);
+        }
         startwin_drawn[bi] = SW_NONE;
         return;
     }
-    lamp = (UBYTE)(st & 3);
-    if (old == SW_NONE || (old & 3) == 3 || lamp == 3) {
-        draw_startwin_static(b, lamp);                       /* tlo raz, potem tylko zmiany */
-        for (x = 0; x < SW_W; x++) tape_prev[bi][x] = -1;
-        tape_rows[bi][0] = -1;
-    } else if ((old & 3) != lamp) {
-        /* zmiana swiatla: tylko lampka - w obrazie i w zapamietanym tle (tasma jej nie zaslania) */
-        draw_lamp(b, lamp);
-        if (sw_cache) draw_lamp(sw_cache - (LONG)SW_Y * PLAY_STRIDE, lamp);
-    }
-    hw_wait_blit();
-    if (lamp != 3) draw_tape_ribbon(b, bi, (WORD)(st >> 2), lamp);
+    if (st == old) return;
+    draw_startwin_static(b, (UBYTE)(st & 3));
+    if ((st & 3) != 3) draw_tape_ribbon(b, (WORD)(st >> 2));
     startwin_drawn[bi] = st;
 }
 
@@ -1002,7 +1006,10 @@ void ui_render(void)
     UBYTE bi = g_video.back;
     UBYTE new_blink = (UBYTE)((g_frame >> 4) & 1);
 
-    if (new_blink != blink) { blink = new_blink; ui_invalidate(); }
+    if (new_blink != blink) {
+        blink = new_blink;
+        if (!state_uses_track(g_tour.state)) ui_invalidate();   /* migaja tylko napisy w menu */
+    }
     video_set_menu(!state_uses_track(g_tour.state));   /* menu: caly ekran bez HUD */
     update_line_colors();
 
@@ -1018,6 +1025,12 @@ void ui_render(void)
         }
         track_flush_wear(bi, b);                          /* wyjezdzone sciezki */
         update_startwin(b, bi);                           /* przed nakladkami - nie tnie panelu */
+        {
+            /* nakladka zalezna od stanu gry (np. podpowiedz pod tasma) - zmiana = przerysowanie */
+            static UBYTE last_ov = OV_NONE, last_mask;
+            UBYTE ov = (UBYTE)current_overlay(), mask = not_holding_mask();
+            if (ov != last_ov || mask != last_mask) { last_ov = ov; last_mask = mask; ui_invalidate(); }
+        }
         if (drawn_serial[bi] != serial) {
             blit_copy(b, g_video.background, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
             switch (current_overlay()) {
@@ -1025,6 +1038,7 @@ void ui_render(void)
             case OV_RESULT:      draw_result(b); break;
             case OV_GRADING:     draw_grading(b); break;
             case OV_PAUSE:       draw_pause(b, PANEL_Y + 10); break;
+            case OV_HOLD:        draw_hold(b); break;
             default: break;
             }
             drawn_serial[bi] = serial;

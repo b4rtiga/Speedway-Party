@@ -6,7 +6,9 @@
 MUSIC ?= BlackMotor
 
 CC      = m68k-amigaos-gcc
-CFLAGS  = -m68020 -mtune=68020 -O2 -fomit-frame-pointer -noixemul -Wall -Wno-pointer-sign
+# -fbbb=- : wylaczony dodatkowy optymalizator Bebbo ("bbb") - przy skokach przez tablice
+#           switch usuwal potrzebne przepisanie rejestru adresowego (zly odczyt pola struktury)
+CFLAGS  = -m68020 -mtune=68020 -O2 -fbbb=- -fomit-frame-pointer -noixemul -Wall -Wno-pointer-sign
 LDFLAGS = -noixemul -s
 CFLAGS += $(EXTRA)
 
@@ -21,7 +23,7 @@ SpeedwayParty: $(OBJ)
 src/%.o: src/%.c src/*.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-DATA = data/track0.pal data/track0.bpl data/title.bpl data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw
+DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw
 
 # Muzyka w menu: miks z src/music/$(MUSIC)/ kopiowany jako data/music.raw (MUSIC=BRAK - bez muzyki).
 # Plik jest odtwarzany przy kazdej zmianie build.cfg albo wybranego utworu.
@@ -51,12 +53,15 @@ dist: SpeedwayParty $(DATA)
 	echo SpeedwayParty > dist/s/startup-sequence
 
 # Paczka do pobrania: release/SpeedwayParty.zip (plik gry + dane + instrukcja)
+# i startowa dyskietka release/SpeedwayParty.adf (FFS, Kickstart 2.0+)
 release: dist
 	python3 tools/mkrelease.py
+	python3 tools/mkadf.py dist release/SpeedwayParty.adf SpeedwayParty
 
 # Grafika i dzwiek (Python 3 + numpy) - wynik jest juz w repozytorium, to tylko regeneracja
 assets:
 	python tools/genart.py
+	python tools/gentitle.py
 	python tools/genaudio.py
 	python tools/genfont.py
 

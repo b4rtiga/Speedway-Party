@@ -289,6 +289,40 @@ static void all_cells_visual(void)
             if (g_tour.track.zone[gy][gx] != GRIP_WALL) cell_visual(gx, gy);
 }
 
+/* Inny tor na kazdy turniej: 1-2 wyjezdzone sciezki w losowym miejscu przekroju
+ * (przy krawezniku, srodkiem albo szeroko), lekko falujace wzdluz toru, o losowej sile.
+ * Ubicie podnosi przyczepnosc i jest widoczne jak sciezki wyjezdzone w biegach. */
+void track_random_surface(void)
+{
+    Track *t = &g_tour.track;
+    WORD hw = t->half_width;
+    UBYTE lines = (UBYTE)rng_range(1, 2), n;
+    for (n = 0; n < lines; n++) {
+        WORD lat0 = (WORD)((WORD)rng_range(0, (UWORD)(hw * 13 / 10)) - hw * 7 / 10);   /* -0.7..+0.6 szer. */
+        WORD amp = (WORD)rng_range(0, (UWORD)(hw * 3 / 10));
+        UBYTE waves = (UBYTE)rng_range(1, 3), ph = (UBYTE)rng_range(0, 255);
+        UWORD strength = rng_range(150, 235);
+        WORD w = (WORD)rng_range(4, 8);
+        LONG s;
+        for (s = 0; s < t->lap_length; s += 3) {
+            UBYTE ang = (UBYTE)(s * 256 * waves / t->lap_length + ph);
+            WORD lat = (WORD)(lat0 + ((LONG)amp * SIN(ang) >> 14)), d;
+            if (lat < -hw + 2) lat = (WORD)(-hw + 2);
+            if (lat > hw - 2) lat = (WORD)(hw - 2);
+            for (d = -w; d <= w; d += 2) {
+                WORD x, y, gx, gy;
+                UWORD v = (UWORD)(strength * (UWORD)(w + 1 - (d < 0 ? -d : d)) / (UWORD)(w + 1));
+                track_point(s, (WORD)(lat + d), &x, &y);
+                gx = (WORD)(x / GRIP_CELL); gy = (WORD)(y / GRIP_CELL);
+                if (gx < 0 || gy < 0 || gx >= GRIP_W || gy >= GRIP_H || t->zone[gy][gx] == GRIP_WALL) continue;
+                if (v > t->pack[gy][gx]) t->pack[gy][gx] = (UBYTE)v;
+            }
+        }
+    }
+    rebuild_grip();
+    all_cells_visual();
+}
+
 /* wywolywane z ui_render dla bufora "back" (po zdjeciu starej szprycy) */
 void track_flush_wear(UBYTE bi, UBYTE *buf)
 {
@@ -515,7 +549,7 @@ void track_select(UBYTE type)
         t->wp[i].outer_ofs = (BYTE)(R_OUT - R_MID - 4);
     }
 
-    t->tape_x = CX - 20;
+    t->tape_x = CX;                          /* linia startu na srodku prostej startowej */
     t->tape_y0 = CY + R_IN;
     t->tape_y1 = CY + R_OUT - 1;
     t->tape_s = track_progress(t->tape_x, t->tape_y0 + 4);

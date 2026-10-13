@@ -242,11 +242,16 @@ void hud_update(void)
     if (shown.menu) force_redraw();
 
     for (i = 0; i < 4; i++) order[i] = 0xFF;
-    for (i = 0; i < MAX_RIDERS; i++) {
-        Bike *b = &g_tour.bikes[i];
-        if (b->state == BIKE_EXCLUDED) continue;
-        order[b->position] = (UBYTE)(b->gate | (b->rider << 4));   /* kask + numer zawodnika */
-        if (b->position == 0) lap = b->lap;
+    {
+        /* kolejnosc po pozycjach, bez wykluczonych i pustych pol - kwadraty od lewej bez dziur */
+        UBYTE pos, n = 0;
+        for (pos = 0; pos < MAX_RIDERS; pos++)
+            for (i = 0; i < MAX_RIDERS; i++) {
+                Bike *b = &g_tour.bikes[i];
+                if (b->position != pos || b->state == BIKE_EXCLUDED || b->empty) continue;
+                if (n == 0) lap = b->lap;
+                order[n++] = (UBYTE)(b->gate | (b->rider << 4));   /* kask + numer zawodnika */
+            }
     }
     if (lap < 1) lap = 1;
     if (lap > LAPS_PER_HEAT) lap = LAPS_PER_HEAT;

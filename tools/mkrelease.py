@@ -32,7 +32,7 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
 - menu: joystick w porcie 1 albo strzalki + Return; ESC = wyjscie z gry
 
 Kod zrodlowy i opis: https://github.com/b4rtiga/Speedway-Party
-Licencja MIT (c) 2026 b4rtiga
+Licencja MIT (c) 2026 dev84
 """
 
 

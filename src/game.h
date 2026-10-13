@@ -13,7 +13,7 @@
 #define LAPS_PER_HEAT   4
 
 /* model jazdy (race.c, ai.c, audio.c) */
-#define BIKE_MAX_SPEED  ((fix16)(FIX_ONE * 253 / 100)) /* 2.53 px/klatke = 126 px/s */
+#define BIKE_MAX_SPEED  ((fix16)(FIX_ONE * 278 / 100)) /* 2.78 px/klatke = 139 px/s */
 #define TURN_K          22        /* skret [1/256 jedn. kata/klatke] na jednostke zlamania przy v maks.;
                                      promien przy pelnym zlamaniu ~45 px */
 #define NAME_LEN        16
@@ -277,6 +277,7 @@ void     track_set_wetness(UBYTE wet);           /* np. stan toru wybrany w menu
 void     track_wear(WORD x, WORD y);             /* motocykl ubija nawierzchnie */
 void     track_loosen(WORD x, WORD y);           /* szpryca spadla na tor - spulchnia */
 void     track_reset_wear(void);                 /* rowny tor (nowy turniej / zmiana toru) */
+void     track_random_surface(void);              /* losowe wyjezdzone sciezki na start turnieju */
 void     track_flush_wear(UBYTE bi, UBYTE *buf);  /* dokopiuj zmienione komorki do bufora */
 void     track_forget_wear(UBYTE bi);             /* bufor dostal cale tlo */
 void     track_dry_step(void);

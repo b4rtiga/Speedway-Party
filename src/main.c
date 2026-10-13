@@ -14,6 +14,7 @@
  *   przed biegami 14 i 15: GATE_PICK -> TABLE -> HEAT;  po 15: PODIUM -> SETUP
  */
 #include <exec/memory.h>
+#include <exec/tasks.h>
 #include <proto/exec.h>
 #include <proto/dos.h>
 #include "game.h"
@@ -199,6 +200,7 @@ static void update_state(void)
             {
                 static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
                 track_reset_wear();
+                track_random_surface();     /* kazdy turniej na innym torze */
                 track_set_wetness(start_wet[g_tour.start_condition]);
             }
             enter(GS_TABLE);
@@ -259,7 +261,30 @@ static void update_state(void)
     }
 }
 
+/* Gra na wlasnym stosie 32 KB: program uruchamiany z s/startup-sequence dostaje domyslnie
+ * tylko 4 KB, a przepelnienie stosu po cichu nadpisuje dane gry (losowe usterki).
+ * StackSwap (exec, Kickstart 2.0+): zmienne main musza byc statyczne - po zamianie
+ * stosu lokalne adresowane wzgledem SP przestaja byc dostepne. */
+#define GAME_STACK 32768UL
+static struct StackSwapStruct game_stack;
+static int game_rc;
+static int game_main(void) __attribute__((noinline));
+
 int main(void)
+{
+    APTR mem = AllocMem(GAME_STACK, MEMF_ANY);
+    if (!mem) return game_main();                   /* bez pamieci: na stosie z Shella */
+    game_stack.stk_Lower = mem;
+    game_stack.stk_Upper = (ULONG)mem + GAME_STACK;
+    game_stack.stk_Pointer = (APTR)game_stack.stk_Upper;
+    StackSwap(&game_stack);
+    game_rc = game_main();
+    StackSwap(&game_stack);
+    FreeMem(game_stack.stk_Lower, GAME_STACK);
+    return game_rc;
+}
+
+static int game_main(void)
 {
     int rc = 0;
 

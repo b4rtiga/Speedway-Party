@@ -2,10 +2,10 @@
 
 Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. Turniej 15 biegów dla 1–4 graczy na jednej kanapie, wolne miejsca zajmują boty. Kod w C (Bebbo GCC, NDK 3.9).
 
-| ![Bieg w WinUAE](art/winuae_race.png) | ![Plansza tytułowa w WinUAE](art/winuae_title.png) |
+| ![Bieg](art/screen_05_racing.png) | ![Plansza tytułowa](art/screen_01_title.png) |
 |---|---|
 
-*Gra uruchomiona w WinUAE (A1200, 68020, AGA, 2 MB Chip)*
+*Ekrany z gry (A1200, 68020, AGA, 2 MB Chip)*
 
 ### 🎬 Trailer
 [![Trailer Speedway Party - kliknij, żeby obejrzeć](art/trailer_thumb.png)](art/trailer.mp4)
@@ -32,9 +32,12 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 | `s/startup-sequence` | uruchamia grę od razu po starcie Amigi, gdy katalog jest dyskiem startowym |
 | `CZYTAJ.TXT` | krótka instrukcja |
 
+**[release/SpeedwayParty.adf](release/SpeedwayParty.adf)**: ta sama gra jako startowa dyskietka (880 KB, FastFileSystem). Wkładasz ją do stacji (albo do Gotka czy emulatora) i gra rusza sama. Dyskietka wymaga Kickstartu 2.0 lub nowszego.
+
 Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 3.x. Fast RAM nie jest potrzebny.
 - **Na Amidze:** rozpakuj, w Shellu wejdź do katalogu `SpeedwayParty` i uruchom `SpeedwayParty`.
-- **W emulatorze:** rozpakuj i podepnij katalog `SpeedwayParty` jako dysk startowy (szczegóły niżej w sekcji *Uruchomienie w WinUAE*).
+- **Z dyskietki:** włóż `SpeedwayParty.adf` do DF0: (w WinUAE: *Floppy drives → DF0:*) i uruchom Amigę.
+- **W emulatorze z katalogu:** rozpakuj i podepnij katalog `SpeedwayParty` jako dysk startowy (szczegóły niżej w sekcji *Uruchomienie w WinUAE*).
 
 ## Spis treści
 1. [Mechanika gry](#mechanika-gry)
@@ -109,7 +112,9 @@ To tam rodzi się najpiękniejszy manewr: **„szeroka niesie”**. Jeśli wjedz
 
 Tor **wyjeżdża się na Twoich oczach**. Każdy przejazd rozpędzonego motocykla ubija nawierzchnię, więc linia, którą jeździ cała stawka, z biegu na bieg ciemnieje, gładnieje, trzyma coraz lepiej i robi się najszybsza. Grudki szprycy spadające obok spulchniają tor, a równarka podczas przerwy zaciera ścieżki i wszystko zaczyna się od nowa. Po polewaniu wyjeżdżona linia przesycha pierwsza. Pytanie tylko, czy wolisz jechać sprawdzoną ścieżką za rywalem, prosto w jego szprycę, czy szukać własnej drogi.
 
-Zawody odbywają się na klasycznym owalu z ciemnoszarą nawierzchnią z **bakałaru**. Na murawie stoją banery sponsora (3DPJOY).
+Każdy turniej to **inny tor**: na start zawodów losują się 1–2 wyjeżdżone ścieżki w innym miejscu przekroju (przy krawężniku, środkiem albo szeroko). Ubita ścieżka trzyma lepiej i widać ją jako ciemniejszy pas, więc warto ją szybko znaleźć.
+
+Zawody odbywają się na klasycznym owalu z ciemnoszarą nawierzchnią z **bakałaru**, z linią startu na środku prostej. Na murawie stoją banery sponsorów: 3DPJOY i DEV84.
 
 ### 💧 Polewaczka, czyli tor zmienia się w trakcie zawodów
 Na start turnieju **stan toru jest losowany**: suchy, wilgotny albo mokry. Jeśli wolisz inny, zmienisz go w menu.
@@ -206,6 +211,7 @@ Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
 | Brak dźwięku | brak `data/*.raw` |
 | Brak muzyki w menu | `MUSIC = BRAK` w `build.cfg`, brak `data/music.raw` albo opcja MUZYKA: NIE w ustawieniach |
 | Gracze 3–4 na adapterze LPT nie reagują | bity adaptera w `src/input.c`, oznaczone „sprawdzić” |
+| Strzałki nie działają, bieg czeka na start | w szablonie WinUAE (`joyport1=kbd2`) strzałki i prawy Ctrl emulują **joystick w porcie 1** - wybierz w menu **JOY 1**, nie STRZAŁKI. Opcja STRZAŁKI czyta klawiaturę Amigi. Gdy bieg czeka na gracza, który nie trzyma kierunku, gra pokazuje podpowiedź |
 
 ---
 
@@ -233,8 +239,9 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 
 | Polecenie | Co robi |
 |---|---|
-| `make assets` | regeneruje grafikę (`tools/genart.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`) i podglądy w `art/` |
-| `make release` | buduje paczkę do pobrania `release/SpeedwayParty.zip` (po `make dist`) |
+| `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`) i podglądy w `art/` |
+| `make release` | buduje paczkę `release/SpeedwayParty.zip` i startową dyskietkę `release/SpeedwayParty.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
+| `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png`: kadr 320×256, własna paleta AGA i dithering (`data/title.bpl`, `data/title.pal`) |
 | `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |
 | `make sim` | symulator: te same pliki logiki gry rozgrywają turniej botów bez grafiki |
 | `sh tools/sim/batch.sh` | 5 turniejów, średnie punkty dla każdego poziomu AI (do strojenia) |
@@ -298,7 +305,6 @@ tools/          generatory, sprawdzanie kodu, symulator
 - Tylko **PAL** (50 Hz).
 
 ### Do zrobienia
-- obraz dyskietki **ADF** do Gotka i emulatorów
 - tryb treningu: pojedynczy bieg albo jazda na czas
 - więcej torów i stadionów
 - prawdziwe nagranie silnika żużlowego (z licencją)
@@ -309,4 +315,4 @@ tools/          generatory, sprawdzanie kodu, symulator
 ---
 
 ## Licencja
-[MIT](LICENSE) © 2026 b4rtiga
+[MIT](LICENSE) © 2026 dev84
