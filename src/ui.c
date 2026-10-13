@@ -41,7 +41,14 @@ static UBYTE pick_cursor, pick_prev;
 
 #define BORDER_RACE 0x334          /* 12-bit: ciemny beton trybun */
 static UWORD line_bg[FULL_H], line_fg[FULL_H], rainbow[48];
-static UBYTE *title_img;            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
+static UBYTE *title_img;
+/* okienko maszyny startowej (prawy dolny rog toru) */
+#define SW_X 208
+#define SW_Y 138                   /* ponizej obszaru nakladek (PANEL_Y + PANEL_H = 136) */
+#define SW_W 112
+#define SW_H 66
+#define SW_CACHE_SIZE ((ULONG)SW_H * PLAY_STRIDE)
+static UBYTE *sw_cache;                 /* tlo okienka startu (wiersze okienka, uklad ekranu), Chip RAM */            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
 
 /* ------------------------------------------------------------------ */
 
@@ -71,11 +78,13 @@ void ui_init(void)
         FreeMem(title_img, FULL_SIZE);
         title_img = 0;
     }
+    sw_cache = AllocMem(SW_CACHE_SIZE, MEMF_CHIP);      /* bez pamieci: taśma zmazywana pikselami */
 }
 
 void ui_free(void)
 {
     if (title_img) FreeMem(title_img, FULL_SIZE);
+    if (sw_cache) FreeMem(sw_cache, SW_CACHE_SIZE);
 }
 
 static UBYTE *back(void) { return video_backbuffer(); }
@@ -787,20 +796,19 @@ static void render_tape(UBYTE *buf)
  * tasma i kaski zawodnikow. Na zielonym tasma wylatuje w gore, a okienko znika
  * w chwili ruszenia (TAPE_GONE klatek). Przy awarii maszyny: napis o starcie z flagi.
  * ------------------------------------------------------------------ */
-#define SW_X 208
-#define SW_Y 138                   /* ponizej obszaru nakladek (PANEL_Y + PANEL_H = 136) */
-#define SW_W 112
-#define SW_H 66
 #define SW_NONE 0xFF
 static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
 
 /* stan okienka: SW_NONE albo (klatka odlotu << 2) | lampka (0 zgaszona, 1 czerwona, 2 zielona); 3 = awaria */
-#define SW_FLY   16                /* klatki odlotu tasmy w okienku (0.32 s) - okienko znika po nich */
+#define SW_FLY   12                /* klatki odlotu tasmy w okienku (0.24 s) - okienko znika po nich */
+#define SW_RISE  54                /* o ile tasma idzie w gore (az za gorna krawedz okienka) */
+#define SW_BOW   8                 /* ugiecie srodka w polowie odlotu */
 #define SW_TAPE_REST (SW_Y + 38)   /* tasma w spoczynku */
 #define SW_TAPE_H 7                /* dwie wstegi po 2 px + 3 px przerwy z tasiemkami */
 #define SW_TAPE_X0 (SW_X + 11)     /* miedzy slupkami maszyny */
 #define SW_TAPE_X1 (SW_X + SW_W - 11)
-static WORD tape_prev[2][SW_W];    /* gorna krawedz wstegi w kolumnie (na bufor), -1 = brak */
+static WORD tape_prev[2][SW_W];    /* gorna krawedz tasmy w kolumnie (na bufor), -1 = brak */
+static WORD tape_rows[2][2];       /* zakres wierszy poprzedniej tasmy (na bufor), [0] < 0 = brak */
 
 static UBYTE startwin_state(void)
 {
@@ -837,6 +845,17 @@ static UBYTE startwin_px(WORD x, WORD y, UBYTE lamp)
 
 static void draw_lamp(UBYTE *b, UBYTE lamp);
 
+/* zapamietuje tlo okienka (z lampka) - potem Blitter zmazuje nim tasme jednym kopiowaniem */
+static void startwin_cache(const UBYTE *b)
+{
+    ULONG *d = (ULONG *)sw_cache;
+    const ULONG *src = (const ULONG *)(b + (LONG)SW_Y * PLAY_STRIDE);
+    UWORD n;
+    if (!d) return;
+    hw_wait_blit();
+    for (n = 0; n < SW_CACHE_SIZE / 4; n++) *d++ = *src++;
+}
+
 static void draw_startwin_static(UBYTE *b, UBYTE lamp)
 {
     WORD x, y;
@@ -867,6 +886,7 @@ static void draw_startwin_static(UBYTE *b, UBYTE lamp)
         plot(b, x, SW_Y + 7, U_GREY);
     }
     draw_lamp(b, lamp);
+    startwin_cache(b);
 }
 
 static void draw_lamp(UBYTE *b, UBYTE lamp)
@@ -876,36 +896,51 @@ static void draw_lamp(UBYTE *b, UBYTE lamp)
         for (x = SW_X + 52; x < SW_X + 60; x++) plot(b, x, y, startwin_px(x, y, lamp));
 }
 
-/* Tasma (dwie wstegi z tasiemkami) w klatce odlotu t (0 = spoczynek): konce unosza ramiona maszyny coraz
- * szybciej (t^2), srodek zostaje troche w tyle i wygina sie lukiem w dol.
- * Rysujemy tylko roznice: zamazujemy poprzednia wstege i kladziemy nowa. */
+/* Tasma (dwie wstegi z tasiemkami) w klatce odlotu t (0 = spoczynek).
+ * Odlot "ease-out": od razu wyskakuje w gore i wyhamowuje za gorna krawedzia okienka,
+ * srodek zostaje troche w tyle (luk w dol najwiekszy w polowie odlotu).
+ * Stara tasme zmazuje Blitter jednym kopiowaniem tla (sw_cache), procesor rysuje tylko nowa. */
 static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t, UBYTE lamp)
 {
     WORD x, r, half = (SW_TAPE_X1 - SW_TAPE_X0) / 2, mid = SW_TAPE_X0 + half;
-    LONG rise = (LONG)t * t * 42 / (SW_FLY * SW_FLY);         /* 0..42 px w gore */
+    WORD q = (WORD)(SW_FLY - t), lo = 32767, hi = -1;
+    LONG rise = (LONG)SW_RISE * (SW_FLY * SW_FLY - q * q) / (SW_FLY * SW_FLY);
+    LONG bow_max = (LONG)4 * SW_BOW * t * q / (SW_FLY * SW_FLY);
+    const WORD top = SW_Y + 3, bottom = SW_Y + SW_H - 6;       /* obszar, w ktorym widac tasme */
+
+    if (sw_cache) {
+        if (tape_rows[bi][0] >= 0) {
+            hw_wait_blit();
+            blit_copy(b, sw_cache - (LONG)SW_Y * PLAY_STRIDE, SW_X, tape_rows[bi][0], SW_W,
+                      (WORD)(tape_rows[bi][1] - tape_rows[bi][0] + 1));
+            hw_wait_blit();
+        }
+    }
     for (x = SW_TAPE_X0; x < SW_TAPE_X1; x++) {
         WORD *prev = &tape_prev[bi][x - SW_X];
         WORD d = (WORD)(x - mid);
-        WORD bow = (WORD)((LONG)t * 10 * (half * half - d * d) / ((LONG)SW_FLY * half * half));
-        WORD yy = (WORD)(SW_TAPE_REST - rise + bow);
-        if (*prev == yy) continue;
-        if (*prev >= 0)
+        WORD yy = (WORD)(SW_TAPE_REST - rise + bow_max * (half * half - d * d) / (half * half));
+        if (!sw_cache && *prev >= 0 && *prev != yy)                  /* awaryjnie: zmazywanie pikselami */
             for (r = 0; r < SW_TAPE_H; r++) {
                 WORD py = (WORD)(*prev + r);
-                if (py >= SW_Y + 3 && py < SW_Y + SW_H - 6) plot(b, x, py, startwin_px(x, py, lamp));
+                if (py >= top && py < bottom) plot(b, x, py, startwin_px(x, py, lamp));
             }
+        *prev = yy;
         for (r = 0; r < SW_TAPE_H; r++) {
             WORD py = (WORD)(yy + r);
             UBYTE c;
-            if (py < SW_Y + 3 || py >= SW_Y + SW_H - 6) continue;
+            if (py < top || py >= bottom) continue;
             /* dwie biale wstegi (wiersze 0-1 i 5-6), miedzy nimi co 8 px cienka tasiemka */
             if (r < 2 || r >= SW_TAPE_H - 2) c = U_WHITE;
             else if (((x - SW_TAPE_X0) & 7) == 3) c = U_SILVER;
             else continue;                                   /* przerwa - widac tlo */
             plot(b, x, py, c);
+            if (py < lo) lo = py;
+            if (py > hi) hi = py;
         }
-        *prev = yy;
     }
+    tape_rows[bi][0] = hi >= 0 ? lo : -1;
+    tape_rows[bi][1] = hi;
 }
 
 static void update_startwin(UBYTE *b, UBYTE bi)
@@ -922,8 +957,11 @@ static void update_startwin(UBYTE *b, UBYTE bi)
     if (old == SW_NONE || (old & 3) == 3 || lamp == 3) {
         draw_startwin_static(b, lamp);                       /* tlo raz, potem tylko zmiany */
         for (x = 0; x < SW_W; x++) tape_prev[bi][x] = -1;
+        tape_rows[bi][0] = -1;
     } else if ((old & 3) != lamp) {
+        /* zmiana swiatla: tylko lampka - w obrazie i w zapamietanym tle (tasma jej nie zaslania) */
         draw_lamp(b, lamp);
+        if (sw_cache) draw_lamp(sw_cache - (LONG)SW_Y * PLAY_STRIDE, lamp);
     }
     hw_wait_blit();
     if (lamp != 3) draw_tape_ribbon(b, bi, (WORD)(st >> 2), lamp);
