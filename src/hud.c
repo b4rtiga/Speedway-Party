@@ -86,8 +86,8 @@ static void hglyph(WORD x, WORD y, UBYTE g, UBYTE c) { hglyph_s(x, y, g, c, 3, H
 static void draw_order(void)
 {
     UBYTE i;
-    /* shown.order: kolor kasku (pole) w bitach 0-3, numer zawodnika w bitach 4-7;
-     * na ekranie sam kolor kasku (kolor = pole startowe, jak na zuzlu) */
+    /* shown.order: kolor kasku w bitach 0-3, numer zawodnika w bitach 4-7;
+     * na ekranie sam kolor kasku (staly kolor zawodnika w turnieju) */
     for (i = 0; i < 4; i++) {
         UBYTE v = shown.order[i];
         hrect(8 + i * 22, HUD_TOP + 8, 18, 18, H_FRAME);
@@ -331,7 +331,7 @@ void hud_update(void)
                 Bike *b = &g_tour.bikes[i];
                 if (b->position != pos || b->state == BIKE_EXCLUDED || b->empty) continue;
                 if (n == 0) lap = b->lap;
-                order[n++] = (UBYTE)(b->gate | (b->rider << 4));   /* kask + numer zawodnika */
+                order[n++] = (UBYTE)(b->rider | (b->rider << 4));  /* kolor kasku = zawodnik */
             }
     }
     if (lap < 1) lap = 1;

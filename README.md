@@ -10,7 +10,7 @@ Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. 
 ### 🎬 Trailer
 [![Trailer Speedway Party - kliknij, żeby obejrzeć](art/trailer_thumb.png)](art/trailer.mp4)
 
-[art/trailer.mp4](art/trailer.mp4) (35 s): plansza tytułowa, ustawienia, program zawodów, prezentacja zawodników, start spod taśmy i półtora okrążenia biegu, a na koniec przejście z efektem pikselizacji do ilustracji tytułowej. Podkład: „Black Motor”. Obraz rysuje prawdziwy kod gry skompilowany na PC (te same piksele co na Amidze).
+[art/trailer.mp4](art/trailer.mp4) (36 s): plansza tytułowa, ustawienia, program zawodów, prezentacja zawodników, start spod taśmy i półtora okrążenia biegu, a na koniec przejście z efektem pikselizacji do ilustracji tytułowej. Podkład: „Black Motor”. Obraz rysuje prawdziwy kod gry skompilowany na PC (te same piksele co na Amidze).
 
 Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
@@ -59,7 +59,7 @@ Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 
 ### 🏁 Turniej, czyli wieczór na stadionie
 Gracie klasyczne zawody na 15 biegów, czterech zawodników w każdym. Za zwycięstwo są 3 punkty, potem 2, 1 i nic. Program jest ułożony tak, że każdy startuje z każdego pola, więc nikt nie może narzekać na losowanie.
 
-Kolor kasku zdradza pole startowe: czerwony wewnątrz (A), potem niebieski (B), biały (C) i żółty (D) przy bandzie. Przed każdym biegiem, po programie zawodów, podprowadzające prezentują zawodników: trzymają nad głowami tablice w kolorach pól (3 sekundy albo FIRE).
+Każdy zawodnik ma przez cały turniej ten sam kolor kasku: czerwony, niebieski, biały albo żółty. Pole startowe zmienia się co bieg i pokazują je podprowadzające. Przed każdym biegiem, po programie zawodów, wychodzą kolejno na pola A–D z tablicami w kolorach kasków zawodników, którzy z nich startują (FIRE pomija prezentację).
 
 Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, a reszta bierze to, co zostało.
 

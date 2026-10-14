@@ -24,7 +24,9 @@
 #include "hw.h"
 #include "ui.h"
 
-#define TITLE_FRAMES    (7 * FPS)
+#ifdef AUTOPLAY
+#define TITLE_FRAMES    (7 * FPS)       /* test bez klawiatury: plansza tytulowa sama przechodzi dalej */
+#endif
 #define RESULT_FRAMES   (6 * FPS)
 #define RESULT_MIN      FPS
 #define GRADING_FRAMES  (8 * FPS)
@@ -69,8 +71,9 @@ static void render_sprites(void)
             video_set_sprite(b->hw_sprite + 1, g_blank_sprite);
             continue;
         }
-        even = sprite_frame_ptr(b->gate, b->sprite_frame, b->skid_frame, 0);
-        odd  = sprite_frame_ptr(b->gate, b->sprite_frame, b->skid_frame, 1);
+        /* kolor kasku = zawodnik (staly w turnieju), nie pole startowe */
+        even = sprite_frame_ptr(b->rider, b->sprite_frame, b->skid_frame, 0);
+        odd  = sprite_frame_ptr(b->rider, b->sprite_frame, b->skid_frame, 1);
         sprite_set_pos(even, FIX2INT(b->x), FIX2INT(b->y), SPRITE_H, FALSE);
         sprite_set_pos(odd,  FIX2INT(b->x), FIX2INT(b->y), SPRITE_H, TRUE);
         video_set_sprite(b->hw_sprite, even);
@@ -189,8 +192,11 @@ static void update_state(void)
     state_timer++;
 
     switch (g_tour.state) {
-    case GS_TITLE:                       /* plansza tytulowa: kilka sekund albo FIRE */
-        if (ui_title_update() || state_timer > TITLE_FRAMES) enter(GS_SETUP);
+    case GS_TITLE:                       /* plansza tytulowa: czeka na FIRE / Return */
+#ifdef AUTOPLAY
+        if (state_timer > TITLE_FRAMES) { enter(GS_SETUP); break; }
+#endif
+        if (ui_title_update() || (state_timer > FPS / 2 && ui_confirm())) enter(GS_SETUP);
         break;
 
     case GS_SETUP:
@@ -215,13 +221,13 @@ static void update_state(void)
 
     case GS_TABLE:
 #ifdef AUTOPLAY
-        if (state_timer > 3 * FPS) { enter(GS_PRESENT); break; }
+        if (state_timer > 3 * FPS) { ui_present_start(); enter(GS_PRESENT); break; }
 #endif
-        if (state_timer > FPS / 2 && ui_confirm()) enter(GS_PRESENT);
+        if (state_timer > FPS / 2 && ui_confirm()) { ui_present_start(); enter(GS_PRESENT); }
         break;
 
-    case GS_PRESENT:                     /* podprowadzajace: 3 s albo FIRE wczesniej */
-        if (state_timer > 3 * FPS || (state_timer > FPS / 4 && ui_confirm())) begin_heat();
+    case GS_PRESENT:                     /* podprowadzajace wychodza na pola; potem 2 s albo FIRE */
+        if (ui_present_update() || (state_timer > FPS / 4 && ui_confirm())) begin_heat();
         break;
 
     case GS_HEAT:

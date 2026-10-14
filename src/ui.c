@@ -133,9 +133,9 @@ static void panel(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE fill, UBYTE 
     vline2(buf, x + w - 2, y, h, border);
 }
 
-static void helmet_box(UBYTE *buf, WORD x, WORD y, UBYTE gate)
+static void helmet_box(UBYTE *buf, WORD x, WORD y, UBYTE color)
 {
-    blit_fill(buf, x, y, 16, 10, (UBYTE)(U_HELMET + gate));
+    blit_fill(buf, x, y, 16, 10, (UBYTE)(U_HELMET + color));
 }
 
 /* pierwsze n znakow nazwiska (nazwiska maja 1 bajt na znak) */
@@ -495,7 +495,7 @@ static void draw_table(UBYTE *b)
         WORD y = (WORD)(57 + g * 14);
         if (g_tour.heat_table[hn][g] == 0xFF) continue;          /* puste pole (bieg dodatkowy) */
         r = &g_tour.riders[g_tour.heat_table[hn][g]];
-        helmet_box(b, 64, y, g);
+        helmet_box(b, 64, y, g_tour.heat_table[hn][g]);   /* kolor kasku zawodnika */
         s[0] = gate_letter[g]; s[1] = 0;
         text_draw(b, 88, y + 1, s, U_GREY, 0);
         name_trunc(s, r->name, NAME_EDIT_MAX);
@@ -517,22 +517,87 @@ static void draw_table(UBYTE *b)
 
 /* Podprowadzajace: grafika 48x96 z tools/gengirls.py (data/girls.bin, 4 postacie planarnie,
  * 6 bajtow szerokosci). Kopia z maska: przezroczyste piksele (kolor 0) zostawiaja tlo,
- * wiec dlonie nachodza na tablice. Kolory w palecie toru (180..191, 221..239). */
+ * wiec dlonie nachodza na tablice. Kolory w palecie toru (180..191, 221..239).
+ *
+ * Postac i tablica maja kolor kasku zawodnika; podprowadzajaca wychodzi zza lewej krawedzi
+ * i staje na polu, z ktorego startuje jej zawodnik. Kolejno od pola D do A - idaca nikogo
+ * nie mija. Ruch co 8 pikseli (kopia bajtami), w kazdej klatce przerysowywana tylko idaca. */
+#define PRES_Y      72                      /* gora postaci */
+#define PRES_TOP    (PRES_Y - 22)           /* gora tablicy */
+#define PRES_H      (GIRL_H + 22)
+#define PRES_START  (-64)                   /* x startowy (poza ekranem) */
+#define PRES_STEP   8                       /* pikseli na klatke */
+#define PRES_HOLD   (2 * FPS)               /* po ustawieniu: nazwiska jeszcze 2 s */
+static UWORD present_t;                     /* klatki od wejscia na ekran prezentacji */
+static WORD  present_drawn[2][4];           /* x postaci narysowanej w buforze (0x7FFF = brak) */
 
-static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE gate)
+static WORD gate_x(UBYTE g) { return (WORD)(16 + g * 80); }
+
+/* x podprowadzajacej z pola g w chwili t (0x7FFF = jeszcze nie wyszla, pole puste) */
+static WORD present_x(UBYTE g, UWORD t)
 {
-    const UBYTE *src = girls_img + gate * GIRL_SIZE;
-    WORD y;
+    UBYTE hn = g_tour.current_heat, k;
+    UWORD start = 0;
+    if (g_tour.heat_table[hn][g] == 0xFF) return 0x7FFF;
+    for (k = 3; k > g; k--)                                  /* najpierw wychodza dalsze pola */
+        if (g_tour.heat_table[hn][k] != 0xFF)
+            start = (UWORD)(start + (gate_x(k) - PRES_START) / PRES_STEP);
+    if (t < start) return 0x7FFF;
+    {
+        LONG x = PRES_START + (LONG)(t - start) * PRES_STEP;
+        return (WORD)(x > gate_x(g) ? gate_x(g) : x);
+    }
+}
+
+static UWORD present_walk_frames(void)
+{
+    UBYTE g;
+    UWORD n = 0;
+    for (g = 0; g < 4; g++)
+        if (g_tour.heat_table[g_tour.current_heat][g] != 0xFF) n = (UWORD)(n + (gate_x(g) - PRES_START) / PRES_STEP);
+    return n;
+}
+
+void ui_present_start(void)
+{
+    UBYTE i, g;
+    present_t = 0;
+    for (i = 0; i < 2; i++) for (g = 0; g < 4; g++) present_drawn[i][g] = 0x7FFF;
+}
+
+/* raz na klatke w GS_PRESENT; zwraca TRUE, gdy wszystkie staly i minal czas na nazwiska */
+BOOL ui_present_update(void)
+{
+    UWORD walk = present_walk_frames();
+    if (present_t < 0xFFF0) present_t++;
+    if (present_t == walk) ui_invalidate();                  /* wszystkie na polach: nazwiska */
+    return (BOOL)(present_t >= walk + PRES_HOLD);
+}
+
+/* prostokat z obcieciem do ekranu (x moze byc ujemne) */
+static void rect_clip(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c)
+{
+    if (x < 0) { w += x; x = 0; }
+    if (x + w > SCREEN_W) w = (WORD)(SCREEN_W - x);
+    if (w > 0) rect_px(b, x, y, w, h, c);
+}
+
+static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color)
+{
+    const UBYTE *src = girls_img + color * GIRL_SIZE;
+    WORD y, col0 = (WORD)(x0 >> 3);
     UBYTE pl, k;
-    /* tablica nad glowa: sam kolor pola, ciemny kontur */
-    rect_px(b, x0 - 6, y0 - 22, GIRL_W + 12, 24, U_SHADOW);
-    rect_px(b, x0 - 4, y0 - 20, GIRL_W + 8, 20, (UBYTE)(U_HELMET + gate));
+    /* tablica nad glowa: kolor kasku zawodnika, ciemny kontur */
+    rect_clip(b, x0 - 6, y0 - 22, GIRL_W + 12, 24, U_SHADOW);
+    rect_clip(b, x0 - 4, y0 - 20, GIRL_W + 8, 20, (UBYTE)(U_HELMET + color));
     if (!girls_img) return;
     hw_wait_blit();
     for (y = 0; y < GIRL_H; y++, src += PLAY_DEPTH * GIRL_BYTES)
         for (k = 0; k < GIRL_BYTES; k++) {
             UBYTE mask = 0;
-            UBYTE *d = b + (LONG)(y0 + y) * PLAY_STRIDE + x0 / 8 + k;
+            UBYTE *d;
+            if (col0 + k < 0 || col0 + k >= ROW_BYTES) continue;
+            d = b + (LONG)(y0 + y) * PLAY_STRIDE + col0 + k;
             for (pl = 0; pl < PLAY_DEPTH; pl++) mask |= src[pl * GIRL_BYTES + k];
             if (!mask) continue;
             for (pl = 0; pl < PLAY_DEPTH; pl++, d += ROW_BYTES)
@@ -540,7 +605,20 @@ static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE gate)
         }
 }
 
-static void draw_present(UBYTE *b)
+/* podprowadzajace w buforze bi: zmazanie starej pozycji i rysowanie nowej (tylko zmienione) */
+static void present_girls(UBYTE *b, UBYTE bi)
+{
+    UBYTE hn = g_tour.current_heat, g;
+    for (g = 0; g < 4; g++) {
+        WORD x = present_x(g, present_t), old = present_drawn[bi][g];
+        if (x == old) continue;
+        if (old != 0x7FFF) rect_clip(b, old - 6, PRES_TOP, GIRL_W + 12, PRES_H, 0);
+        if (x != 0x7FFF) draw_girl(b, x, PRES_Y, g_tour.heat_table[hn][g]);
+        present_drawn[bi][g] = x;
+    }
+}
+
+static void draw_present(UBYTE *b, UBYTE bi)
 {
     UBYTE hn = g_tour.current_heat, g;
     char s[48], *p;
@@ -548,16 +626,17 @@ static void draw_present(UBYTE *b)
     else { p = text_cat(s, "BIEG "); text_uint(p, (ULONG)(hn + 1), 1); }
     text_draw_big_center(b, 8, s, U_RAINBOW, U_SHADOW);
     text_draw_center(b, 34, "PREZENTACJA ZAWODNIKÓW", U_GOLD, 0);
-    hw_wait_blit();
-    for (g = 0; g < 4; g++) {
-        WORD cx = (WORD)(40 + g * 80), y = 72;
-        if (g_tour.heat_table[hn][g] == 0xFF) continue;          /* puste pole (bieg dodatkowy) */
-        draw_girl(b, (WORD)(cx - GIRL_W / 2), y, g);
-        name_trunc(s, g_tour.riders[g_tour.heat_table[hn][g]].name, 9);
-        text_draw(b, (WORD)(cx - text_len(s) * 4), y + GIRL_H + 8, s, U_WHITE, U_SHADOW);
-        s[0] = gate_letter[g]; s[1] = 0;
-        text_draw(b, cx - 4, y + GIRL_H + 22, s, U_GREY, 0);
-    }
+    for (g = 0; g < 4; g++) present_drawn[bi][g] = 0x7FFF;  /* ekran wyczyszczony */
+    present_girls(b, bi);
+    if (present_t >= present_walk_frames())
+        for (g = 0; g < 4; g++) {
+            WORD cx = (WORD)(gate_x(g) + GIRL_W / 2);
+            if (g_tour.heat_table[hn][g] == 0xFF) continue;      /* puste pole (bieg dodatkowy) */
+            name_trunc(s, g_tour.riders[g_tour.heat_table[hn][g]].name, 9);
+            text_draw(b, (WORD)(cx - text_len(s) * 4), PRES_Y + GIRL_H + 8, s, U_WHITE, U_SHADOW);
+            s[0] = gate_letter[g]; s[1] = 0;
+            text_draw(b, cx - 4, PRES_Y + GIRL_H + 22, s, U_GREY, 0);
+        }
     if (blink) text_draw_center(b, 238, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);
 }
 
@@ -744,7 +823,7 @@ static void draw_false_start(UBYTE *b)
 
     panel(b, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, U_PANEL, U_RED);
     text_draw_big_center(b, PANEL_Y + 12, "TAŚMA!", U_RED, U_SHADOW);
-    helmet_box(b, 80, PANEL_Y + 48, bk->gate);
+    helmet_box(b, 80, PANEL_Y + 48, bk->rider);
     name_trunc(s, r->name, NAME_EDIT_MAX);
     text_draw(b, 104, PANEL_Y + 49, s, U_WHITE, U_SHADOW);
     text_draw_center(b, PANEL_Y + 68, bk->state == BIKE_EXCLUDED ? "WYKLUCZENIE!" : "OSTRZEŻENIE",
@@ -785,7 +864,7 @@ static void draw_result(UBYTE *b)
             p = text_uint(s, (ULONG)(line + 1), 1);
             text_cat(p, ".");
             text_draw(b, 64, y + 1, s, U_GREY, 0);
-            helmet_box(b, 80, y, bk->gate);
+            helmet_box(b, 80, y, bk->rider);
             name_trunc(s, g_tour.riders[bk->rider].name, 10);
             text_draw(b, 104, y + 1, s, U_WHITE, U_SHADOW);
             if (g_tour.current_heat != RUNOFF_HEAT || !fin)     /* bieg dodatkowy: bez punktow */
@@ -1183,6 +1262,7 @@ void ui_render(void)
 
     if (drawn_serial[bi] == serial && buf_is_track[bi] == 0) {
         if (blink_dirty[bi]) { blink_dirty[bi] = 0; draw_blink_line(b); }
+        if (g_tour.state == GS_PRESENT) present_girls(b, bi);    /* wychodzace podprowadzajace */
         return;
     }
     blink_dirty[bi] = 0;
@@ -1194,7 +1274,7 @@ void ui_render(void)
     case GS_TITLE:     draw_title(b); break;
     case GS_SETUP:     draw_setup(b); break;
     case GS_TABLE:     draw_table(b); break;
-    case GS_PRESENT:   draw_present(b); break;
+    case GS_PRESENT:   draw_present(b, bi); break;
     case GS_GATE_PICK: draw_pick(b); break;
     case GS_PODIUM:    draw_podium(b); break;
     default: break;
