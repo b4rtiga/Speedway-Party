@@ -534,13 +534,14 @@ static void draw_table(UBYTE *b)
 #define SWAY_Y0     30                      /* pas bioder (wiersze postaci) */
 #define SWAY_Y1     88
 #define SWAY_MID    58
-#define SWAY_STEP   5                       /* klatek na faze */
+#define SWAY_STEP   3                       /* klatek na faze (16 faz = ok. 1 s) */
+#define SWAY_AMP    5                       /* wychylenie bioder w polowkach piksela (2.5 px) */
 static UWORD present_t;                     /* klatki od wejscia na ekran prezentacji */
 static UBYTE present_drawn[2][4];           /* faza narysowana w buforze (0xFF = brak) */
-static const BYTE sway_tab[8] = { 0, 1, 2, 1, 0, -1, -2, -1 };
+static const BYTE sway_tab[16] = { 0, 24, 45, 59, 64, 59, 45, 24, 0, -24, -45, -59, -64, -59, -45, -24 };   /* 64 sin */
 
 static WORD gate_x(UBYTE g) { return (WORD)(16 + g * 80); }
-static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t / SWAY_STEP + g * 3) & 7); }
+static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t / SWAY_STEP + g * 5) & 15); }
 
 void ui_present_start(void)
 {
@@ -556,12 +557,15 @@ BOOL ui_present_update(void)
     return (BOOL)(present_t >= PRES_TIME);
 }
 
-/* przesuniecie wiersza y postaci przy kolysaniu o amplitudzie amp (-2..2) */
+/* przesuniecie wiersza y przy fazie kolysania amp (64 * sin): najwiecej w biodrach, ku glowie
+ * i stopom zanika - kazdy wiersz przeskakuje o piksel w innej chwili, ruch wyglada plynnie */
 static WORD sway_dx(WORD y, BYTE amp)
 {
     WORD d = (WORD)(y < SWAY_MID ? SWAY_MID - y : y - SWAY_MID), span = y < SWAY_MID ? SWAY_MID - SWAY_Y0 : SWAY_Y1 - SWAY_MID;
+    LONG v;
     if (y <= SWAY_Y0 || y >= SWAY_Y1) return 0;
-    return (WORD)((amp * (span - d) * 2 + (amp > 0 ? span : -span)) / (2 * span));
+    v = (LONG)amp * (span - d) * SWAY_AMP;                 /* w 1/(64*span*2) piksela */
+    return (WORD)((v + (v >= 0 ? span * 64 : -span * 64)) / (span * 128));
 }
 
 /* wiersze y0..y1-1 postaci (x0 podzielne przez 8), kazdy przesuniety o sway_dx */
@@ -608,8 +612,8 @@ static void present_girls(UBYTE *b, UBYTE bi)
     for (g = 0; g < 4; g++) {
         UBYTE ph = sway_phase(g);
         if (g_tour.heat_table[hn][g] == 0xFF || present_drawn[bi][g] == ph) continue;
-        rect_px(b, gate_x(g) - 8, PRES_Y + SWAY_Y0, GIRL_W + 16, SWAY_Y1 - SWAY_Y0, 0);
-        draw_girl_rows(b, gate_x(g), PRES_Y, g_tour.heat_table[hn][g], SWAY_Y0, SWAY_Y1, sway_tab[ph]);
+        rect_px(b, gate_x(g) - 8, PRES_Y + SWAY_Y0 + 1, GIRL_W + 16, SWAY_Y1 - SWAY_Y0 - 1, 0);
+        draw_girl_rows(b, gate_x(g), PRES_Y, g_tour.heat_table[hn][g], SWAY_Y0 + 1, SWAY_Y1, sway_tab[ph]);
         present_drawn[bi][g] = ph;
     }
 }
