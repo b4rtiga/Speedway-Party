@@ -18,6 +18,7 @@
 #define ACCEL_DIV       48           /* przyspieszenie = (max-v)/48 * grip/256 na klatke */
 #define DRAG_DIV        3200         /* opor boczny: v*|drift|/DRAG_DIV */
 #define LAUNCH_FRAMES   50
+#define PACK_FIRM       96           /* ubicie, od ktorego odsypisko juz nie zakopuje */
 #define BUMP_DIST2      (8 * 8)      /* kontakt lokiec w lokiec (motocykl ~9 px szerokosci) */
 #define BUMP_COOLDOWN   12
 #define OUTER_LIMIT     (TRACK_HALF_WIDTH - 3)
@@ -121,7 +122,9 @@ static void update_bike(Bike *b)
 
     /* --- predkosc: auto-gaz minus subtelny opor boczny --- */
     if (zone == GRIP_DEEP_OUTER) {
-        if (b->speed < FIXPCT(MAX_SPEED, 70)) b->speed -= b->speed >> 8;          /* zakopuje (lekko) */
+        /* luzne odsypisko zakopuje wolno jadacych; wyjezdzona (ubita) sciezka pod banda - nie */
+        BOOL loose = (BOOL)(track_pack_at(px, py) < PACK_FIRM);
+        if (b->speed < FIXPCT(MAX_SPEED, 70)) { if (loose) b->speed -= b->speed >> 8; }   /* zakopuje */
         else if (b->drift >= 3 && b->drift <= 14) {                               /* szeroka niesie */
             cap = FIXPCT(MAX_SPEED, 108);
             b->speed += MAX_SPEED >> 8;

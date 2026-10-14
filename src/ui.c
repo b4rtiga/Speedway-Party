@@ -231,7 +231,7 @@ static UBYTE help_page;
 static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c);
 static void rect_px(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c);
 
-static const char *const help_title[HELP_PAGES] = { "ZASADY TURNIEJU", "START I STEROWANIE", "IDEALNA LINIA" };
+static const char *const help_title[HELP_PAGES] = { "ZASADY TURNIEJU", "START I STEROWANIE", "LINIA JAZDY" };
 static const char *const help_text0[] = {
     "TURNIEJ TO 15 BIEGÓW PO 4 OKRĄŻENIA.",
     "W KAŻDYM BIEGU JADĄ CZTEREJ ZAWODNICY,",
@@ -267,16 +267,15 @@ static const char *const help_text1[] = {
     "ESC - PAUZA.",
     0 };
 static const char *const help_text2[] = {
-    "NA PROSTEJ JEDŹ PROSTO: KAŻDY STOPIEŃ",
-    "UŚLIZGU KOSZTUJE PRĘDKOŚĆ.",
-    "WEJDŹ W ŁUK SZEROKO, ZŁAM PRZED NIM",
-    "I PULSUJ PRZYCISKIEM, NIE TRZYMAJ GO.",
-    "W POŁOWIE ŁUKU ZBLIŻ SIĘ DO KRAWĘŻNIKA,",
-    "WYJDŹ SZEROKO NA PEŁNYM GAZIE.",
-    "CIEMNA, WYJEŻDŻONA ŚCIEŻKA TRZYMA",
-    "NAJLEPIEJ. OMIJAJ SZPRYCĘ RYWALA.",
-    "SZEROKA NIESIE: POD BANDĄ, SZYBKO",
-    "I W LEKKIM UŚLIZGU. BANDA HAMUJE.",
+    "KAŻDY TURNIEJ TO INNY TOR. NAJSZYBCIEJ",
+    "JEST NA CIEMNEJ, WYJEŻDŻONEJ ŚCIEŻCE:",
+    "RAZ PRZY KRAWĘŻNIKU, RAZ ŚRODKIEM, RAZ",
+    "SZEROKO POD BANDĄ - WYPATRZ JĄ.",
+    "NA PROSTEJ JEDŹ PROSTO: UŚLIZG HAMUJE.",
+    "W ŁUKU PULSUJ PRZYCISKIEM, NIE TRZYMAJ.",
+    "LUŹNE ODSYPISKO POD BANDĄ ZAKOPUJE",
+    "WOLNYCH. SZYBKO I W LEKKIM UŚLIZGU -",
+    "SZEROKA NIESIE. OMIJAJ SZPRYCĘ I BANDĘ.",
     0 };
 static const char *const *const help_text[HELP_PAGES] = { help_text0, help_text1, help_text2 };
 
@@ -316,19 +315,19 @@ static void help_oval_point(WORD s, WORD r, WORD *x, WORD *y)
 
 static void draw_help_oval(UBYTE *b)
 {
+    static const BYTE lane_r[3] = { 17, 24, 31 };                     /* przy krawezniku, srodkiem, szeroko */
+    static const UBYTE lane_c[3] = { U_GOLD, U_SILVER, U_BRONZE };
     WORD s, x, y;
+    UBYTE k;
     for (s = 0; s < 256; s++) {
         help_oval_point(s, 36, &x, &y); plot(b, x, y, U_WHITE);        /* banda */
         help_oval_point(s, 13, &x, &y); plot(b, x, y, U_RED);          /* kraweznik */
     }
-    for (s = 0; s < 256; s += 4) {
-        /* idealna linia: na prostych szeroko, w polowie luku przy krawezniku */
-        WORD r = 32;
-        if (s >= 32 && s < 96)   r = (WORD)(32 - ((15L * SIN((angle8)((s - 32) * 2))) >> 14));
-        if (s >= 160 && s < 224) r = (WORD)(32 - ((15L * SIN((angle8)((s - 160) * 2))) >> 14));
-        help_oval_point(s, r, &x, &y);
-        rect_px(b, x, y, 2, 2, U_GOLD);
-    }
+    for (k = 0; k < 3; k++)                                            /* mozliwe wyjezdzone sciezki */
+        for (s = 0; s < 256; s++) {
+            help_oval_point(s, lane_r[k], &x, &y);
+            plot(b, x, y, lane_c[k]);
+        }
     for (s = 0; s < 4; s++)                                            /* strzalka: jazda w prawo */
         rect_px(b, HD_CX - 4 + s * 2, HD_CY + 20 + s, 2, (WORD)(7 - 2 * s), U_GREEN);
 }

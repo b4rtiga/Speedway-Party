@@ -186,6 +186,13 @@ GripZone track_zone_fast(WORD x, WORD y)
     return (GripZone)g_tour.track.zone[cy][cx];
 }
 
+UBYTE track_pack_at(WORD x, WORD y)
+{
+    WORD cx = x / GRIP_CELL, cy = y / GRIP_CELL;
+    if (cx < 0 || cy < 0 || cx >= GRIP_W || cy >= GRIP_H) return 0;
+    return g_tour.track.pack[cy][cx];
+}
+
 UBYTE track_grip_at(WORD x, WORD y)
 {
     WORD cx = x / GRIP_CELL, cy = y / GRIP_CELL;
