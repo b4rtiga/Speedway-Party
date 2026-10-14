@@ -200,13 +200,13 @@ Gotowa konfiguracja jest w [tools/winuae/SpeedwayParty-A1200.uae](tools/winuae/S
 5. **CD & Hard drives → Add Directory or Archive…**: wskaż katalog `dist/`.
    - *Device name*: `DH0`, *Volume label*: `Speedway`
    - *Boot priority*: 0 lub wyżej (katalog ma być dyskiem startowym)
-6. **Game ports:** port 1 = joystick (klawiatura lub pad), port 0 = drugi joystick, jeśli gra 2+ graczy. **Nie zostawiaj myszy w porcie 0**, bo kursor w menu będzie skakał.
+6. **Game ports:** port 1 = joystick (klawiatura lub pad), port 0 = drugi joystick (np. joystick USB) w trybie **Joystick**, nie myszy, jeśli gra 2+ graczy. **Nie zostawiaj myszy w porcie 0**, bo kursor w menu będzie skakał.
 7. Start. Kickstart uruchomi `s/startup-sequence`, a ten od razu grę. Workbench nie jest potrzebny.
 8. **Obraz na całe okno:** w szablonie konfiguracji okno ma 640×512 (obraz gry 320×256 powiększony 2×), a obraz jest wycentrowany (`gfx_xcenter/gfx_ycenter=smart`), więc gra wypełnia okno bez ramki. Ramkę wokół obrazu gra i tak wygasza (bit BRDRBLNK w AGA).
 
 Jeśli wolisz Workbench: podepnij `dist/` jako dodatkowy dysk i w Shellu wpisz `cd Speedway:` i `SpeedwayParty`.
 
-**ESC** to pauza z pytaniem. W trakcie turnieju gra pyta, czy wrócić do menu głównego, a w menu, czy zakończyć grę. Drugie ESC oznacza „tak”, a FIRE wraca do gry.
+**ESC** (albo drugi przycisk joysticka) to pauza z pytaniem. W trakcie turnieju gra pyta, czy wrócić do menu głównego, a w menu, czy zakończyć grę. Drugie ESC oznacza „tak”, a FIRE wraca do gry.
 
 Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
 
@@ -214,6 +214,7 @@ Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
 | Objaw | Gdzie szukać |
 |---|---|
 | Obraz „poszatkowany”, przesunięty o 64 px | `DDF_STOP` i `MOD_ADJ` w `src/video.c` (pobieranie bitplanów w trybie 4×). W WinUAE działa `$38/$A0`. Do testów: `make dist EXTRA=-DDDF_STOP=0xD0` |
+| Joystick w porcie 0 (JOY 0) łapie tylko lewo, nie łapie prawa, „rusza” przy puszczeniu do środka | emulator podaje joystick w porcie 0 jako mysz. Gra rozpoznaje to sama i czyta kierunek z ruchu; najpewniej działa jednak tryb **Joystick** (WinUAE: *Game ports*, w konfiguracji `joyport0=joy0`, `joyport0mode=djoy`, jak w szablonie) |
 | Menu samo się przełącza | mysz w porcie 0: menu czyta tylko port 1 i klawiaturę, ale gracz 2 ustawiony na JOY 0 będzie „jechał” myszą |
 | Zamiast grafiki są proste kształty | brak `data/` obok programu (gra wtedy rysuje grafikę zastępczą) |
 | Brak dźwięku | brak `data/*.raw` |
@@ -236,7 +237,8 @@ Każdy gracz ma tylko **LEWO i PRAWO**. Gaz jest automatyczny.
 - **Jazda:** LEWO łamie motocykl w łuk (do 40°), PRAWO to kontra (do ok. 14°, głównie prostuje). Szczegóły w sekcji [Mechanika gry](#mechanika-gry).
 - **Szeroka niesie:** pod bandą, z pełną prędkością i w lekkim uślizgu motocykl dostaje dodatkowe przyspieszenie. Za wolno pod bandą motocykl się zakopuje.
 - **Szpryca:** jazda tuż za rywalem w uślizgu lekko spowalnia. Szukaj czystej linii.
-- **Menu:** joystick (góra/dół/lewo/prawo/fire) albo strzałki i Return. Zawodnicy nazywają się na start GRACZ 1, GRACZ 2… (sterowani przez ludzi) i CPU 2, CPU 3… (boty), zależnie od liczby graczy. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
+- **Menu:** joystick w porcie 1 albo 0 (góra/dół/lewo/prawo, FIRE = zatwierdź) albo strzałki i Return. **Drugi przycisk** joysticka działa jak ESC (pauza z pytaniem, powrót z instrukcji i twórców).
+- **Joystick jako mysz:** gdy emulator (np. w przeglądarce) podaje pad w porcie jako mysz, gra sama to rozpoznaje i czyta kierunek z ruchu – pad działa tak samo jak joystick. Zawodnicy nazywają się na start GRACZ 1, GRACZ 2… (sterowani przez ludzi) i CPU 2, CPU 3… (boty), zależnie od liczby graczy. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
 - Liczbę graczy zmieniasz w pierwszym wierszu ekranu ustawień (LEWO/PRAWO).
 
 ---

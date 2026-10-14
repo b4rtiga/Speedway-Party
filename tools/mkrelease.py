@@ -34,7 +34,8 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
   na niej uslizg mniej hamuje
 - plansza tytulowa czeka na FIRE / Return, potem JEDZIEMY!, INSTRUKCJA
   (zasady, start, linia jazdy) albo CREDITS (tworcy)
-- menu: joystick w porcie 1 albo strzalki + Return; ESC = wyjscie z gry
+- menu: joystick w porcie 1 albo 0 (FIRE = zatwierdz) albo strzalki + Return
+- ESC albo drugi przycisk joysticka = pauza / wyjscie
 
 Kod zrodlowy i opis: https://github.com/b4rtiga/Speedway-Party
 Licencja MIT (c) 2026 b4rtiga

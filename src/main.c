@@ -167,7 +167,7 @@ BOOL g_paused, g_pause_quit;
 static BOOL handle_pause(void)
 {
     static BOOL esc_prev;
-    BOOL esc = (BOOL)(key_down(KEY_ESC) && !ui_editing());
+    BOOL esc = (BOOL)(input_esc() && !ui_editing());      /* ESC albo drugi przycisk joysticka */
     BOOL edge = (BOOL)(esc && !esc_prev);
     esc_prev = esc;
     if (g_paused) {

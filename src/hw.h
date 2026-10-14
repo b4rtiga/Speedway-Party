@@ -23,6 +23,7 @@ extern volatile UWORD g_fake_custom[0x100];
 #define R_JOY0DAT  0x00A
 #define R_JOY1DAT  0x00C
 #define R_POTGOR   0x016
+#define R_POTGO    0x034
 #define R_INTENAR  0x01C
 #define R_INTREQR  0x01E
 #define R_COP1LC   0x080

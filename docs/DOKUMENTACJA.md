@@ -25,7 +25,7 @@ Gra jest dostępna w dwóch postaciach (katalog `release/` w repozytorium):
 - **Z twardego dysku:** rozpakuj zip, w Shellu wejdź do katalogu `SpeedwayParty` i wpisz `SpeedwayParty`. Katalog `data/` musi leżeć obok programu.
 - **W emulatorze z katalogu:** podepnij rozpakowany katalog jako dysk startowy (rozdział 9).
 
-**ESC** w dowolnym momencie otwiera pauzę z pytaniem: w turnieju – czy wrócić do menu, w menu – czy zakończyć grę. Drugie ESC oznacza „tak”, FIRE wraca do gry.
+**ESC** (albo drugi przycisk joysticka) w dowolnym momencie otwiera pauzę z pytaniem: w turnieju – czy wrócić do menu, w menu – czy zakończyć grę. Drugie ESC oznacza „tak”, FIRE wraca do gry.
 
 ## 2. Sterowanie
 
@@ -37,7 +37,9 @@ Każdy gracz ma tylko dwa przyciski: **LEWO** i **PRAWO**. Gaz jest automatyczny
 | do wyboru | strzałki, adapter 4 graczy (LPT) | | | |
 
 - Ustawienia **JOY 1** i **STRZAŁKI** działają zamiennie (joystick w porcie 1 albo strzałki), chyba że drugie wybrał inny gracz.
-- **Menu:** joystick (góra/dół/lewo/prawo/fire) albo strzałki i Return.
+- **Menu:** joystick w porcie 1 albo 0 (góra/dół/lewo/prawo, FIRE = zatwierdź) albo strzałki i Return.
+- **Drugi przycisk joysticka** działa jak ESC: pauza z pytaniem, powrót z instrukcji i twórców.
+- **Pad podany przez emulator jako mysz** (zdarza się w emulatorach w przeglądarce) gra rozpoznaje sama i czyta kierunek z ruchu.
 - **Nazwiska** edytujesz z klawiatury, polskie litery przez Alt (np. Alt+X = Ź, Alt+Z = Ż).
 
 ## 3. Ekrany gry
@@ -257,7 +259,7 @@ Gotowa konfiguracja: `tools/winuae/SpeedwayParty-A1200.uae` (wpisz w niej ście�
 3. RAM: Chip 2 MB, Slow 0, Fast 0.
 4. Chipset AGA, PAL.
 5. *CD & Hard drives → Add Directory*: katalog `dist/`, *Device name* `DH0`, *Boot priority* 0 lub wyżej.
-6. *Game ports:* port 1 = joystick (np. strzałki), port 0 = drugi joystick. Nie zostawiaj myszy w porcie 0.
+6. *Game ports:* port 1 = joystick (np. strzałki), port 0 = drugi joystick (np. pad albo joystick USB) w trybie **Joystick**, nie myszy. Nie zostawiaj myszy w porcie 0.
 
 ### Gdy coś nie działa
 
@@ -266,6 +268,7 @@ Gotowa konfiguracja: `tools/winuae/SpeedwayParty-A1200.uae` (wpisz w niej ście�
 | Zamiast grafiki proste kształty | brak katalogu `data/` obok programu |
 | Brak dźwięku | brak `data/*.raw` |
 | Brak muzyki w menu | `MUSIC = BRAK`, brak `data/music.raw` albo MUZYKA: NIE w ustawieniach |
+| Joystick w porcie 0 (JOY 0) łapie tylko lewo, nie łapie prawa, „rusza” przy puszczeniu do środka | emulator podaje joystick w porcie 0 jako mysz. Gra rozpoznaje to sama i czyta kierunek z ruchu; najpewniej działa jednak tryb **Joystick** (WinUAE: *Game ports*, w konfiguracji `joyport0=joy0`, `joyport0mode=djoy`, jak w szablonie) |
 | Menu samo się przełącza | mysz w porcie 0 |
 | Strzałki nie działają, bieg czeka na start | w szablonie WinUAE strzałki emulują joystick w porcie 1 – wybierz JOY 1 albo STRZAŁKI (czytają oba źródła) |
 | Obraz poszatkowany | `DDF_STOP` i `MOD_ADJ` w `src/video.c` |

@@ -30,7 +30,8 @@ filesystem2=rw,DH0:Speedway:C:\SCIEZKA\DO\Speedway-Party\dist,0
 uaehf0=dir,rw,DH0:Speedway:C:\SCIEZKA\DO\Speedway-Party\dist,0
 
 ; --- sterowanie: port 1 = strzalki + prawy Ctrl (fire), port 0 pusty (bez myszy) ---
-joyport0=none
+joyport0=joy0
+joyport0mode=djoy
 joyport1=kbd2
 
 ; --- obraz i dzwiek ---
