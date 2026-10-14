@@ -33,7 +33,7 @@ static const TrackDef *def = &track_defs[0];
 #define R_OUT   (def->r_out)
 #define R_MID   ((R_IN + R_OUT) / 2)
 #define GATE_FIRST 7        /* pole A: 7 px od kraweznika */
-#define TAPE_SHIFT 32       /* linia startu 32 px (10% ekranu) w prawo od srodka prostej - jak genart.py */
+#define TAPE_SHIFT 16       /* linia startu 16 px (5% ekranu) w prawo od srodka prostej - jak genart.py */
 #define GATE_STEP  ((R_OUT - R_IN - 2 * GATE_FIRST) / 3)
 #define PI_RMID ((LONG)R_MID * 355 / 113)
 
