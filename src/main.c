@@ -177,6 +177,7 @@ static BOOL handle_pause(void)
             else enter(GS_SETUP);
         } else if (ui_confirm()) {
             g_paused = FALSE;
+            while (key_get() != 0xFF) ;  /* Enter z pauzy nie przechodzi do ekranu pod spodem */
             ui_invalidate();
         }
         return TRUE;

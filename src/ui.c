@@ -915,7 +915,11 @@ static void draw_present(UBYTE *b, UBYTE bi)
 
 BOOL ui_confirm(void)
 {
-    return (input_menu() & BTN_FIRE) || key_get() == KEY_RETURN;
+    /* FIRE (joystick albo Return z ustawienia STRZALKI) i Return z kolejki klawiszy - oba naraz,
+     * inaczej jeden Enter potrafil zatwierdzic dwa ekrany pod rzad */
+    BOOL fire = (BOOL)((input_menu() & BTN_FIRE) != 0);
+    BOOL ret = (BOOL)(key_get() == KEY_RETURN);
+    return (BOOL)(fire || ret);
 }
 
 /* ======================== WYBOR POL ================================ */

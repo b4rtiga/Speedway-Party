@@ -41,14 +41,18 @@ static UBYTE decode_joy(UWORD d)
  * podaja pad jako liczniki ruchu. Joystick zmienia tylko bity 0, 1, 8 i 9 rejestru JOYxDAT;
  * zmiana innych bitow = mysz. Wtedy kierunek = w ktora strone licznik sie przesuwa (z krotkim
  * podtrzymaniem, bo emulator nie zawsze przesuwa go w kazdej klatce); licznik stoi = nic. */
-#define MOUSE_HOLD 4                     /* klatki podtrzymania kierunku po ostatnim ruchu */
+#define MOUSE_HOLD  4                    /* klatki podtrzymania kierunku po ostatnim ruchu */
+#define MOUSE_VOTES 3                    /* tyle zmian wyzszych bitow, zanim uznamy port za mysz */
 static UWORD joy_prev[2];
-static UBYTE joy_mouse[2], hold_x[2], hold_y[2], dir_x[2], dir_y[2];
+static UBYTE joy_seen[2], joy_votes[2], joy_mouse[2], hold_x[2], hold_y[2], dir_x[2], dir_y[2];
 
 static UBYTE read_port(UBYTE p, UWORD d)
 {
     BYTE dx, dy;
-    if ((d ^ joy_prev[p]) & ~0x0303) joy_mouse[p] = 1;
+    /* pierwszy odczyt tylko jako punkt odniesienia: wyzsze bity licznikow maja po starcie
+     * przypadkowe wartosci (inaczej joystick od razu wygladal na mysz i strzalki "gasly") */
+    if (!joy_seen[p]) { joy_seen[p] = 1; joy_prev[p] = d; }
+    if (!joy_mouse[p] && ((d ^ joy_prev[p]) & ~0x0303) && ++joy_votes[p] >= MOUSE_VOTES) joy_mouse[p] = 1;
     if (!joy_mouse[p]) { joy_prev[p] = d; return decode_joy(d); }
     dx = (BYTE)((d & 0xFF) - (joy_prev[p] & 0xFF));
     dy = (BYTE)((d >> 8) - (joy_prev[p] >> 8));
