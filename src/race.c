@@ -23,6 +23,7 @@ void prof_add(UBYTE i, UWORD a, UWORD b);
 #define DRAG_DIV        3200         /* opor boczny: v*|drift|/DRAG_DIV */
 #define LAUNCH_FRAMES   50
 #define PACK_FIRM       96           /* ubicie, od ktorego odsypisko juz nie zakopuje */
+#define PACK_EASE       102          /* ubita sciezka: kara za uslizg mniejsza o PACK_EASE/256 (40%) */
 #define BUMP_DIST2      (8 * 8)      /* kontakt lokiec w lokiec (motocykl ~9 px szerokosci) */
 #define BUMP_COOLDOWN   12
 #define OUTER_LIMIT     (TRACK_HALF_WIDTH - 3)
@@ -101,7 +102,7 @@ static void update_bike(Bike *b)
     angle8 travel;
     fix16 cap = b->max_speed;
     LONG s, prev_s;
-    WORD lat;
+    WORD lat, pen;
 
     in = (g_tour.riders[b->rider].control == CTRL_AI) ? ai_steer(b) : b->input;
     b->prev_input = in;
@@ -134,8 +135,11 @@ static void update_bike(Bike *b)
             b->speed += MAX_SPEED >> 8;
         }
     }
-    /* im mocniej zlamany, tym nizsza predkosc, do ktorej motocykl moze sie rozpedzic */
-    if (b->drift > 0) cap -= (cap / DRIFT_CAP_DIV) * b->drift;
+    /* im mocniej zlamany, tym nizsza predkosc, do ktorej motocykl moze sie rozpedzic; na wyjezdzonej
+     * (ubitej) sciezce uslizg kosztuje mniej - do 40% na jej srodku, a im dalej, tym wiecej
+     * (ubicie jest rozmyte miedzy komorkami, wiec kara rosnie stopniowo) */
+    pen = (WORD)(256 - ((WORD)track_pack_at(px, py) * PACK_EASE >> 8));
+    if (b->drift > 0) cap -= (fix16)((cap / DRIFT_CAP_DIV) * b->drift * pen >> 8);
     if (b->speed < cap)
         b->speed += (((cap - b->speed) >> 8) * grip) / ACCEL_DIV;
     else                                    /* powyzej limitu (np. po zjezdzie z "szerokiej") - wraca do niego */
@@ -148,7 +152,7 @@ static void update_bike(Bike *b)
         }
         b->launch_timer--;
     }
-    b->speed -= (fix16)((b->speed >> 4) * (b->drift < 0 ? -b->drift : b->drift) / (DRAG_DIV >> 4));
+    b->speed -= (fix16)((b->speed >> 4) * (b->drift < 0 ? -b->drift : b->drift) / (DRAG_DIV >> 4) * pen >> 8);
     if (((g_tour.heat.race_frames + (b - g_tour.bikes)) & 1) == 0)     /* co 2 klatki */
         b->in_roost = (UBYTE)(roost_hits(b) >= ROOST_HITS);
     if (b->in_roost) b->speed -= b->speed >> 8;

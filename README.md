@@ -61,7 +61,7 @@ Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 
 ### 🏁 Turniej, czyli wieczór na stadionie
 Gracie klasyczne zawody na 15 biegów, czterech zawodników w każdym. Za zwycięstwo są 3 punkty, potem 2, 1 i nic. Program jest ułożony tak, że każdy startuje z każdego pola, więc nikt nie może narzekać na losowanie.
 
-Każdy zawodnik ma przez cały turniej ten sam kolor kasku: czerwony, niebieski, biały albo żółty. Pole startowe zmienia się co bieg i pokazują je podprowadzające. Przed każdym biegiem, po programie zawodów, stoją na polach A–D z tablicami w kolorach kasków zawodników, którzy z nich startują, i kołyszą biodrami (3 sekundy albo FIRE).
+Każdy zawodnik ma przez cały turniej ten sam kolor kasku: czerwony, niebieski, biały albo żółty. Pole startowe zmienia się co bieg i pokazują je podprowadzające. Przed każdym biegiem, po programie zawodów, stoją na polach A–D z tablicami w kolorach kasków zawodników, którzy z nich startują, i płynnie kołyszą biodrami (3 sekundy albo FIRE).
 
 Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, a reszta bierze to, co zostało.
 
@@ -117,7 +117,7 @@ To tam rodzi się najpiękniejszy manewr: **„szeroka niesie”**. Jeśli wjedz
 
 Tor **wyjeżdża się z biegu na bieg**. Każdy przejazd rozpędzonego motocykla ubija nawierzchnię (przyczepność zmienia się od razu, a ciemniejszy pas gra dorysowuje między biegami), więc linia, którą jeździ cała stawka, z biegu na bieg ciemnieje, gładnieje, trzyma coraz lepiej i robi się najszybsza. Grudki szprycy spadające obok spulchniają tor, a równarka podczas przerwy zaciera ścieżki i wszystko zaczyna się od nowa. Po polewaniu wyjeżdżona linia przesycha pierwsza. Pytanie tylko, czy wolisz jechać sprawdzoną ścieżką za rywalem, prosto w jego szprycę, czy szukać własnej drogi.
 
-Każdy turniej to **inny tor**: na start zawodów losują się 1–2 wyjeżdżone ścieżki w innym miejscu przekroju (przy krawężniku, środkiem albo szeroko). Ubita ścieżka trzyma lepiej i widać ją jako ciemniejszy pas, więc warto ją szybko znaleźć: to ona jest idealną linią danego turnieju.
+Każdy turniej to **inny tor**: na start zawodów losują się 1–2 wyjeżdżone ścieżki w innym miejscu przekroju (przy krawężniku, środkiem albo szeroko). Ubita ścieżka trzyma lepiej i widać ją jako ciemniejszy pas, więc warto ją szybko znaleźć: to ona jest idealną linią danego turnieju. Na jej środku uślizg kosztuje do 40% mniej prędkości, a im dalej od niej, tym kara za złamanie motocykla stopniowo rośnie.
 
 Zawody odbywają się na klasycznym owalu z ciemnoszarą nawierzchnią z **bakałaru**, z linią startu na środku prostej. Na murawie stoją banery sponsorów: 3DPJOY i DEV84.
 

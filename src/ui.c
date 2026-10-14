@@ -780,16 +780,18 @@ static void draw_table(UBYTE *b)
 #define SWAY_Y0     30                      /* pas bioder (wiersze postaci) */
 #define SWAY_Y1     88
 #define SWAY_MID    58
-#define SWAY_STEP   2                       /* klatek na faze (32 fazy = ok. 1.3 s) */
+#define SWAY_PHASES 64                      /* faza zmienia sie co klatke (64 = ok. 1.3 s) */
 #define SWAY_AMP    5                       /* wychylenie bioder w polowkach piksela (2.5 px) */
 static UWORD present_t;                     /* klatki od wejscia na ekran prezentacji */
 static UBYTE present_drawn[2][4];           /* faza narysowana w buforze (0xFF = brak) */
-static const BYTE sway_tab[32] = { 0, 12, 24, 36, 45, 53, 59, 63, 64, 63, 59, 53, 45, 36, 24, 12,
-                                   0, -12, -24, -36, -45, -53, -59, -63, -64, -63, -59, -53, -45, -36, -24, -12 };   /* 64 sin */
+static const BYTE sway_tab[SWAY_PHASES] = {     /* 64 sin */
+    0, 6, 12, 19, 24, 30, 36, 41, 45, 49, 53, 56, 59, 61, 63, 64, 64, 64, 63, 61, 59, 56, 53, 49, 45, 41, 36, 30, 24, 19, 12, 6,
+    0, -6, -12, -19, -24, -30, -36, -41, -45, -49, -53, -56, -59, -61, -63, -64, -64, -64, -63, -61, -59, -56, -53, -49, -45, -41,
+    -36, -30, -24, -19, -12, -6 };
 
 static WORD gate_x(UBYTE g) { return (WORD)(16 + g * 80); }
-/* faza podprowadzajacej g: kazda w innym rytmie i zmienia faze w innej klatce (praca rozlozona) */
-static UBYTE sway_phase(UBYTE g) { return (UBYTE)(((present_t + g) / SWAY_STEP + g * 10) & 31); }
+/* faza podprowadzajacej g: kazda w innym miejscu cyklu */
+static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t + g * 21) & (SWAY_PHASES - 1)); }
 
 void ui_present_start(void)
 {
@@ -852,6 +854,30 @@ static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color, BYTE amp)
     if (girls_img) draw_girl_rows(b, x0, y0, color, 0, GIRL_H, amp);
 }
 
+/* Pas bioder bez maski i bez czyszczenia: tlo pod postaciami to kolor 0 (Copper), wiec kazdy
+ * wiersz zapisujemy w calosci - 8 bajtow na plan od x0-8 (postac przesunieta o -2..2 px).
+ * Ok. 3x mniej dostepow do Chip RAM niz czyszczenie + kopia z maska. */
+static void band_rows(UBYTE *b, WORD x0, WORD py, UBYTE color, WORD y0, WORD y1, BYTE amp)
+{
+    const UBYTE *src = girls_img + color * GIRL_SIZE + (LONG)y0 * PLAY_DEPTH * GIRL_BYTES;
+    WORD y, c0 = (WORD)((x0 >> 3) - 1);
+    UBYTE pl, k;
+    hw_wait_blit();
+    for (y = y0; y < y1; y++, src += PLAY_DEPTH * GIRL_BYTES) {
+        WORD xs = (WORD)(x0 + sway_dx(y, amp)), col = (WORD)((xs >> 3) - c0);   /* 0 albo 1 */
+        UBYTE sh = (UBYTE)(xs & 7);
+        UBYTE *d = b + (LONG)(py + y) * PLAY_STRIDE + c0;
+        for (pl = 0; pl < PLAY_DEPTH; pl++, d += ROW_BYTES) {
+            const UBYTE *r = src + pl * GIRL_BYTES;
+            for (k = 0; k < GIRL_BYTES + 2; k++) {
+                WORD i = (WORD)(k - col);                  /* bajt zrodla dla tego bajtu ekranu */
+                UBYTE hi = (i >= 0 && i < GIRL_BYTES) ? r[i] : 0, lo = (i > 0 && i <= GIRL_BYTES) ? r[i - 1] : 0;
+                d[k] = (UBYTE)(sh ? (hi >> sh) | (lo << (8 - sh)) : hi);
+            }
+        }
+    }
+}
+
 /* kolysanie: pas bioder przerysowany przy zmianie fazy (w kazdym buforze osobno) */
 static void present_girls(UBYTE *b, UBYTE bi)
 {
@@ -860,8 +886,7 @@ static void present_girls(UBYTE *b, UBYTE bi)
     for (g = 0; g < 4; g++) {
         UBYTE ph = sway_phase(g);
         if (g_tour.heat_table[hn][g] == 0xFF || present_drawn[bi][g] == ph) continue;
-        rect_px(b, gate_x(g) - 8, PRES_Y + SWAY_Y0 + 1, GIRL_W + 16, SWAY_Y1 - SWAY_Y0 - 1, 0);
-        draw_girl_rows(b, gate_x(g), PRES_Y, g_tour.heat_table[hn][g], SWAY_Y0 + 1, SWAY_Y1, sway_tab[ph]);
+        band_rows(b, gate_x(g), PRES_Y, g_tour.heat_table[hn][g], SWAY_Y0 + 1, SWAY_Y1, sway_tab[ph]);
         present_drawn[bi][g] = ph;
     }
 }
@@ -885,7 +910,7 @@ static void draw_present(UBYTE *b, UBYTE bi)
         s[0] = gate_letter[g]; s[1] = 0;
         text_draw(b, cx - 4, PRES_Y + GIRL_H + 22, s, U_GREY, 0);
     }
-    if (blink) text_draw_center(b, 238, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 238, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);   /* bez mrugania */
 }
 
 BOOL ui_confirm(void)
@@ -1500,7 +1525,6 @@ static void draw_blink_line(UBYTE *b)
     switch (g_tour.state) {
     case GS_TITLE:   y = 206; s = "NACIŚNIJ FIRE"; break;
     case GS_TABLE:   s = "FIRE - DALEJ"; break;
-    case GS_PRESENT: s = "FIRE - POD TAŚMĘ!"; break;
     case GS_PODIUM:  s = "FIRE - NOWY TURNIEJ"; break;
     case GS_CREDITS: s = "FIRE - POWRÓT"; break;
     case GS_NEWS:    y = 240; s = "FIRE - NASTĘPNY TURNIEJ"; break;
