@@ -10,7 +10,7 @@ Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. 
 ### 🎬 Trailer
 [![Trailer Speedway Party - kliknij, żeby obejrzeć](art/trailer_thumb.png)](art/trailer.mp4)
 
-[art/trailer.mp4](art/trailer.mp4) (32 s): plansza tytułowa, ustawienia, program zawodów, start spod taśmy i półtora okrążenia biegu, a na koniec przejście z efektem pikselizacji do ilustracji tytułowej. Podkład: „Black Motor”. Obraz rysuje prawdziwy kod gry skompilowany na PC (te same piksele co na Amidze).
+[art/trailer.mp4](art/trailer.mp4) (35 s): plansza tytułowa, ustawienia, program zawodów, prezentacja zawodników, start spod taśmy i półtora okrążenia biegu, a na koniec przejście z efektem pikselizacji do ilustracji tytułowej. Podkład: „Black Motor”. Obraz rysuje prawdziwy kod gry skompilowany na PC (te same piksele co na Amidze).
 
 Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
@@ -241,9 +241,10 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 
 | Polecenie | Co robi |
 |---|---|
-| `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`); robocze podglądy (makiety, arkusze klatek, WAV) trafiają do `build/preview/` poza repo |
+| `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`, `tools/gengirls.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`); robocze podglądy (makiety, arkusze klatek, WAV) trafiają do `build/preview/` poza repo |
 | `make release` | buduje paczkę `release/SpeedwayParty.zip` i startową dyskietkę `release/SpeedwayParty.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
 | `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png`: kadr 320×256, własna paleta AGA i dithering (`data/title.bpl`, `data/title.pal`) |
+| `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png`: cztery postacie 48×96, wspólna paleta 31 kolorów dobrana z obrazu, kolory pól z UI, lekki dithering (`data/girls.bin`; wymaga ffmpeg) |
 | `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |
 | `make sim` | symulator: te same pliki logiki gry rozgrywają turniej botów bez grafiki |
 | `sh tools/sim/batch.sh` | 5 turniejów, średnie punkty dla każdego poziomu AI (do strojenia) |

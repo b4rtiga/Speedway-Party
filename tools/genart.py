@@ -131,8 +131,8 @@ setc(212, 25, 25, 25); setc(213, 80, 80, 80); setc(214, 160, 200, 230); setc(215
 ramp(216, 4, (110, 120, 135), (190, 200, 215))  # wieza sedziowska
 setc(220, 60, 120, 170)                      # szyby
 # 180..191, 221..239: podprowadzajace (ekran prezentacji) - kolory z tools/gengirls.py
-from gengirls import PALETTE as GIRLS_PALETTE   # noqa: E402
-for i, c in GIRLS_PALETTE.items():
+from gengirls import palette as girls_palette   # noqa: E402
+for i, c in girls_palette().items():
     setc(i, *c)
 # 240..255 duszki (pary attached dziela te kolory)
 for i, c in {241: (16, 16, 20), 242: (70, 72, 80), 243: (170, 175, 190), 244: (255, 255, 255),
