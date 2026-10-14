@@ -21,11 +21,10 @@ static BOOL  have_referee;
 /* Flagi sedziego (regulamin zuzlowy):
  *   szachownica - koniec biegu (od mety zwyciezcy)   zolta     - niebezpieczenstwo na torze
  *   czerwona    - przerwanie biegu (np. tasma)         czarna    - wykluczenie zawodnika
- *   biala       - ostatnie okrazenie lidera            niebieska - zaraz zostaniesz zdublowany
- *   narodowa    - awaryjny start (awaria maszyny startowej i swiatel) */
-typedef enum { FLAG_NONE = 0, FLAG_RED, FLAG_LAST_LAP, FLAG_CHECKERED, FLAG_YELLOW, FLAG_BLUE, FLAG_BLACK,
+ *   kosa        - ostatnie okrazenie (zolta z krzyzem) narodowa  - awaryjny start (awaria maszyny)
+ * Niebieskiej flagi (dublowanie) w klasycznym zuzlu sie nie uzywa - gra jej nie ma. */
+typedef enum { FLAG_NONE = 0, FLAG_RED, FLAG_LAST_LAP, FLAG_CHECKERED, FLAG_YELLOW, FLAG_BLACK,
                FLAG_NATIONAL } Flag;
-#define LAP_WARN 90                     /* niebieska: strata do lidera > okrazenie - 90 px */
 
 static struct { UBYTE order[4], lap, lights, flag, wave, menu; UWORD lag; } shown;
 
@@ -194,8 +193,8 @@ static BOOL kosa_shown(void)
 
 static void set_flag_color(UBYTE flag)
 {
-    static const UBYTE rgb[8][3] = { {0,0,0}, {240,30,30}, {255,215,0}, {250,250,250},
-                                     {255,215,0}, {30,90,255}, {28,28,32}, {250,250,250} };
+    static const UBYTE rgb[7][3] = { {0,0,0}, {240,30,30}, {255,215,0}, {250,250,250},
+                                     {255,215,0}, {28,28,32}, {250,250,250} };
     video_set_hud_color(H_FLAG, rgb[flag][0], rgb[flag][1], rgb[flag][2]);
     video_set_hud_color(H_FLAG_SH, (UBYTE)(rgb[flag][0] * 3 / 5), (UBYTE)(rgb[flag][1] * 3 / 5),
                         (UBYTE)(rgb[flag][2] * 3 / 5));
@@ -380,15 +379,7 @@ void hud_update(void)
         flag = FLAG_YELLOW;
     } else if (h->phase == HEAT_RACING || h->phase == HEAT_TAPE_UP) {
         BOOL kosa = kosa_shown();                    /* liczy czas okna w kazdej klatce */
-        LONG lead = 0;
-        for (i = 0; i < MAX_RIDERS; i++)
-            if (g_tour.bikes[i].state == BIKE_RACING && g_tour.bikes[i].race_distance > lead)
-                lead = g_tour.bikes[i].race_distance;
-        for (i = 0; i < MAX_RIDERS; i++)
-            if (g_tour.bikes[i].state == BIKE_RACING &&
-                lead - g_tour.bikes[i].race_distance > g_tour.track.lap_length - LAP_WARN)
-                flag = FLAG_BLUE;                            /* ktos zaraz zostanie zdublowany */
-        if (flag == FLAG_NONE && kosa) flag = FLAG_LAST_LAP;   /* ostatnie okrazenie: "kosa" */
+        if (kosa) flag = FLAG_LAST_LAP;              /* ostatnie okrazenie: "kosa" */
         if (flag == FLAG_NONE && h->emergency && h->race_frames < 60) flag = FLAG_NATIONAL;   /* machniecie = start */
     } else if (h->emergency && (h->phase == HEAT_READY || h->phase == HEAT_RED_LIGHT)) {
         flag = FLAG_NATIONAL;                                /* sedzia trzyma flage w gorze */

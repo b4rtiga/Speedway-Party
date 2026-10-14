@@ -247,7 +247,6 @@ static const char *const help_text0[] = {
     "CZERWONA - PRZERWANIE BIEGU",
     "CZARNA - WYKLUCZENIE ZAWODNIKA",
     "ŻÓŁTA Z KRZYŻEM - OSTATNIE OKRĄŻENIE",
-    "NIEBIESKA - ZARAZ ZDUBLUJE CIĘ LIDER",
     "SZACHOWNICA - KONIEC BIEGU",
     0 };
 static const char *const help_text1[] = {

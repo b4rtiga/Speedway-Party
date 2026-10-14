@@ -93,7 +93,6 @@ Sędzia w rogu ekranu, w koszulce w czarno-białe pasy, pokazuje flagi jak na pr
 | 🟥 czerwona | przerwanie biegu, np. po dotknięciu taśmy |
 | ⬛ czarna | wykluczenie zawodnika (np. druga taśma w biegu) |
 | 🟨✖️ żółta z czarnym krzyżem („kosa”) | ostatnie okrążenie: od wjazdu prowadzącego na prostą startową pod koniec 3. okrążenia do 2 s po tym, jak linię minie ostatni zawodnik |
-| 🟦 niebieska | ktoś zaraz zostanie zdublowany przez lidera |
 | 🇵🇱 narodowa | awaryjny start po awarii maszyny startowej |
 
 ### 🏍️ Jazda: dwa przyciski i cała prawda o żużlu
