@@ -10,8 +10,6 @@ Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. 
 ### 🎬 Trailer
 [![Trailer Speedway Party - kliknij, żeby obejrzeć](art/trailer_thumb.png)](art/trailer.mp4)
 
-[art/trailer.mp4](art/trailer.mp4) (36 s): plansza tytułowa, wybór na ekranie po planszy tytułowej, ustawienia, program zawodów, prezentacja zawodników, start spod taśmy i półtora okrążenia biegu, a na koniec przejście z efektem pikselizacji do ilustracji tytułowej. Podkład: „Black Motor”. Obraz rysuje prawdziwy kod gry skompilowany na PC (te same piksele co na Amidze).
-
 Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
 | | | |
