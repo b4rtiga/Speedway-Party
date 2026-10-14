@@ -34,12 +34,12 @@ Każdy gracz ma tylko dwa przyciski: **LEWO** i **PRAWO**. Gaz jest automatyczny
 | | Gracz 1 | Gracz 2 | Gracz 3 | Gracz 4 |
 |---|---|---|---|---|
 | domyślnie | joystick w porcie 1 | joystick w porcie 0 | klawisze Z / X | klawisze N / M |
-| do wyboru | strzałki, adapter 4 graczy (LPT), JOY 0 MYSZ (pad podany przez emulator jako mysz) | | | |
+| do wyboru | strzałki, adapter 4 graczy (LPT) | | | |
 
 - Ustawienia **JOY 1** i **STRZAŁKI** działają zamiennie (joystick w porcie 1 albo strzałki), chyba że drugie wybrał inny gracz.
 - **Menu:** joystick w porcie 1 albo 0 (góra/dół/lewo/prawo, FIRE = zatwierdź) albo strzałki i Return.
 - **Drugi przycisk joysticka** działa jak ESC: pauza z pytaniem, powrót z instrukcji i twórców.
-- **Pad podany przez emulator jako mysz** (zdarza się w emulatorach w przeglądarce): wybierz sterowanie **JOY 0 MYSZ** – gra czyta wtedy kierunek z ruchu licznika.
+- **Joystick w porcie 0** musi być w emulatorze ustawiony w trybie joysticka, nie myszy.
 - **Nazwiska** edytujesz z klawiatury, polskie litery przez Alt (np. Alt+X = Ź, Alt+Z = Ż).
 
 ## 3. Ekrany gry
@@ -268,7 +268,7 @@ Gotowa konfiguracja: `tools/winuae/SpeedwayParty-A1200.uae` (wpisz w niej ście�
 | Zamiast grafiki proste kształty | brak katalogu `data/` obok programu |
 | Brak dźwięku | brak `data/*.raw` |
 | Brak muzyki w menu | `MUSIC = BRAK`, brak `data/music.raw` albo MUZYKA: NIE w ustawieniach |
-| Joystick w porcie 0 (JOY 0) łapie tylko lewo, nie łapie prawa, „rusza” przy puszczeniu do środka | emulator podaje joystick w porcie 0 jako mysz: w WinUAE ustaw tryb **Joystick** (`joyport0mode=djoy`, jak w szablonie); gdzie się nie da – sterowanie **JOY 0 MYSZ** w grze |
+| Joystick w porcie 0 (JOY 0) łapie tylko lewo, nie łapie prawa, „rusza” przy puszczeniu do środka | emulator podaje joystick w porcie 0 jako mysz: ustaw dla portu 0 tryb **Joystick** (WinUAE: `joyport0mode=djoy`, jak w szablonie; w innym emulatorze analogicznie) |
 | Menu samo się przełącza | mysz w porcie 0 |
 | Strzałki nie działają, bieg czeka na start | w szablonie WinUAE strzałki emulują joystick w porcie 1 – wybierz JOY 1 albo STRZAŁKI (czytają oba źródła) |
 | Obraz poszatkowany | `DDF_STOP` i `MOD_ADJ` w `src/video.c` |

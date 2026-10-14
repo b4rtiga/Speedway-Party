@@ -214,7 +214,7 @@ Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
 | Objaw | Gdzie szukać |
 |---|---|
 | Obraz „poszatkowany”, przesunięty o 64 px | `DDF_STOP` i `MOD_ADJ` w `src/video.c` (pobieranie bitplanów w trybie 4×). W WinUAE działa `$38/$A0`. Do testów: `make dist EXTRA=-DDDF_STOP=0xD0` |
-| Joystick w porcie 0 (JOY 0) łapie tylko lewo, nie łapie prawa, „rusza” przy puszczeniu do środka | emulator podaje joystick w porcie 0 jako mysz: w WinUAE ustaw tryb **Joystick** (*Game ports*, w konfiguracji `joyport0=joy0`, `joyport0mode=djoy`, jak w szablonie); w emulatorze, w którym się tego nie da zmienić, wybierz w grze sterowanie **JOY 0 MYSZ** |
+| Joystick w porcie 0 (JOY 0) łapie tylko lewo, nie łapie prawa, „rusza” przy puszczeniu do środka | emulator podaje joystick w porcie 0 jako mysz: ustaw dla portu 0 tryb **Joystick** (WinUAE: *Game ports*, w konfiguracji `joyport0=joy0`, `joyport0mode=djoy`, jak w szablonie; w innym emulatorze analogicznie) |
 | Menu samo się przełącza | mysz w porcie 0: menu czyta tylko port 1 i klawiaturę, ale gracz 2 ustawiony na JOY 0 będzie „jechał” myszą |
 | Zamiast grafiki są proste kształty | brak `data/` obok programu (gra wtedy rysuje grafikę zastępczą) |
 | Brak dźwięku | brak `data/*.raw` |
@@ -238,7 +238,7 @@ Każdy gracz ma tylko **LEWO i PRAWO**. Gaz jest automatyczny.
 - **Szeroka niesie:** pod bandą, z pełną prędkością i w lekkim uślizgu motocykl dostaje dodatkowe przyspieszenie. Za wolno pod bandą motocykl się zakopuje.
 - **Szpryca:** jazda tuż za rywalem w uślizgu lekko spowalnia. Szukaj czystej linii.
 - **Menu:** joystick w porcie 1 albo 0 (góra/dół/lewo/prawo, FIRE = zatwierdź) albo strzałki i Return. **Drugi przycisk** joysticka działa jak ESC (pauza z pytaniem, powrót z instrukcji i twórców).
-- **Joystick jako mysz:** gdy emulator (np. w przeglądarce) podaje pad w porcie 0 jako mysz, wybierz w ustawieniach sterowanie **JOY 0 MYSZ** – gra czyta wtedy kierunek z ruchu licznika. Zawodnicy nazywają się na start GRACZ 1, GRACZ 2… (sterowani przez ludzi) i CPU 2, CPU 3… (boty), zależnie od liczby graczy. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
+- **Joystick w porcie 0** musi być w emulatorze ustawiony w trybie joysticka, nie myszy (WinUAE: *Game ports*). Zawodnicy nazywają się na start GRACZ 1, GRACZ 2… (sterowani przez ludzi) i CPU 2, CPU 3… (boty), zależnie od liczby graczy. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
 - Liczbę graczy zmieniasz w pierwszym wierszu ekranu ustawień (LEWO/PRAWO).
 
 ---

@@ -17,7 +17,7 @@
 
 static UBYTE keys[128];
 static UBYTE keyq[8], keyq_head, keyq_tail;
-static UBYTE menu_prev[4], menu_edge;    /* osobno: port 1, port 0, strzalki, port 0 jako mysz */
+static UBYTE menu_prev[3], menu_edge;    /* osobno: port 1, port 0, strzalki */
 static UBYTE port_state[INPUT_NONE];
 
 void input_init(void)
@@ -35,31 +35,6 @@ static UBYTE decode_joy(UWORD d)
     if (((d >> 9) ^ (d >> 8)) & 1) r |= BTN_UP;
     if (((d >> 1) ^ d) & 1) r |= BTN_DOWN;
     return r;
-}
-
-/* "JOY 0 MYSZ": port 0 podany przez emulator jako mysz (pad w emulatorze w przegladarce,
- * WinUAE z portem 0 w trybie myszy) - kierunek = w ktora strone przesuwa sie licznik, z krotkim
- * podtrzymaniem (emulator nie zawsze przesuwa go w kazdej klatce); licznik stoi = nic.
- * Wybierane w ustawieniach - samych danych z portu nie da sie pewnie odroznic od joysticka
- * (WinUAE podaje w wyzszych bitach JOYxDAT liczniki myszy Windows). */
-#define MOUSE_HOLD 4                     /* klatki podtrzymania kierunku po ostatnim ruchu */
-static UWORD mouse_prev;
-static UBYTE mouse_seen, hold_x, hold_y, dir_x, dir_y;
-
-static UBYTE read_mouse0(UWORD d)
-{
-    BYTE dx, dy;
-    if (!mouse_seen) { mouse_seen = 1; mouse_prev = d; }
-    dx = (BYTE)((d & 0xFF) - (mouse_prev & 0xFF));
-    dy = (BYTE)((d >> 8) - (mouse_prev >> 8));
-    mouse_prev = d;
-    if (dx) { dir_x = (UBYTE)(dx < 0 ? BTN_LEFT : BTN_RIGHT); hold_x = MOUSE_HOLD; }
-    else if (hold_x) hold_x--;
-    else dir_x = 0;
-    if (dy) { dir_y = (UBYTE)(dy < 0 ? BTN_UP : BTN_DOWN); hold_y = MOUSE_HOLD; }
-    else if (hold_y) hold_y--;
-    else dir_y = 0;
-    return (UBYTE)(dir_x | dir_y);
 }
 
 static UBYTE fire2;                      /* drugi przycisk w porcie 0 lub 1 (dziala jak ESC) */
@@ -111,12 +86,8 @@ void input_update(void)
 
     poll_keyboard();
 
-    {
-        UWORD d0 = REG16(R_JOY0DAT);
-        port_state[INPUT_JOY1] = (UBYTE)(decode_joy(REG16(R_JOY1DAT)) | ((pra & 0x80) ? 0 : BTN_FIRE));
-        port_state[INPUT_JOY0] = (UBYTE)(decode_joy(d0) | ((pra & 0x40) ? 0 : BTN_FIRE));
-        port_state[INPUT_MOUSE0] = (UBYTE)(read_mouse0(d0) | ((pra & 0x40) ? 0 : BTN_FIRE));
-    }
+    port_state[INPUT_JOY1] = (UBYTE)(decode_joy(REG16(R_JOY1DAT)) | ((pra & 0x80) ? 0 : BTN_FIRE));
+    port_state[INPUT_JOY0] = (UBYTE)(decode_joy(REG16(R_JOY0DAT)) | ((pra & 0x40) ? 0 : BTN_FIRE));
     {
         /* drugi przycisk: linie POT (aktywne zerem) - port 0 DATLY (bit 10), port 1 DATRY (bit 14) */
         UWORD pot = REG16(R_POTGOR);
@@ -131,18 +102,14 @@ void input_update(void)
     port_state[INPUT_KEYS_ARROWS] = (UBYTE)(keyset(0x4F, 0x4E, 0x44)
                                   | (keys[0x4C] ? BTN_UP : 0) | (keys[0x4D] ? BTN_DOWN : 0));
     {
-        /* menu: joysticki w obu portach i strzalki (mysz w porcie 0 rusza menu tylko, gdy sie nia
-         * jedzie - stojaca nic nie wciska) */
-        /* kazde zrodlo ma wlasne wykrywanie wcisniec: stale "wcisniete" bity z portu 0 (mysz,
-         * pusty port) nie blokuja tych samych kierunkow ze strzalek i portu 1 */
-        static const UBYTE src[4] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ARROWS, INPUT_MOUSE0 };
+        /* menu: joysticki w obu portach i strzalki; kazde zrodlo ma wlasne wykrywanie wcisniec,
+         * wiec stale "wcisniete" bity z portu 0 (pusty port, mysz) nie blokuja tych samych
+         * kierunkow ze strzalek i portu 1 */
+        static const UBYTE src[3] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ARROWS };
         UBYTE k;
         menu_edge = 0;
-        BOOL mouse_menu = FALSE;                 /* port 0 jako mysz tylko, gdy ktos to wybral */
-        for (k = 0; k < MAX_RIDERS; k++)
-            if (g_tour.riders[k].input == INPUT_MOUSE0) mouse_menu = TRUE;
-        for (k = 0; k < 4; k++) {
-            UBYTE m = (src[k] == INPUT_MOUSE0 && !mouse_menu) ? 0 : port_state[src[k]];
+        for (k = 0; k < 3; k++) {
+            UBYTE m = port_state[src[k]];
             menu_edge |= (UBYTE)(m & ~menu_prev[k]);
             menu_prev[k] = m;
         }
