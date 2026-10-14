@@ -86,7 +86,10 @@ def track_colors(surface):
     for z in range(4):
         ramp(16 + z * 8, 8, dark[z], light[z])
     ramp(48, 4, *groove)                     # koleiny
-    ramp(52, 4, *stone)                      # kamyczki / luzny material
+    # kamyczki / luzny material pod banda: tylko troche jasniejsze od zewnetrznej strefy
+    # (dawniej osobne, bardzo jasne kolory - jaskrawe "piegi" pod banda)
+    mix = lambda a, b, t: tuple(a[j] + (b[j] - a[j]) * t for j in range(3))
+    ramp(52, 4, mix(dark[3], light[3], 0.70), tuple(min(255, c * 1.06) for c in light[3]))
     for k in range(3):                       # kaluze: na sucho = nawierzchnia
         setc(59 + k, *pal[16 + 3 + k])
 
@@ -243,7 +246,7 @@ def build_track(i):
     img[track] = (16 + zone * 8 + shade)[track]
     deep_groove = track & (groove * (0.6 + streak) > 1.25) & (fine < 0.5)
     img[deep_groove] = 48 + (fine[deep_groove] * 8).astype(int) % 4
-    stones = track & (rr > R_OUT - 9) & (fine > 0.9) & ~wall_shadow
+    stones = track & (rr > R_OUT - 9) & (fine > 0.96) & ~wall_shadow       # rzadkie, spokojne ziarno
     img[stones] = 52 + ((fine[stones] - 0.9) * 40).astype(int).clip(0, 3)
     pn = value_noise(xx, yy, 3.2, 2.6, 21) + (fine - 0.5) * 0.12      # postrzepione brzegi
     puddle = track & (pn > 0.80) & (lat < -12) & (np.abs(xx - CX) > HALF_L - 20)
