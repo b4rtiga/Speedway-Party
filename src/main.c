@@ -163,6 +163,9 @@ static void next_heat(void)
 /* po wyniku biegu: polewanie toru albo nastepny bieg */
 static void after_result(void)
 {
+#ifdef TEST_HOF
+    if (g_tour.current_heat >= 1) { enter(GS_QUIT); return; }   /* test: po 2 biegach wyjscie i zapis */
+#endif
     if (tournament_watering_after(g_tour.current_heat + 1)) {
         grading_start_wet = g_tour.track.wetness;
         g_grading_progress = 0;
@@ -175,25 +178,29 @@ static void after_result(void)
     }
 }
 
-/* Gracze, ktorzy wjechali do TOP 5 rekordow toru, po kolei wpisuja inicjaly. */
-static UBYTE initials_from;
-static void next_initials(void)
+/* Gracze, ktorzy wjechali do TOP 5 rekordow toru, po kolei wpisuja imie. */
+static UBYTE entry_from;
+static void next_name_entry(void)
 {
     UBYTE r;
-    for (r = initials_from; r < MAX_RIDERS; r++)
-        if (g_tour.riders[r].control == CTRL_HUMAN && records_needs_initials(r)) {
-            initials_from = (UBYTE)(r + 1);
-            ui_initials_enter(r);
-            enter(GS_INITIALS);
+    for (r = entry_from; r < MAX_RIDERS; r++)
+        if (RECORDS_HUMAN(r) && records_needs_name(r)) {
+            entry_from = (UBYTE)(r + 1);
+            ui_name_entry_enter(r);
+            enter(GS_NAME_ENTRY);
             return;
         }
     after_result();
 }
 
-static void initials_done(void)
+static void name_entry_done(void)
 {
-    records_set_initials((UBYTE)(initials_from - 1), ui_initials());
-    next_initials();
+#ifdef TEST_HOF
+    records_set_name((UBYTE)(entry_from - 1), "TEST  ");
+#else
+    records_set_name((UBYTE)(entry_from - 1), ui_name_entry());
+#endif
+    next_name_entry();
 }
 
 BOOL g_paused, g_pause_quit;
@@ -223,8 +230,8 @@ static BOOL handle_pause(void)
         enter(GS_MENU);
         return TRUE;
     }
-    if (edge && g_tour.state == GS_INITIALS) {       /* ESC: zostaja inicjaly z ekranu */
-        initials_done();
+    if (edge && g_tour.state == GS_NAME_ENTRY) {       /* ESC: zostaje imie z ekranu */
+        name_entry_done();
         return TRUE;
     }
     if (edge && (g_tour.state == GS_CREDITS || g_tour.state == GS_HELP || g_tour.state == GS_RECORDS)) {
@@ -253,6 +260,9 @@ static void update_state(void)
     switch (g_tour.state) {
     case GS_TITLE:                       /* plansza tytulowa: czeka na FIRE / Return */
 #ifdef AUTOPLAY
+#ifdef TEST_HOF
+        if (state_timer > 2 * FPS) { enter(GS_RECORDS); break; }
+#endif
         if (state_timer > TITLE_FRAMES) { enter(GS_SETUP); break; }
 #endif
         if (ui_title_update() || (state_timer > FPS / 2 && ui_confirm())) { ui_menu_enter(0); enter(GS_MENU); }
@@ -273,11 +283,17 @@ static void update_state(void)
         break;
 
     case GS_RECORDS:                     /* tabela rekordow: FIRE / Return (albo ESC) wraca */
+#ifdef TEST_HOF
+        if (state_timer > 6 * FPS) { enter(GS_SETUP); break; }
+#endif
         if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(2); enter(GS_MENU); }
         break;
 
-    case GS_INITIALS:                    /* wpis inicjalow; swiezy FIRE po chwili */
-        if (state_timer > FPS / 2) { if (ui_initials_update()) initials_done(); }
+    case GS_NAME_ENTRY:                    /* wpis imienia; swiezy FIRE po chwili */
+#ifdef TEST_HOF
+        if (state_timer > 4 * FPS) { name_entry_done(); break; }
+#endif
+        if (state_timer > FPS / 2) { if (ui_name_entry_update()) name_entry_done(); }
         else while (key_get() != 0xFF) ;  /* wcisniecia sprzed ekranu nie wpisuja znakow */
         break;
 
@@ -328,8 +344,8 @@ static void update_state(void)
 
     case GS_HEAT_RESULT:
         if (state_timer >= RESULT_FRAMES || (state_timer > RESULT_MIN && ui_confirm())) {
-            initials_from = 0;
-            next_initials();
+            entry_from = 0;
+            next_name_entry();
         }
         break;
 

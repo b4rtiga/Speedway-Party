@@ -273,6 +273,13 @@ static int screenshots(void)
     ui_init();
     hud_init();
     g_frame = 16;                     /* migajace napisy widoczne */
+    {
+        /* przykladowe rekordy graczy (boty do tabel nie wchodza) */
+        HofTrack *h = &g_hof[0];
+        hof_clear();
+        hof_insert(h->heat, 1160, "ADA   ", 0); hof_insert(h->heat, 1175, "KUBA  ", 0); hof_insert(h->heat, 1190, "OLA   ", 0);
+        hof_insert(h->lap, 268, "KUBA  ", 0);   hof_insert(h->lap, 271, "ADA   ", 0);   hof_insert(h->lap, 275, "OLA   ", 0);
+    }
 
     g_tour.state = GS_TITLE;   render(); shot("01_title", FALSE);
     ui_menu_enter(0);
@@ -333,15 +340,15 @@ static int screenshots(void)
     g_frame = 16;
 
     {
-        /* wpis inicjalow: zawodnik 0 jako czlowiek z 2. czasem biegu i rekordem okrazenia */
+        /* wpis imienia: zawodnik 0 jako gracz z 2. czasem biegu i rekordem okrazenia */
         HofTrack *h = &g_hof[g_tour.track.type % NUM_TRACKS];
-        char in[HOF_INIT + 1];
-        hof_default_initials(in, g_tour.riders[0].name);
-        hof_insert(h->heat, (UWORD)(h->heat[0].frames ? h->heat[0].frames + 7 : 3200), in, 1);
-        hof_insert(h->lap, (UWORD)(h->lap[0].frames ? h->lap[0].frames - 3 : 640), in, 1);
-        ui_initials_enter(0);
-        g_tour.state = GS_INITIALS; render(); shot("24_inicjaly", FALSE);
-        hof_set_initials(0, "B4R");
+        char nm[HOF_NAME + 1];
+        hof_default_name(nm, g_tour.riders[0].name);
+        hof_insert(h->heat, (UWORD)(h->heat[0].frames ? h->heat[0].frames + 7 : 3200), nm, 1);
+        hof_insert(h->lap, (UWORD)(h->lap[0].frames ? h->lap[0].frames - 3 : 640), nm, 1);
+        ui_name_entry_enter(0);
+        g_tour.state = GS_NAME_ENTRY; render(); shot("24_imie", FALSE);
+        hof_set_name(0, "BARTEK");
         g_tour.state = GS_RECORDS;  render(); shot("25_rekordy", FALSE);
     }
 

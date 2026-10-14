@@ -2,14 +2,16 @@
  *
  * Sama logika (bez dysku - zapis i odczyt robi records.c), testowana na PC przez
  * tools/sim/records_test.sh. Czasy w klatkach PAL. Rowny czas nie wypiera istniejacego wpisu:
- * nowy trafia za wczesniejsze remisy, a przy pelnej liscie odpada. Inicjaly: 3 znaki A-Z,
- * 0-9 albo '-'. Miejsce czlowieka czeka na wpis inicjalow (init[3] = zawodnik + 1). */
+ * nowy trafia za wczesniejsze remisy, a przy pelnej liscie odpada. Do tabel wchodza tylko
+ * gracze (nie boty). Imie: 6 znakow (A-Z, 0-9, polskie litery, '-', spacja). Miejsce gracza
+ * czeka na wpis imienia (name[6] = zawodnik + 1). */
 #include "hof.h"
+#include "text.h"                       /* PL_FIRST, PL_COUNT: polskie litery w nazwiskach */
 
 HofTrack g_hof[NUM_TRACKS];
 
 #define HOF_MAGIC   "SPHF"
-#define HOF_VERSION 1
+#define HOF_VERSION 2                    /* 1: 3 znaki inicjalow (tylko wersja testowa, nie wydana) */
 #define HOF_MAX_FRAMES 30000             /* 10 minut - wiecej to uszkodzony plik */
 
 void hof_clear(void)
@@ -18,17 +20,19 @@ void hof_clear(void)
     for (t = 0; t < NUM_TRACKS; t++)
         for (i = 0; i < HOF_N; i++) {
             g_hof[t].heat[i].frames = g_hof[t].lap[i].frames = 0;
-            g_hof[t].heat[i].init[0] = g_hof[t].lap[i].init[0] = 0;
-            g_hof[t].heat[i].init[3] = g_hof[t].lap[i].init[3] = 0;
+            g_hof[t].heat[i].name[0] = g_hof[t].lap[i].name[0] = 0;
+            g_hof[t].heat[i].name[HOF_NAME] = g_hof[t].lap[i].name[HOF_NAME] = 0;
         }
 }
 
 BOOL hof_valid_char(char c)
 {
-    return (BOOL)((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-');
+    UBYTE u = (UBYTE)c;
+    return (BOOL)((u >= 'A' && u <= 'Z') || (u >= '0' && u <= '9') || u == '-' || u == ' '
+                  || (u >= PL_FIRST && u < PL_FIRST + PL_COUNT));
 }
 
-WORD hof_insert(HofEntry list[HOF_N], UWORD frames, const char *init, UBYTE pending)
+WORD hof_insert(HofEntry list[HOF_N], UWORD frames, const char *name, UBYTE pending)
 {
     WORD pos, k;
     if (!frames || frames > HOF_MAX_FRAMES) return -1;
@@ -37,54 +41,53 @@ WORD hof_insert(HofEntry list[HOF_N], UWORD frames, const char *init, UBYTE pend
     if (pos >= HOF_N) return -1;
     for (k = HOF_N - 1; k > pos; k--) list[k] = list[k - 1];
     list[pos].frames = frames;
-    for (k = 0; k < HOF_INIT; k++) list[pos].init[k] = init[k];
-    list[pos].init[HOF_INIT] = (char)pending;
+    for (k = 0; k < HOF_NAME; k++) list[pos].name[k] = name[k];
+    list[pos].name[HOF_NAME] = (char)pending;
     return pos;
 }
 
-void hof_default_initials(char out[HOF_INIT + 1], const char *name)
+void hof_default_name(char out[HOF_NAME + 1], const char *name)
 {
-    static const char pl[] = "ACELNOSZZ";        /* Ą Ć Ę Ł Ń Ó Ś Ź Ż bez ogonkow */
     UBYTE n = 0;
-    while (*name && n < HOF_INIT) {
+    while (*name == ' ') name++;
+    while (*name && *name != ' ' && n < HOF_NAME) {
         UBYTE c = (UBYTE)*name++;
         if (c >= 'a' && c <= 'z') c = (UBYTE)(c - 'a' + 'A');
-        if (c >= 0x80 && c < 0x80 + sizeof(pl) - 1) c = (UBYTE)pl[c - 0x80];
-        if (hof_valid_char((char)c) && c != '-') out[n++] = (char)c;
+        if (hof_valid_char((char)c)) out[n++] = (char)c;
     }
-    while (n < HOF_INIT) out[n++] = '-';
-    out[HOF_INIT] = 0;
+    while (n < HOF_NAME) out[n++] = ' ';
+    out[HOF_NAME] = 0;
 }
 
-static void each_entry(void (*fn)(HofEntry *e, UBYTE rider, const char *init), UBYTE rider, const char *init)
+static void each_entry(void (*fn)(HofEntry *e, UBYTE rider, const char *name), UBYTE rider, const char *name)
 {
     UBYTE t, i;
     for (t = 0; t < NUM_TRACKS; t++)
-        for (i = 0; i < HOF_N; i++) { fn(&g_hof[t].heat[i], rider, init); fn(&g_hof[t].lap[i], rider, init); }
+        for (i = 0; i < HOF_N; i++) { fn(&g_hof[t].heat[i], rider, name); fn(&g_hof[t].lap[i], rider, name); }
 }
 
-static void set_one(HofEntry *e, UBYTE rider, const char *init)
+static void set_one(HofEntry *e, UBYTE rider, const char *name)
 {
     UBYTE k;
-    if (!e->frames || (UBYTE)e->init[HOF_INIT] != (UBYTE)(rider + 1)) return;
-    for (k = 0; k < HOF_INIT; k++) e->init[k] = init[k];
-    e->init[HOF_INIT] = 0;
+    if (!e->frames || (UBYTE)e->name[HOF_NAME] != (UBYTE)(rider + 1)) return;
+    for (k = 0; k < HOF_NAME; k++) e->name[k] = name[k];
+    e->name[HOF_NAME] = 0;
 }
 
 static BOOL found;
-static void find_one(HofEntry *e, UBYTE rider, const char *init)
+static void find_one(HofEntry *e, UBYTE rider, const char *name)
 {
-    (void)init;
-    if (e->frames && (UBYTE)e->init[HOF_INIT] == (UBYTE)(rider + 1)) found = TRUE;
+    (void)name;
+    if (e->frames && (UBYTE)e->name[HOF_NAME] == (UBYTE)(rider + 1)) found = TRUE;
 }
 
-static void resolve_one(HofEntry *e, UBYTE rider, const char *init)
+static void resolve_one(HofEntry *e, UBYTE rider, const char *name)
 {
-    (void)rider; (void)init;
-    e->init[HOF_INIT] = 0;                       /* domyslne inicjaly juz sa w init[0..2] */
+    (void)rider; (void)name;
+    e->name[HOF_NAME] = 0;                       /* domyslne imie juz jest w name[0..5] */
 }
 
-void hof_set_initials(UBYTE rider, const char *init) { each_entry(set_one, rider, init); }
+void hof_set_name(UBYTE rider, const char *name) { each_entry(set_one, rider, name); }
 BOOL hof_pending(UBYTE rider) { found = FALSE; each_entry(find_one, rider, 0); return found; }
 void hof_resolve_pending(void) { each_entry(resolve_one, 0, 0); }
 
@@ -110,7 +113,7 @@ UWORD hof_serialize(UBYTE *buf)
                 const HofEntry *e = c ? &g_hof[t].lap[i] : &g_hof[t].heat[i];
                 *p++ = (UBYTE)(e->frames >> 8);
                 *p++ = (UBYTE)e->frames;
-                for (k = 0; k < HOF_INIT; k++) *p++ = (UBYTE)(e->frames ? e->init[k] : '-');
+                for (k = 0; k < HOF_NAME; k++) *p++ = (UBYTE)(e->frames ? e->name[k] : ' ');
             }
     sum = checksum(buf, (UWORD)(p - buf));
     *p++ = (UBYTE)(sum >> 8);
@@ -136,11 +139,11 @@ BOOL hof_deserialize(const UBYTE *buf, LONG len)
                 HofEntry *e = c ? &tmp[t].lap[i] : &tmp[t].heat[i];
                 e->frames = (UWORD)((p[0] << 8) | p[1]);
                 p += 2;
-                for (k = 0; k < HOF_INIT; k++) {
-                    e->init[k] = (char)*p++;
-                    if (!hof_valid_char(e->init[k])) return FALSE;
+                for (k = 0; k < HOF_NAME; k++) {
+                    e->name[k] = (char)*p++;
+                    if (!hof_valid_char(e->name[k])) return FALSE;
                 }
-                e->init[HOF_INIT] = 0;
+                e->name[HOF_NAME] = 0;
                 /* czasy rosnace, puste tylko na koncu, w rozsadnym zakresie */
                 if (e->frames) {
                     if (empty || e->frames > HOF_MAX_FRAMES || e->frames < prev) return FALSE;

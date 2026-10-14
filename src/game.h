@@ -215,7 +215,7 @@ typedef enum {
     GS_HELP,             /* INSTRUKCJA: zasady, start, idealna linia (3 strony) */
     GS_NEWS,             /* gazeta po zawodach (po podium) */
     GS_RECORDS,          /* tabela rekordow toru (z ekranu wyboru) */
-    GS_INITIALS,         /* wpisywanie inicjalow po rekordzie (czlowiek w TOP 5) */
+    GS_NAME_ENTRY,         /* wpisywanie imienia po rekordzie (gracz w TOP 5) */
     GS_QUIT
 } GameState;
 
@@ -358,8 +358,13 @@ void         records_load(void);                  /* przed przejeciem sprzetu */
 void         records_save(void);                  /* po oddaniu systemu */
 UBYTE        records_check_heat(void);            /* po biegu: bity REC_* nowych rekordow */
 TrackRecord *records_for(UBYTE track);            /* najlepszy bieg i okrazenie (1. miejsca TOP 5) */
-BOOL         records_needs_initials(UBYTE rider); /* czlowiek wpadl do TOP 5 - czeka na inicjaly */
-void         records_set_initials(UBYTE rider, const char *init);
+BOOL         records_needs_name(UBYTE rider); /* gracz wpadl do TOP 5 - czeka na imie */
+void         records_set_name(UBYTE rider, const char *init);
+#ifdef TEST_HOF                                   /* test w WinUAE bez klawiatury: zawodnik 0 jak gracz */
+#define RECORDS_HUMAN(r) (g_tour.riders[r].control == CTRL_HUMAN || (r) == 0)
+#else
+#define RECORDS_HUMAN(r) (g_tour.riders[r].control == CTRL_HUMAN)
+#endif
 
 /* tractors.c - przerwa na tor */
 BOOL tractors_init(void);

@@ -38,19 +38,29 @@ static BOOL load_hof(const char *name)
     return (BOOL)(asset_load(name, filebuf, HOF_FILE_LEN) && hof_deserialize(filebuf, HOF_FILE_LEN));
 }
 
-/* stary format: najlepszy bieg i okrazenie toru, inicjaly z nazwiska */
+/* nazwisko bota ("CPU 2") - takich wpisow ze starego pliku nie przenosimy */
+static BOOL bot_name(const char *n)
+{
+    return (BOOL)(n[0] == 'C' && n[1] == 'P' && n[2] == 'U' && (n[3] == ' ' || n[3] == 0));
+}
+
+/* stary format: najlepszy bieg i okrazenie toru (tylko graczy), imie z nazwiska */
 static BOOL import_old(void)
 {
     static OldRecordsFile old;
     UBYTE t;
-    char init[HOF_INIT + 1];
+    char nm[HOF_NAME + 1];
     if (!asset_load(OLD_FILE, &old, sizeof(old)) || old.magic != OLD_MAGIC) return FALSE;
     for (t = 0; t < NUM_TRACKS; t++) {
         old.rec[t].heat_name[NAME_LEN] = old.rec[t].lap_name[NAME_LEN] = 0;
-        hof_default_initials(init, old.rec[t].heat_name);
-        hof_insert(g_hof[t].heat, old.rec[t].heat_frames, init, 0);
-        hof_default_initials(init, old.rec[t].lap_name);
-        hof_insert(g_hof[t].lap, old.rec[t].lap_frames, init, 0);
+        if (!bot_name(old.rec[t].heat_name)) {
+            hof_default_name(nm, old.rec[t].heat_name);
+            hof_insert(g_hof[t].heat, old.rec[t].heat_frames, nm, 0);
+        }
+        if (!bot_name(old.rec[t].lap_name)) {
+            hof_default_name(nm, old.rec[t].lap_name);
+            hof_insert(g_hof[t].lap, old.rec[t].lap_frames, nm, 0);
+        }
     }
     return TRUE;
 }
@@ -72,7 +82,7 @@ void records_save(void)
     UWORD len;
     BOOL ok = FALSE;
     if (!dirty) return;
-    hof_resolve_pending();                        /* niewpisane inicjaly -> domyslne */
+    hof_resolve_pending();                        /* niewpisane imie -> domyslne */
     len = hof_serialize(filebuf);
     pr = (struct Process *)FindTask(0);
     old_win = pr->pr_WindowPtr;
@@ -103,13 +113,13 @@ TrackRecord *records_for(UBYTE track)
     UBYTE k;
     view.heat_frames = h->heat[0].frames;
     view.lap_frames = h->lap[0].frames;
-    for (k = 0; k < HOF_INIT; k++) { view.heat_name[k] = h->heat[0].init[k]; view.lap_name[k] = h->lap[0].init[k]; }
-    view.heat_name[HOF_INIT] = view.lap_name[HOF_INIT] = 0;
+    for (k = 0; k < HOF_NAME; k++) { view.heat_name[k] = h->heat[0].name[k]; view.lap_name[k] = h->lap[0].name[k]; }
+    view.heat_name[HOF_NAME] = view.lap_name[HOF_NAME] = 0;
     return &view;
 }
 
-/* Po biegu (raz): czas kazdego, kto ukonczyl, i jego najlepsze okrazenie do TOP 5 toru.
- * Boty jako "CPU"; miejsce czlowieka czeka na wpis inicjalow (domyslne z nazwiska).
+/* Po biegu (raz): czas kazdego gracza, ktory ukonczyl, i jego najlepsze okrazenie do TOP 5 toru.
+ * Boty nie wchodza do tabel. Miejsce gracza czeka na wpis imienia (domyslne z nazwiska).
  * Zwraca bity REC_HEAT / REC_LAP, gdy pobity jest rekord toru (1. miejsce). */
 UBYTE records_check_heat(void)
 {
@@ -117,28 +127,29 @@ UBYTE records_check_heat(void)
     UBYTE i, result = 0;
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
-        const Rider *r;
-        char init[HOF_INIT + 1];
+        char nm[HOF_NAME + 1];
         UBYTE pending;
-        if (b->empty || b->state != BIKE_FINISHED) continue;
-        r = &g_tour.riders[b->rider];
-        if (r->control == CTRL_HUMAN) { hof_default_initials(init, r->name); pending = (UBYTE)(b->rider + 1); }
-        else { init[0] = 'C'; init[1] = 'P'; init[2] = 'U'; init[3] = 0; pending = 0; }
-        if (hof_insert(h->heat, b->finish_frame, init, pending) == 0) {
+        WORD ph, pl;
+        if (b->empty || b->state != BIKE_FINISHED || !RECORDS_HUMAN(b->rider)) continue;
+        hof_default_name(nm, g_tour.riders[b->rider].name);
+        pending = (UBYTE)(b->rider + 1);
+        ph = hof_insert(h->heat, b->finish_frame, nm, pending);
+        pl = b->best_lap ? hof_insert(h->lap, b->best_lap, nm, pending) : -1;
+        if (ph >= 0 || pl >= 0) dirty = TRUE;              /* plik zapisuje sie tylko po zmianie */
+        if (ph == 0) {
             result |= REC_HEAT;
             g_tour.stats.rec_heat_holder = b->rider;
             g_tour.stats.records++;
         }
-        if (b->best_lap && hof_insert(h->lap, b->best_lap, init, pending) == 0) {
+        if (pl == 0) {
             result |= REC_LAP;
             g_tour.stats.rec_lap_holder = b->rider;
             g_tour.stats.records++;
         }
     }
-    dirty = TRUE;
     return result;
 }
 
-/* czy zawodnik ma wpisac inicjaly (zakwalifikowal sie do TOP 5 w ostatnim biegu) */
-BOOL records_needs_initials(UBYTE rider) { return hof_pending(rider); }
-void records_set_initials(UBYTE rider, const char *init) { hof_set_initials(rider, init); dirty = TRUE; }
+/* czy zawodnik ma wpisac imie (zakwalifikowal sie do TOP 5 w ostatnim biegu) */
+BOOL records_needs_name(UBYTE rider) { return hof_pending(rider); }
+void records_set_name(UBYTE rider, const char *nm) { hof_set_name(rider, nm); dirty = TRUE; }

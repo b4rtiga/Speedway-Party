@@ -229,10 +229,10 @@ static void draw_credits(UBYTE *b)
 static char *fmt_time(char *p, UWORD frames, BOOL hundredths);
 static UBYTE rawkey_char(UBYTE k);
 
-/* tabela TOP 5: "1. ABC  62.34" - puste miejsca jako kreski */
+/* tabela TOP 5: "1. MAREK   23.34 S" - puste miejsca jako kreski */
 static void draw_hof_list(UBYTE *b, WORD y, const char *title, const HofEntry *list)
 {
-    UBYTE i;
+    UBYTE i, k;
     char s[24], *p;
     text_draw_center(b, y, title, U_GOLD, U_SHADOW);
     for (i = 0; i < HOF_N; i++) {
@@ -240,10 +240,11 @@ static void draw_hof_list(UBYTE *b, WORD y, const char *title, const HofEntry *l
         WORD ry = (WORD)(y + 16 + i * 13);
         p = text_uint(s, (ULONG)(i + 1), 1);
         text_cat(p, ".");
-        text_draw(b, 104, ry, s, U_GREY, 0);
-        if (!e->frames) { text_draw(b, 128, ry, "---", U_GREY, 0); text_draw(b, 184, ry, "--.--", U_GREY, 0); continue; }
-        s[0] = e->init[0]; s[1] = e->init[1]; s[2] = e->init[2]; s[3] = 0;
-        text_draw(b, 128, ry, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
+        text_draw(b, 88, ry, s, U_GREY, 0);
+        if (!e->frames) { text_draw(b, 112, ry, "------", U_GREY, 0); text_draw(b, 184, ry, "--.--", U_GREY, 0); continue; }
+        for (k = 0; k < HOF_NAME; k++) s[k] = e->name[k];
+        s[HOF_NAME] = 0;
+        text_draw(b, 112, ry, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
         p = fmt_time(s, e->frames, TRUE);
         text_cat(p, " S");
         text_draw(b, 184, ry, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
@@ -262,31 +263,35 @@ static void draw_records(UBYTE *b)
     if (blink) text_draw_center(b, 238, "FIRE - POWRÓT", U_RAINBOW, U_SHADOW);
 }
 
-/* ---- wpis inicjalow: zawodnik-czlowiek, ktory wjechal do TOP 5 ---- */
+/* ---- wpis imienia: gracz, ktory wjechal do TOP 5 ---- */
 
-static const char init_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-";
-static UBYTE init_rider, init_pos;
-static char  init_buf[HOF_INIT + 1];
+static void rect_px(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c);
 
-void ui_initials_enter(UBYTE rider)
+/* znaki pod GORA/DOL: spacja, A-Z, polskie litery (0x80..0x88), cyfry, '-' */
+static const char entry_chars[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ" "\x80\x81\x82\x83\x84\x85\x86\x87\x88" "0123456789-";
+static UBYTE entry_rider, entry_pos;
+static char  entry_buf[HOF_NAME + 1];
+
+void ui_name_entry_enter(UBYTE rider)
 {
-    init_rider = rider;
-    init_pos = 0;
-    hof_default_initials(init_buf, g_tour.riders[rider].name);
+    entry_rider = rider;
+    entry_pos = 0;
+    hof_default_name(entry_buf, g_tour.riders[rider].name);
 }
 
-const char *ui_initials(void) { return init_buf; }
+const char *ui_name_entry(void) { return entry_buf; }
 
-static char init_step(char c, BYTE dir)
+static char entry_step(char c, BYTE dir)
 {
-    UBYTE i, n = sizeof(init_chars) - 1;
-    for (i = 0; i < n && init_chars[i] != c; i++) ;
+    UBYTE i, n = sizeof(entry_chars) - 1;
+    for (i = 0; i < n && entry_chars[i] != c; i++) ;
     if (i == n) i = 0;
-    return init_chars[(i + n + dir) % n];
+    return entry_chars[(i + n + dir) % n];
 }
 
-/* GORA/DOL - znak, LEWO/PRAWO - pozycja, pisanie z klawiatury, FIRE/Return - zatwierdz */
-BOOL ui_initials_update(void)
+/* GORA/DOL - znak, LEWO/PRAWO - pozycja, pisanie z klawiatury (Alt = polskie litery),
+ * Backspace - cofnij, FIRE/Return - zatwierdz */
+BOOL ui_name_entry_update(void)
 {
     UBYTE m = input_menu(), k;
     BOOL changed = FALSE, done = FALSE;
@@ -294,35 +299,34 @@ BOOL ui_initials_update(void)
         UBYTE c;
         if (k == KEY_RETURN) { done = TRUE; continue; }
         if (k == KEY_BACKSPACE) {
-            if (init_pos) init_pos--;
-            init_buf[init_pos] = '-';
+            if (entry_pos) entry_pos--;
+            entry_buf[entry_pos] = ' ';
             changed = TRUE;
             continue;
         }
         c = rawkey_char(k);
-        if (c >= PL_FIRST && c < PL_FIRST + PL_COUNT) c = (UBYTE)"ACELNOSZZ"[c - PL_FIRST];
         if (c && hof_valid_char((char)c)) {
-            init_buf[init_pos] = (char)c;
-            if (init_pos < HOF_INIT - 1) init_pos++;
+            entry_buf[entry_pos] = (char)c;
+            if (entry_pos < HOF_NAME - 1) entry_pos++;
             changed = TRUE;
         }
     }
-    if (m & BTN_UP)    { init_buf[init_pos] = init_step(init_buf[init_pos], 1); changed = TRUE; }
-    if (m & BTN_DOWN)  { init_buf[init_pos] = init_step(init_buf[init_pos], -1); changed = TRUE; }
-    if ((m & BTN_LEFT) && init_pos > 0)             { init_pos--; changed = TRUE; }
-    if ((m & BTN_RIGHT) && init_pos < HOF_INIT - 1) { init_pos++; changed = TRUE; }
+    if (m & BTN_UP)    { entry_buf[entry_pos] = entry_step(entry_buf[entry_pos], 1); changed = TRUE; }
+    if (m & BTN_DOWN)  { entry_buf[entry_pos] = entry_step(entry_buf[entry_pos], -1); changed = TRUE; }
+    if ((m & BTN_LEFT) && entry_pos > 0)             { entry_pos--; changed = TRUE; }
+    if ((m & BTN_RIGHT) && entry_pos < HOF_NAME - 1) { entry_pos++; changed = TRUE; }
     if (m & BTN_FIRE) done = TRUE;
     if (changed) ui_invalidate();
     return done;
 }
 
-/* miejsca zawodnika czekajace na inicjaly: "BIEG - 2. MIEJSCE" */
-static void initials_place(UBYTE *b, WORD y, const char *what, const HofEntry *list)
+/* miejsce gracza czekajace na imie: "BIEG - 2. MIEJSCE  23.34 S" */
+static void entry_place(UBYTE *b, WORD y, const char *what, const HofEntry *list)
 {
     UBYTE i;
     char s[32], *p;
     for (i = 0; i < HOF_N; i++)
-        if (list[i].frames && (UBYTE)list[i].init[HOF_INIT] == (UBYTE)(init_rider + 1)) {
+        if (list[i].frames && (UBYTE)list[i].name[HOF_NAME] == (UBYTE)(entry_rider + 1)) {
             p = text_cat(s, what);
             p = text_uint(p, (ULONG)(i + 1), 1);
             p = text_cat(p, ". MIEJSCE  ");
@@ -333,25 +337,26 @@ static void initials_place(UBYTE *b, WORD y, const char *what, const HofEntry *l
         }
 }
 
-static void draw_initials(UBYTE *b)
+static void draw_name_entry(UBYTE *b)
 {
     const HofTrack *h = &g_hof[g_tour.track.type % NUM_TRACKS];
     char s[NAME_LEN + 1];
     UBYTE i;
     text_draw_big_center(b, 10, "REKORDY", U_RAINBOW, U_SHADOW);
     text_draw_center(b, 38, "WJECHAŁEŚ DO PIĄTKI NAJLEPSZYCH!", U_GOLD, U_SHADOW);
-    helmet_box(b, 96, 58, init_rider);
-    name_trunc(s, g_tour.riders[init_rider].name, 12);
+    helmet_box(b, 96, 58, entry_rider);
+    name_trunc(s, g_tour.riders[entry_rider].name, 12);
     text_draw(b, 120, 59, s, U_WHITE, U_SHADOW);
-    initials_place(b, 82, "BIEG - ", h->heat);
-    initials_place(b, 96, "OKRĄŻENIE - ", h->lap);
-    text_draw_center(b, 120, "WPISZ INICJAŁY:", U_GREY, 0);
-    for (i = 0; i < HOF_INIT; i++) {
-        WORD x = (WORD)(120 + i * 32);       /* tlo kursora od x-8: wyrownane do slowa */
+    entry_place(b, 82, "BIEG - ", h->heat);
+    entry_place(b, 96, "OKRĄŻENIE - ", h->lap);
+    text_draw_center(b, 120, "WPISZ IMIĘ:", U_GREY, 0);
+    for (i = 0; i < HOF_NAME; i++) {
+        WORD x = (WORD)(72 + i * 32);        /* tlo kursora od x-8: wyrownane do slowa */
         char c[2];
-        c[0] = init_buf[i]; c[1] = 0;
-        if (i == init_pos && blink) blit_fill(b, x - 8, 136, 32, 26, U_CURSOR);
-        text_draw_big(b, x, 140, c, i == init_pos ? U_RAINBOW : U_WHITE, U_SHADOW);
+        c[0] = entry_buf[i]; c[1] = 0;
+        if (i == entry_pos && blink) blit_fill(b, x - 8, 136, 32, 28, U_CURSOR);
+        text_draw_big(b, x, 140, c, i == entry_pos ? U_RAINBOW : U_WHITE, U_SHADOW);
+        rect_px(b, x, 161, 16, 1, U_GREY);   /* kreska pod polem - widac tez spacje */
     }
     text_draw_center(b, 184, "GÓRA/DÓŁ - ZNAK, LEWO/PRAWO - POZYCJA", U_GREY, 0);
     text_draw_center(b, 198, "MOŻNA TEŻ PISAĆ Z KLAWIATURY", U_GREY, 0);
@@ -1701,7 +1706,7 @@ void ui_render(void)
         blink = new_blink;
         /* w menu miga jeden napis - odswiezany sam pasek; kursor edycji nazwiska - caly ekran */
         if (g_tour.state == GS_SETUP) { if (editing) ui_invalidate(); }
-        else if (g_tour.state == GS_INITIALS) ui_invalidate();             /* migajacy kursor */
+        else if (g_tour.state == GS_NAME_ENTRY) ui_invalidate();             /* migajacy kursor */
         else if (!state_uses_track(g_tour.state)) blink_dirty[0] = blink_dirty[1] = 1;
     }
     video_set_menu(!state_uses_track(g_tour.state));   /* menu: caly ekran bez HUD */
@@ -1768,7 +1773,7 @@ panel_done:
     case GS_CREDITS:   draw_credits(b); break;
     case GS_HELP:      draw_help(b); break;
     case GS_RECORDS:   draw_records(b); break;
-    case GS_INITIALS:  draw_initials(b); break;
+    case GS_NAME_ENTRY: draw_name_entry(b); break;
     case GS_NEWS:      draw_news(b); break;
     case GS_SETUP:     draw_setup(b); break;
     case GS_TABLE:     draw_table(b); break;

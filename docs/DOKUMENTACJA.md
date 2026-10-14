@@ -87,13 +87,13 @@ Po biegu – wyniki z punktami i czasem. Po biegach 4, 7, 11 i 13 traktory równ
 
 ### Rekordy toru
 
-Tor ma dwie tabele: **5 najlepszych biegów** (czas całych 4 okrążeń) i **5 najlepszych okrążeń**. Po każdym biegu wpada do nich każdy, kto dojechał do mety i ma wystarczająco dobry czas – także boty (jako `CPU`). Przy równym czasie wyżej zostaje ten, kto wpisał się wcześniej.
+Tor ma dwie tabele: **5 najlepszych biegów** (czas całych 4 okrążeń) i **5 najlepszych okrążeń**. Po każdym biegu wpada do nich każdy gracz, który dojechał do mety i ma wystarczająco dobry czas. Boty nie wchodzą do tabel, więc pokaz z samymi botami (0 graczy) niczego nie zapisuje. Przy równym czasie wyżej zostaje ten, kto wpisał się wcześniej.
 
-Gracz, który wjechał do piątki, po wynikach biegu wpisuje **trzy znaki inicjałów** (domyślnie pierwsze litery nazwiska): GÓRA/DÓŁ zmienia znak (A–Z, 0–9, `-`), LEWO/PRAWO pozycję, można też pisać z klawiatury (Backspace cofa). FIRE albo Return zapisuje, ESC zostawia to, co jest na ekranie. Gdy rekord pobiło kilku graczy, wpisują po kolei.
+Gracz, który wjechał do piątki, po wynikach biegu wpisuje **imię – do 6 znaków** (domyślnie pierwsze słowo nazwiska): GÓRA/DÓŁ zmienia znak (spacja, A–Z, polskie litery, 0–9, `-`), LEWO/PRAWO pozycję, można też pisać z klawiatury (Alt + litera = polska litera, Backspace cofa). FIRE albo Return zapisuje, ESC zostawia to, co jest na ekranie. Gdy rekord pobiło kilku graczy, wpisują po kolei.
 
-Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zostaje jako `halloffame.bak`) przy wyjściu z gry: ESC na ekranie wyboru i ESC jeszcze raz. Reset albo wyłączenie Amigi w trakcie gry traci wyniki z tej sesji, a na zabezpieczonej dyskietce zapis się po cichu nie udaje. Stary plik `records.dat` jest wczytywany raz, przy pierwszym starcie.
+Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zostaje jako `halloffame.bak`) przy wyjściu z gry: ESC na ekranie wyboru i ESC jeszcze raz. Reset albo wyłączenie Amigi w trakcie gry traci wyniki z tej sesji, a na zabezpieczonej dyskietce zapis się po cichu nie udaje. Rekordy graczy ze starego pliku `records.dat` są przenoszone raz, przy pierwszym starcie.
 
-![Wpis inicjałów](../art/screen_24_inicjaly.png)
+![Wpis imienia](../art/screen_24_imie.png)
 
 ![Rekordy toru](../art/screen_25_rekordy.png)
 

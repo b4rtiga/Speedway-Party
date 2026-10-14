@@ -21,7 +21,7 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 | ![Przerwa na tor](art/screen_08_grading.png) | ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Awaria maszyny startowej](art/screen_16_awaria.png) |
 | ![Podium](art/screen_10_podium.png) | ![Wybór po planszy tytułowej](art/screen_18_menu.png) | ![Twórcy](art/screen_19_credits.png) |
 | ![Instrukcja: zasady](art/screen_20_instrukcja_1.png) | ![Instrukcja: start i sterowanie](art/screen_21_instrukcja_2.png) | ![Instrukcja: idealna linia](art/screen_22_instrukcja_3.png) |
-| ![Gazeta po zawodach](art/screen_23_gazeta.png) | ![Wpis inicjałów](art/screen_24_inicjaly.png) | ![Rekordy toru](art/screen_25_rekordy.png) |
+| ![Gazeta po zawodach](art/screen_23_gazeta.png) | ![Wpis imienia](art/screen_24_imie.png) | ![Rekordy toru](art/screen_25_rekordy.png) |
 
 
 **Dokumentacja:** [docs/DOKUMENTACJA.md](docs/DOKUMENTACJA.md) (źródło do edycji) i [docs/SpeedwayParty-dokumentacja.pdf](docs/SpeedwayParty-dokumentacja.pdf) (PDF, `python tools/mkdocs.py`).
@@ -72,9 +72,9 @@ Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko za
 
 Po podium wychodzi gazeta **„GŁOS OWALU”** (wydanie specjalne): nagłówek dobrany do przebiegu zawodów (tytuł po dogrywce, zwycięstwo z rekordem toru, komplet zwycięstw, jeden punkt różnicy albo po prostu „owal ma zwycięzcę”), krótki komentarz, końcowa tabela i dwa fakty, np. liczba falstartów. Gazeta pisze tylko to, co wynika z wyników. FIRE zaczyna nowy turniej.
 
-Plansza tytułowa czeka na FIRE, potem wybierasz **JEDZIEMY!**, **INSTRUKCJA** (3 strony: zasady, start i sterowanie, linia jazdy ze schematem toru; LEWO/PRAWO zmienia stronę) **REKORDY** (tabele toru) albo **CREDITS** (plansza twórców). Z instrukcji, rekordów i twórców FIRE albo ESC wraca. Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę, a kursor stoi od razu na START TURNIEJU. Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
+Plansza tytułowa czeka na FIRE, potem wybierasz **JEDZIEMY!**, **INSTRUKCJA** (3 strony: zasady, start i sterowanie, linia jazdy ze schematem toru; LEWO/PRAWO zmienia stronę), **REKORDY** (tabele toru) albo **CREDITS** (plansza twórców). Z instrukcji, rekordów i twórców FIRE albo ESC wraca. Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę, a kursor stoi od razu na START TURNIEJU. Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
 
-**Rekordy toru:** 5 najlepszych biegów i 5 najlepszych okrążeń (boty jako `CPU`). Gracz, który wjedzie do piątki, wpisuje po biegu trzy znaki inicjałów: GÓRA/DÓŁ zmienia znak, LEWO/PRAWO pozycję, można też pisać z klawiatury; FIRE albo Return zapisuje. Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zostaje jako `halloffame.bak`) przy wyjściu z gry: ESC na ekranie wyboru i ESC jeszcze raz. Reset albo wyłączenie Amigi w trakcie gry traci wyniki z tej sesji, a na zabezpieczonej dyskietce zapis się po cichu nie udaje. Stary plik `records.dat` jest wczytywany raz, przy pierwszym starcie.
+**Rekordy toru:** 5 najlepszych biegów i 5 najlepszych okrążeń graczy (boty nie wchodzą do tabel). Gracz, który wjedzie do piątki, wpisuje po biegu imię (do 6 znaków, domyślnie pierwsze słowo nazwiska): GÓRA/DÓŁ zmienia znak, LEWO/PRAWO pozycję, można też pisać z klawiatury; FIRE albo Return zapisuje. Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zostaje jako `halloffame.bak`) przy wyjściu z gry: ESC na ekranie wyboru i ESC jeszcze raz. Reset albo wyłączenie Amigi w trakcie gry traci wyniki z tej sesji, a na zabezpieczonej dyskietce zapis się po cichu nie udaje. Rekordy graczy ze starego pliku `records.dat` są przenoszone raz, przy pierwszym starcie.
 
 Puste miejsca przy kanapie zajmują boty:
 - **Nowicjusz** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.
@@ -296,7 +296,7 @@ src/
   input.c       joysticki, adapter LPT, klawiatura (CIA)
   assets.c      ładowanie data/ przed przejęciem sprzętu
   records.c     rekordy toru na dysku (halloffame.dat + .bak, import starego records.dat)
-  hof.c         tabele TOP 5 biegów i okrążeń, inicjały, format pliku (test: tools/sim/records_test.sh)
+  hof.c         tabele TOP 5 biegów i okrążeń, imiona graczy, format pliku (test: tools/sim/records_test.sh)
   newspaper.c   gazeta po zawodach: migawka turnieju, wybór nagłówka i faktów
   music/        utwory do menu (gotowe miksy *_s8.raw), wybór w build.cfg
   banners/      logo na banery (źródło SVG)
