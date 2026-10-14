@@ -39,6 +39,7 @@ typedef enum {
     INPUT_KEYS_ZX,      /* klawiatura: Z=lewo X=prawo C=fire */
     INPUT_KEYS_NM,      /* N=lewo M=prawo ,=fire */
     INPUT_KEYS_ARROWS,  /* strzalki, Return=fire */
+    INPUT_MOUSE0,       /* port 0 podany przez emulator jako mysz (pad w emulatorze w przegladarce) */
     INPUT_NONE
 } InputPort;
 

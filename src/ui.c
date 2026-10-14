@@ -429,7 +429,7 @@ BOOL ui_title_update(void)
 #define ROW_START    7
 static const char *cond_names[3] = { "SUCHY", "WILGOTNY", "MOKRY" };
 static const char *port_names[INPUT_NONE] = {
-    "JOY 1", "JOY 0", "JOY 3 LPT", "JOY 4 LPT", "KLAW Z/X", "KLAW N/M", "STRZAŁKI"
+    "JOY 1", "JOY 0", "JOY 3 LPT", "JOY 4 LPT", "KLAW Z/X", "KLAW N/M", "STRZAŁKI", "JOY 0 MYSZ"
 };
 static const char *level_names[3] = { "NOWICJUSZ", "PROFESJONALISTA", "MISTRZ" };
 
