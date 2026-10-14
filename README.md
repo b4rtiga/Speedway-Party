@@ -21,6 +21,7 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 | ![Przerwa na tor](art/screen_08_grading.png) | ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Awaria maszyny startowej](art/screen_16_awaria.png) |
 | ![Podium](art/screen_10_podium.png) | ![Wybór po planszy tytułowej](art/screen_18_menu.png) | ![Twórcy](art/screen_19_credits.png) |
 | ![Instrukcja: zasady](art/screen_20_instrukcja_1.png) | ![Instrukcja: start i sterowanie](art/screen_21_instrukcja_2.png) | ![Instrukcja: idealna linia](art/screen_22_instrukcja_3.png) |
+| ![Gazeta po zawodach](art/screen_23_gazeta.png) | | |
 
 
 ## Pobierz i zagraj
@@ -65,6 +66,8 @@ Każdy zawodnik ma przez cały turniej ten sam kolor kasku: czerwony, niebieski,
 Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, a reszta bierze to, co zostało.
 
 Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko zawodnicy z remisu, a pola startowe są losowane. Nie ma liczenia zwycięstw ani kombinowania, decyduje tor.
+
+Po podium wychodzi gazeta **„GŁOS OWALU”** (wydanie specjalne): nagłówek dobrany do przebiegu zawodów (tytuł po dogrywce, zwycięstwo z rekordem toru, komplet zwycięstw, jeden punkt różnicy albo po prostu „owal ma zwycięzcę”), krótki komentarz, końcowa tabela i dwa fakty, np. liczba falstartów. Gazeta pisze tylko to, co wynika z wyników. FIRE zaczyna nowy turniej.
 
 Plansza tytułowa czeka na FIRE, potem wybierasz **JEDZIEMY!**, **INSTRUKCJA** (3 strony: zasady, start i sterowanie, linia jazdy ze schematem toru; LEWO/PRAWO zmienia stronę) albo **CREDITS** (plansza twórców). Z instrukcji i twórców FIRE albo ESC wraca. Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę, a kursor stoi od razu na START TURNIEJU. Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
 
@@ -248,6 +251,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png`: cztery postacie 48×96, wspólna paleta 31 kolorów dobrana z obrazu, kolory pól z UI, lekki dithering (`data/girls.bin`; wymaga ffmpeg) |
 | `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |
 | `make sim` | symulator: te same pliki logiki gry rozgrywają turniej botów bez grafiki |
+| `sh tools/sim/news_test.sh` | test gazety: wybór nagłówka na scenariuszach, podsumowanie turnieju, zerowanie faktów, długie nazwiska |
 | `sh tools/sim/batch.sh` | 5 turniejów, średnie punkty dla każdego poziomu AI (do strojenia) |
 | `python tools/sim/plot.py` | tory jazdy z symulacji na tle toru, zapis do `art/sim_lines.png` |
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szpryca, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
@@ -283,6 +287,7 @@ src/
   input.c       joysticki, adapter LPT, klawiatura (CIA)
   assets.c      ładowanie data/ przed przejęciem sprzętu
   records.c     rekordy toru zapisywane na dysk (records.dat)
+  newspaper.c   gazeta po zawodach: migawka turnieju, wybór nagłówka i faktów
   music/        utwory do menu (gotowe miksy *_s8.raw), wybór w build.cfg
   banners/      logo na banery (źródło SVG)
 build.cfg       ustawienia budowania (wybór muzyki)

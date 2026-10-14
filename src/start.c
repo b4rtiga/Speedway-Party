@@ -71,8 +71,12 @@ static void call_false_start(UBYTE bike_idx)
     h->phase_timer = 0;
     h->false_starter = bike_idx;
     h->restarts++;
-    if (++r->warnings >= MAX_WARNINGS)
+    g_tour.stats.false_starts++;      /* raz na zdarzenie (gazeta) */
+    if (++r->warnings >= MAX_WARNINGS) {
         b->state = BIKE_EXCLUDED;     /* wykluczenie: 0 pkt, powtorka bez niego */
+        g_tour.stats.exclusions++;
+        g_tour.stats.excluded[b->rider]++;
+    }
     sfx_whistle();
 }
 

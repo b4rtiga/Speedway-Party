@@ -72,6 +72,13 @@ void tournament_reset(void)
         for (j = 0; j < 4; j++)
             g_tour.heat_table[i][j] = 0xFF;      /* ustalane przy wyborze pol / biegu dodatkowym */
     for (i = 0; i < MAX_RIDERS; i++) g_tour.runoff_rank[i] = RUNOFF_NONE;
+    {
+        TourStats *st = &g_tour.stats;          /* fakty do gazety: od zera na kazdy turniej */
+        st->false_starts = st->exclusions = st->records = 0;
+        for (i = 0; i < MAX_RIDERS; i++) st->starts[i] = st->excluded[i] = 0;
+        st->rec_heat_holder = st->rec_lap_holder = 0xFF;
+        st->title_runoff = st->other_runoff = FALSE;
+    }
     g_tour.current_heat = 0;
     g_tour.heat.restarts = 0;
 }
@@ -95,7 +102,9 @@ void tournament_award_points(void)
 
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
+        if (b->empty) continue;
         g_tour.riders[b->rider].heat_points[hn] = b->state == BIKE_EXCLUDED ? HP_EXCLUDED : 0;  /* nieukonczeni = 0 */
+        g_tour.stats.starts[b->rider]++;                 /* start w biegu punktowanym (gazeta) */
     }
     for (i = 0; i < h->finished_count; i++) {
         Rider *r = &g_tour.riders[h->finish_order[i]];
@@ -151,6 +160,8 @@ BOOL tournament_prepare_runoff(void)
                 if (g_tour.runoff_rank[order[i]] == RUNOFF_NONE) open = TRUE;
             }
         if (n < 2 || !open) continue;
+        if (p == 0) g_tour.stats.title_runoff = TRUE;   /* o tytul (gazeta) */
+        else g_tour.stats.other_runoff = TRUE;
         /* nowy bieg dodatkowy dla calej grupy: kasujemy ich stare miejsca */
         for (i = 0; i < n; i++) g_tour.runoff_rank[group[i]] = RUNOFF_NONE;
         for (i = 0; i < 4; i++) row[i] = 0xFF;

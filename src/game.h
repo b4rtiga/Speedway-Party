@@ -213,8 +213,21 @@ typedef enum {
     GS_MENU,             /* po planszy tytulowej: JEDZIEMY! / CREDITS */
     GS_CREDITS,          /* plansza TWORCY */
     GS_HELP,             /* INSTRUKCJA: zasady, start, idealna linia (3 strony) */
+    GS_NEWS,             /* gazeta po zawodach (po podium) */
     GS_QUIT
 } GameState;
+
+/* Fakty zawodow do gazety: liczone raz, w miejscu zdarzenia; zerowane w tournament_reset. */
+typedef struct TourStats {
+    UBYTE false_starts;                    /* tasmy (falstarty) w calym turnieju */
+    UBYTE exclusions;                      /* wykluczenia za druga tasme */
+    UBYTE starts[MAX_RIDERS];              /* starty w biegach punktowanych */
+    UBYTE excluded[MAX_RIDERS];            /* wykluczenia zawodnika */
+    UBYTE records;                         /* pobite rekordy toru (bieg + okrazenie) */
+    UBYTE rec_heat_holder, rec_lap_holder; /* kto trzyma rekord pobity w tych zawodach (0xFF = nikt) */
+    BOOL  title_runoff;                    /* bieg dodatkowy o 1. miejsce */
+    BOOL  other_runoff;                    /* bieg dodatkowy o 2.-3. miejsce */
+} TourStats;
 
 typedef struct Tournament {
     Rider     riders[MAX_RIDERS];
@@ -231,6 +244,7 @@ typedef struct Tournament {
     UBYTE     particle_head;               /* bufor kolowy: nowa nadpisuje najstarsza */
     UBYTE     start_condition;             /* stan toru na start: 0 suchy, 1 wilgotny, 2 mokry */
     UBYTE     new_records;                 /* REC_HEAT|REC_LAP pobite w ostatnim biegu */
+    TourStats stats;                       /* fakty zawodow (gazeta) */
     GameState state;
 } Tournament;
 
@@ -247,6 +261,27 @@ BOOL tournament_prepare_runoff(void);            /* remis o podium -> bieg dodat
 #define HP_NONE     0xFF                         /* bieg jeszcze nie jechany */
 #define HP_EXCLUDED 0xFE                         /* wykluczony (W) */
 void tournament_award_points(void);
+
+/* newspaper.c - gazeta "GLOS OWALU" po zawodach */
+#define NEWS_NAME  13                    /* znakow nazwiska w gazecie */
+typedef enum { NEWS_RUNOFF = 0, NEWS_WINNER_RECORD, NEWS_CLEAN_SWEEP, NEWS_ONE_POINT, NEWS_FALLBACK } NewsRule;
+typedef struct NewsFacts {               /* wejscie wyboru naglowka (testowane na PC) */
+    BOOL  title_runoff, winner_owns_record, winner_clean_sweep;
+    UBYTE winner_points, runner_points;
+} NewsFacts;
+typedef struct NewsSummary {             /* niezmienna migawka zakonczonego turnieju */
+    UBYTE    number;                     /* numer turnieju w tej sesji */
+    UBYTE    order[MAX_RIDERS];
+    char     name[MAX_RIDERS][NEWS_NAME + 1];
+    UBYTE    points[MAX_RIDERS], wins[MAX_RIDERS];
+    BOOL     human[MAX_RIDERS];
+    NewsRule rule;
+    UBYTE    facts[2], fact_value[2];    /* NEWS_FACT_* i wartosc; 0xFF = brak */
+} NewsSummary;
+enum { NEWS_FACT_FALSE_STARTS = 0, NEWS_FACT_EXCLUSIONS, NEWS_FACT_WINNER_WINS, NEWS_FACT_HUMANS, NEWS_FACT_NONE = 0xFF };
+NewsRule news_pick_rule(const NewsFacts *f);   /* pierwsza spelniona regula wg priorytetu */
+void     news_build(void);                     /* migawka po ostatnim rozstrzygnietym biegu */
+const NewsSummary *news_summary(void);
 BOOL tournament_watering_after(UBYTE heat_number);
 void tournament_prepare_nominated(void);
 void tournament_assign_gate(UBYTE rider, UBYTE gate);

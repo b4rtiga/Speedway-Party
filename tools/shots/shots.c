@@ -368,6 +368,9 @@ static int screenshots(void)
         }
     }
     g_tour.state = GS_PODIUM; render(); shot("10_podium", FALSE);
+    news_build();
+    g_tour.state = GS_NEWS;   render(); shot("23_gazeta", FALSE);
+    g_tour.state = GS_MENU;   render();                         /* kolory linii menu z powrotem */
 
     /* awaria maszyny startowej: start z flagi narodowej */
     track_select(0);

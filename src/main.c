@@ -149,7 +149,7 @@ static void next_heat(void)
     if (g_tour.current_heat >= NUM_HEATS) {
         /* remis o podium -> bieg dodatkowy (moze byc kilka po kolei), potem podium */
         if (tournament_prepare_runoff()) { g_tour.current_heat = RUNOFF_HEAT; enter(GS_TABLE); }
-        else enter(GS_PODIUM);
+        else { news_build(); enter(GS_PODIUM); }        /* turniej rozstrzygniety: migawka do gazety */
         return;
     }
     if (g_tour.current_heat >= FIXED_HEATS) {
@@ -307,7 +307,11 @@ static void update_state(void)
         break;
 
     case GS_PODIUM:
-        if (state_timer > 2 * FPS && ui_confirm()) enter(GS_SETUP);
+        if (state_timer > 2 * FPS && ui_confirm()) enter(GS_NEWS);
+        break;
+
+    case GS_NEWS:                        /* gazeta: czeka na swiezy FIRE / Return */
+        if (state_timer > FPS / 2 && ui_confirm()) enter(GS_SETUP);
         break;
 
     default:

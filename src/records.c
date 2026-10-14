@@ -68,11 +68,15 @@ UBYTE records_check_heat(void)
             (!r->heat_frames || b->finish_frame < r->heat_frames)) {
             r->heat_frames = b->finish_frame;
             copy_name(r->heat_name, g_tour.riders[b->rider].name);
+            g_tour.stats.rec_heat_holder = b->rider;
+            g_tour.stats.records++;
             result |= REC_HEAT;
         }
         if (b->best_lap && (!r->lap_frames || b->best_lap < r->lap_frames)) {
             r->lap_frames = b->best_lap;
             copy_name(r->lap_name, g_tour.riders[b->rider].name);
+            g_tour.stats.rec_lap_holder = b->rider;
+            g_tour.stats.records++;
             result |= REC_LAP;
         }
     }

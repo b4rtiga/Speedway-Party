@@ -342,6 +342,79 @@ static void draw_help(UBYTE *b)
     text_draw_center(b, 240, "LEWO/PRAWO - STRONA   FIRE - POWRÓT", U_GREY, 0);
 }
 
+/* ======================== GAZETA PO ZAWODACH ======================= */
+
+/* "GLOS OWALU": kremowy papier i grafitowy tekst (kolor 0 i 100 ustawia Copper - ta sama
+ * paleta co reszta menu), czerwony akcent, linie i raster z pikseli. Dane z news_summary(). */
+#define NEWS_PAPER 0xEDB                     /* 12-bit: kremowy papier (kolor 0) */
+#define NEWS_INK   0x222                     /* grafit (kolor 100 = U_RAINBOW na tym ekranie) */
+static const char *const news_head[5][2] = {
+    { "TYTUŁ PO",    "DOGRYWCE!" },
+    { "ZWYCIĘSTWO",  "Z REKORDEM!" },
+    { "BEZ STRATY",  "PUNKTU!" },
+    { "JEDEN PUNKT", "RÓŻNICY!" },
+    { "OWAL MA",     "ZWYCIĘZCĘ!" } };
+static const char *const news_body[5][2] = {
+    { "O ZWYCIĘSTWIE ZDECYDOWAŁ",       "BIEG DODATKOWY." },
+    { "TRIUMFATOR ZAPISAŁ SIĘ TAKŻE",   "W TABELI REKORDÓW TORU." },
+    { "W KAŻDYM SWOIM STARCIE",         "ZWYCIĘZCA BYŁ PIERWSZY." },
+    { "TAK NIEWIELE DZIELIŁO PIERWSZE", "I DRUGIE MIEJSCE." },
+    { "TURNIEJ ROZSTRZYGNIĘTY.",        "OTO KOŃCOWA KLASYFIKACJA." } };
+static const char *const news_fact[4] = { "FALSTARTY: ", "WYKLUCZENIA: ", "ZWYCIĘSTWA LIDERA: ", "GRACZE PRZY STOLE: " };
+
+/* liczba wyrownana do prawej krawedzi x1 */
+static void text_uint_right(UBYTE *b, WORD x1, WORD y, ULONG v, UBYTE c)
+{
+    char s[8];
+    text_uint(s, v, 1);
+    text_draw(b, (WORD)(x1 - text_len(s) * FONT_W), y, s, c, 0);
+}
+
+static void draw_news(UBYTE *b)
+{
+    const NewsSummary *n = news_summary();
+    char s[48], *p;
+    UBYTE i;
+    WORD x;
+    text_draw_big_center(b, 4, "GŁOS OWALU", U_SHADOW, 0);
+    p = text_cat(s, "WYDANIE SPECJALNE / TURNIEJ NR ");
+    text_uint(p, n->number, 2);
+    text_draw_center(b, 28, s, U_RAINBOW, 0);
+    rect_px(b, 8, 40, SCREEN_W - 16, 2, U_SHADOW);
+    rect_px(b, 8, 44, SCREEN_W - 16, 1, U_SHADOW);
+    for (x = 8; x < SCREEN_W - 8; x += 4) rect_px(b, x, 46, 2, 1, U_RAINBOW);   /* raster */
+
+    text_draw_big(b, 16, 52, news_head[n->rule][0], U_SHADOW, 0);
+    text_draw_big(b, 16, 74, news_head[n->rule][1], U_RED, 0);
+    p = name_trunc(s, n->name[0], NEWS_NAME);
+    text_cat(p, " WYGRYWA TURNIEJ");
+    text_draw(b, 16, 100, s, U_SHADOW, 0);
+    text_draw(b, 16, 114, news_body[n->rule][0], U_RAINBOW, 0);
+    text_draw(b, 16, 125, news_body[n->rule][1], U_RAINBOW, 0);
+
+    rect_px(b, 16, 139, SCREEN_W - 32, 1, U_SHADOW);
+    text_draw(b, 16, 143, "MIEJSCE / ZAWODNIK", U_RAINBOW, 0);
+    text_draw(b, 216, 143, "PKT", U_RAINBOW, 0);
+    text_draw(b, 256, 143, "WYGR.", U_RAINBOW, 0);
+    for (i = 0; i < MAX_RIDERS; i++) {
+        WORD y = (WORD)(156 + i * 11);
+        p = text_uint(s, (ULONG)(i + 1), 1);
+        p = text_cat(p, ". ");
+        name_trunc(p, n->name[i], NEWS_NAME);
+        text_draw(b, 16, y, s, i == 0 ? U_RED : U_SHADOW, 0);
+        text_uint_right(b, 240, y, n->points[i], U_SHADOW);
+        text_uint_right(b, 296, y, n->wins[i], U_SHADOW);
+    }
+    rect_px(b, 16, 201, SCREEN_W - 32, 1, U_SHADOW);
+    for (i = 0; i < 2; i++) {
+        if (n->facts[i] == NEWS_FACT_NONE) continue;
+        p = text_cat(s, news_fact[n->facts[i]]);
+        text_uint(p, n->fact_value[i], 1);
+        text_draw(b, 16, (WORD)(206 + i * 11), s, U_SHADOW, 0);
+    }
+    if (blink) text_draw_center(b, 240, "FIRE - NASTĘPNY TURNIEJ", U_RED, 0);
+}
+
 BOOL ui_title_update(void)
 {
     return (input_menu() & BTN_FIRE) != 0;
@@ -1325,6 +1398,7 @@ static BOOL state_uses_track(GameState s)
 }
 
 static UBYTE race_lines_ok[2];          /* lista biegu ma juz stale kolory linii */
+static BOOL  news_lines;                /* linie maja kolory gazety (papier) */
 
 static void update_line_colors(void)
 {
@@ -1334,10 +1408,16 @@ static void update_line_colors(void)
         race_lines_ok[g_video.back] = 1;
         /* ramka obrazu (overscan) w kolorze betonu trybun - bez czarnych pasow po bokach toru */
         for (i = 0; i < PLAY_H; i++) { line_bg[i] = BORDER_RACE; line_fg[i] = 0xFFF; }
+    } else if (g_tour.state == GS_NEWS) {
+        /* gazeta: kremowy papier i grafitowy tekst; gradient menu policzy sie od nowa */
+        race_lines_ok[0] = race_lines_ok[1] = 0;
+        news_lines = TRUE;
+        for (i = 0; i < FULL_H; i++) { line_bg[i] = NEWS_PAPER; line_fg[i] = NEWS_INK; }
     } else {
         static BOOL bg_ready;
         UWORD k = (UWORD)((g_frame >> 1) % 48), r = 0;
         race_lines_ok[0] = race_lines_ok[1] = 0;
+        if (news_lines) { news_lines = FALSE; bg_ready = FALSE; }
         if (!bg_ready) {
             /* tlo: granat -> fiolet -> granat (stale, liczone raz) */
             bg_ready = TRUE;
@@ -1368,12 +1448,16 @@ static void draw_blink_line(UBYTE *b)
     case GS_PRESENT: s = "FIRE - POD TAŚMĘ!"; break;
     case GS_PODIUM:  s = "FIRE - NOWY TURNIEJ"; break;
     case GS_CREDITS: s = "FIRE - POWRÓT"; break;
+    case GS_NEWS:    y = 240; s = "FIRE - NASTĘPNY TURNIEJ"; break;
     default: return;
     }
     if (g_paused) return;                                /* okno pauzy - pasek moglby je przeciac */
     if (g_tour.state == GS_TITLE && title_img) blit_copy(b, title_img, 0, y - 1, SCREEN_W, 11);
     else blit_fill(b, 0, y - 1, SCREEN_W, 11, 0);
-    if (blink) text_draw_center(b, y, s, U_RAINBOW, U_SHADOW);
+    if (blink) {
+        if (g_tour.state == GS_NEWS) text_draw_center(b, y, s, U_RED, 0);   /* papier: bez cienia */
+        else text_draw_center(b, y, s, U_RAINBOW, U_SHADOW);
+    }
 #ifdef SHOW_LAG
     {
         char t[12];
@@ -1448,6 +1532,7 @@ void ui_render(void)
     case GS_MENU:      draw_menu(b); break;
     case GS_CREDITS:   draw_credits(b); break;
     case GS_HELP:      draw_help(b); break;
+    case GS_NEWS:      draw_news(b); break;
     case GS_SETUP:     draw_setup(b); break;
     case GS_TABLE:     draw_table(b); break;
     case GS_PRESENT:   draw_present(b, bi); break;
