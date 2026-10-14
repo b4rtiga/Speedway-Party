@@ -203,7 +203,7 @@ UBYTE track_grip_at(WORD x, WORD y)
 
 static void cell_grip(WORD gx, WORD gy)
 {
-    static const UBYTE base[5] = { 210, 225, 200, 150, 0 };
+    static const UBYTE base[5] = { 210, 225, 200, 175, 0 };
     static const UBYTE wet_loss[5] = { 90, 70, 50, 30, 0 };
     Track *t = &g_tour.track;
     GripZone z = (GripZone)t->zone[gy][gx];

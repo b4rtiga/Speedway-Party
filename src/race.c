@@ -15,7 +15,7 @@
 #define DRIFT_IN        2            /* LEWO: lamanie na klatke (pelne zlamanie w ~0.3 s) */
 #define DRIFT_OUT       3            /* PRAWO: kontra na klatke */
 #define DRIFT_CAP_DIV   112          /* zlamanie obniza predkosc maks.: 40 st. -> ok. -25% */
-#define ACCEL_SHIFT     6            /* przyspieszenie = (max-v)>>6 * grip */
+#define ACCEL_DIV       48           /* przyspieszenie = (max-v)/48 * grip/256 na klatke */
 #define DRAG_DIV        3200         /* opor boczny: v*|drift|/DRAG_DIV */
 #define LAUNCH_FRAMES   50
 #define BUMP_DIST2      (8 * 8)      /* kontakt lokiec w lokiec (motocykl ~9 px szerokosci) */
@@ -121,7 +121,7 @@ static void update_bike(Bike *b)
 
     /* --- predkosc: auto-gaz minus subtelny opor boczny --- */
     if (zone == GRIP_DEEP_OUTER) {
-        if (b->speed < FIXPCT(MAX_SPEED, 70)) b->speed -= b->speed >> 6;          /* zakopuje */
+        if (b->speed < FIXPCT(MAX_SPEED, 70)) b->speed -= b->speed >> 8;          /* zakopuje (lekko) */
         else if (b->drift >= 3 && b->drift <= 14) {                               /* szeroka niesie */
             cap = FIXPCT(MAX_SPEED, 108);
             b->speed += MAX_SPEED >> 8;
@@ -130,7 +130,7 @@ static void update_bike(Bike *b)
     /* im mocniej zlamany, tym nizsza predkosc, do ktorej motocykl moze sie rozpedzic */
     if (b->drift > 0) cap -= (cap / DRIFT_CAP_DIV) * b->drift;
     if (b->speed < cap)
-        b->speed += (((cap - b->speed) >> ACCEL_SHIFT) >> 8) * grip;
+        b->speed += (((cap - b->speed) >> 8) * grip) / ACCEL_DIV;
     else                                    /* powyzej limitu (np. po zjezdzie z "szerokiej") - wraca do niego */
         b->speed -= (b->speed - cap) >> 4;
     if (b->launch_timer) {

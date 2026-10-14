@@ -14,7 +14,7 @@
 #include "video.h"
 #include "blit.h"
 
-#define ROOST_DRIFT     9
+#define ROOST_DRIFT     12         /* szpryca od wyraznego zlamania (ok. 17 st.) */
 #define SPEED_MIN       (FIX_ONE / 2)
 #define LIFE_MIN        7
 #define LIFE_RAND       6
