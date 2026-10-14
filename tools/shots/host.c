@@ -66,6 +66,7 @@ UBYTE *video_backbuffer(void) { return g_video.play[g_video.back]; }
 
 BOOL g_music_enabled = TRUE;                 /* audio.c (opcja w ustawieniach) */
 BPTR Open(CONST_STRPTR name, LONG mode) { (void)name; (void)mode; return 0; }   /* records.c: bez zapisu */
+LONG Read(BPTR f, APTR b, LONG n) { (void)f; (void)b; (void)n; return -1; }
 LONG Write(BPTR f, CONST APTR b, LONG n) { (void)f; (void)b; return n; }
 BOOL Close(BPTR f) { (void)f; return TRUE; }
 BOOL Rename(CONST_STRPTR a, CONST_STRPTR b) { (void)a; (void)b; return FALSE; }

@@ -15,7 +15,7 @@ void ui_menu_enter(UBYTE row);     /* ekran wyboru: 0 = JEDZIEMY!, 1 = INSTRUKCJ
 UBYTE ui_menu_update(void);        /* 1 = JEDZIEMY!, 2 = INSTRUKCJA, 3 = REKORDY, 4 = CREDITS, 0 = nic */
 void ui_name_entry_enter(UBYTE rider);   /* wpis imienia do rekordow (domyslne z nazwiska) */
 BOOL ui_name_entry_update(void);         /* TRUE = zatwierdzone */
-const char *ui_name_entry(void);         /* wpisane imie (6 znakow, dopelnione spacjami) */
+const char *ui_name_entry(void);         /* wpisane imie (7 znakow, dopelnione spacjami) */
 void ui_help_enter(UBYTE page);    /* instrukcja od strony page (0..2) */
 BOOL ui_help_update(void);         /* TRUE = powrot do wyboru */
 void ui_setup_enter(void);         /* wejscie w ustawienia: kursor na START TURNIEJU */

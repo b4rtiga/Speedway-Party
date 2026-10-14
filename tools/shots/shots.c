@@ -277,8 +277,8 @@ static int screenshots(void)
         /* przykladowe rekordy graczy (boty do tabel nie wchodza) */
         HofTrack *h = &g_hof[0];
         hof_clear();
-        hof_insert(h->heat, 1160, "ADA   ", 0); hof_insert(h->heat, 1175, "KUBA  ", 0); hof_insert(h->heat, 1190, "OLA   ", 0);
-        hof_insert(h->lap, 268, "KUBA  ", 0);   hof_insert(h->lap, 271, "ADA   ", 0);   hof_insert(h->lap, 275, "OLA   ", 0);
+        hof_insert(h->heat, 1160, "ADA    ", 0); hof_insert(h->heat, 1175, "KUBA   ", 0); hof_insert(h->heat, 1190, "OLA    ", 0);
+        hof_insert(h->lap, 268, "KUBA   ", 0);   hof_insert(h->lap, 271, "ADA    ", 0);   hof_insert(h->lap, 275, "OLA    ", 0);
     }
 
     g_tour.state = GS_TITLE;   render(); shot("01_title", FALSE);
@@ -348,7 +348,7 @@ static int screenshots(void)
         hof_insert(h->lap, (UWORD)(h->lap[0].frames ? h->lap[0].frames - 3 : 640), nm, 1);
         ui_name_entry_enter(0);
         g_tour.state = GS_NAME_ENTRY; render(); shot("24_imie", FALSE);
-        hof_set_name(0, "BARTEK");
+        hof_set_name(0, "BARTEK ");
         g_tour.state = GS_RECORDS;  render(); shot("25_rekordy", FALSE);
     }
 

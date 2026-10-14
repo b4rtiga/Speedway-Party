@@ -5,7 +5,7 @@
  * Amigi w trakcie sesji traci jej wyniki.
  *
  * Pliki w katalogu gry:
- *   halloffame.dat  biezace rekordy (hof.c: wersja, big-endian, suma kontrolna)
+ *   halloffame.dat  biezace rekordy (hof.c: wersja, big-endian, suma kontrolna; wczytuje tez wersje 2)
  *   halloffame.bak  poprzednia poprawna wersja (gdy .dat jest uszkodzony)
  *   records.dat     stary format "SPR1" (1 rekord biegu i okrazenia) - tylko import, bez zmian
  * Zapis: plik tymczasowy -> pelny Write i Close -> stary .dat na .bak -> tymczasowy na .dat.
@@ -33,9 +33,15 @@ typedef struct {                          /* stary plik records.dat (struktura z
 static BOOL dirty;
 static UBYTE filebuf[HOF_FILE_LEN];
 
+/* plik dowolnej dlugosci do HOF_FILE_LEN (starsza wersja jest krotsza) - sprawdza hof_deserialize */
 static BOOL load_hof(const char *name)
 {
-    return (BOOL)(asset_load(name, filebuf, HOF_FILE_LEN) && hof_deserialize(filebuf, HOF_FILE_LEN));
+    BPTR fh = Open((CONST_STRPTR)name, MODE_OLDFILE);
+    LONG n;
+    if (!fh) return FALSE;
+    n = Read(fh, filebuf, HOF_FILE_LEN);
+    Close(fh);
+    return (BOOL)(n > 0 && hof_deserialize(filebuf, n));
 }
 
 /* nazwisko bota ("CPU 2") - takich wpisow ze starego pliku nie przenosimy */

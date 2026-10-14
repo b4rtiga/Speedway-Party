@@ -229,7 +229,7 @@ static void draw_credits(UBYTE *b)
 static char *fmt_time(char *p, UWORD frames, BOOL hundredths);
 static UBYTE rawkey_char(UBYTE k);
 
-/* tabela TOP 5: "1. MAREK   23.34 S" - puste miejsca jako kreski */
+/* tabela TOP 5: "1. MAREK    23.34 S" - puste miejsca jako kreski */
 static void draw_hof_list(UBYTE *b, WORD y, const char *title, const HofEntry *list)
 {
     UBYTE i, k;
@@ -241,7 +241,7 @@ static void draw_hof_list(UBYTE *b, WORD y, const char *title, const HofEntry *l
         p = text_uint(s, (ULONG)(i + 1), 1);
         text_cat(p, ".");
         text_draw(b, 88, ry, s, U_GREY, 0);
-        if (!e->frames) { text_draw(b, 112, ry, "------", U_GREY, 0); text_draw(b, 184, ry, "--.--", U_GREY, 0); continue; }
+        if (!e->frames) { text_draw(b, 112, ry, "-------", U_GREY, 0); text_draw(b, 184, ry, "--.--", U_GREY, 0); continue; }
         for (k = 0; k < HOF_NAME; k++) s[k] = e->name[k];
         s[HOF_NAME] = 0;
         text_draw(b, 112, ry, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
@@ -351,7 +351,7 @@ static void draw_name_entry(UBYTE *b)
     entry_place(b, 96, "OKRĄŻENIE - ", h->lap);
     text_draw_center(b, 120, "WPISZ IMIĘ:", U_GREY, 0);
     for (i = 0; i < HOF_NAME; i++) {
-        WORD x = (WORD)(72 + i * 32);        /* tlo kursora od x-8: wyrownane do slowa */
+        WORD x = (WORD)(56 + i * 32);        /* tlo kursora od x-8: wyrownane do slowa */
         char c[2];
         c[0] = entry_buf[i]; c[1] = 0;
         if (i == entry_pos && blink) blit_fill(b, x - 8, 136, 32, 28, U_CURSOR);

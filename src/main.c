@@ -196,7 +196,7 @@ static void next_name_entry(void)
 static void name_entry_done(void)
 {
 #ifdef TEST_HOF
-    records_set_name((UBYTE)(entry_from - 1), "TEST  ");
+    records_set_name((UBYTE)(entry_from - 1), "TEST   ");
 #else
     records_set_name((UBYTE)(entry_from - 1), ui_name_entry());
 #endif

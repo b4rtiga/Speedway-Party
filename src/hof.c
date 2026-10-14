@@ -3,15 +3,15 @@
  * Sama logika (bez dysku - zapis i odczyt robi records.c), testowana na PC przez
  * tools/sim/records_test.sh. Czasy w klatkach PAL. Rowny czas nie wypiera istniejacego wpisu:
  * nowy trafia za wczesniejsze remisy, a przy pelnej liscie odpada. Do tabel wchodza tylko
- * gracze (nie boty). Imie: 6 znakow (A-Z, 0-9, polskie litery, '-', spacja). Miejsce gracza
- * czeka na wpis imienia (name[6] = zawodnik + 1). */
+ * gracze (nie boty). Imie: 7 znakow (A-Z, 0-9, polskie litery, '-', spacja). Miejsce gracza
+ * czeka na wpis imienia (name[7] = zawodnik + 1). */
 #include "hof.h"
 #include "text.h"                       /* PL_FIRST, PL_COUNT: polskie litery w nazwiskach */
 
 HofTrack g_hof[NUM_TRACKS];
 
 #define HOF_MAGIC   "SPHF"
-#define HOF_VERSION 2                    /* 1: 3 znaki inicjalow (tylko wersja testowa, nie wydana) */
+#define HOF_VERSION 3                    /* 2: imie 6 znakow (wczytywane), 1: 3 znaki (niewydana) */
 #define HOF_MAX_FRAMES 30000             /* 10 minut - wiecej to uszkodzony plik */
 
 void hof_clear(void)
@@ -84,7 +84,7 @@ static void find_one(HofEntry *e, UBYTE rider, const char *name)
 static void resolve_one(HofEntry *e, UBYTE rider, const char *name)
 {
     (void)rider; (void)name;
-    e->name[HOF_NAME] = 0;                       /* domyslne imie juz jest w name[0..5] */
+    e->name[HOF_NAME] = 0;                       /* domyslne imie juz jest w name[0..6] */
 }
 
 void hof_set_name(UBYTE rider, const char *name) { each_entry(set_one, rider, name); }
@@ -125,10 +125,13 @@ BOOL hof_deserialize(const UBYTE *buf, LONG len)
 {
     static HofTrack tmp[NUM_TRACKS];
     const UBYTE *p = buf;
-    UBYTE t, i, k, c;
-    if (len != HOF_FILE_LEN) return FALSE;
+    UBYTE t, i, k, c, n;
+    if (len < 6) return FALSE;
     for (k = 0; k < 4; k++) if (buf[k] != (UBYTE)HOF_MAGIC[k]) return FALSE;
-    if (buf[4] != HOF_VERSION || buf[5] != NUM_TRACKS) return FALSE;
+    if (buf[4] == HOF_VERSION && len == HOF_FILE_LEN) n = HOF_NAME;
+    else if (buf[4] == 2 && len == HOF_FILE_LEN_V2) n = 6;     /* starszy plik: imie dopelnione spacja */
+    else return FALSE;
+    if (buf[5] != NUM_TRACKS) return FALSE;
     if (checksum(buf, (UWORD)(len - 2)) != (UWORD)((buf[len - 2] << 8) | buf[len - 1])) return FALSE;
     p += 6;
     for (t = 0; t < NUM_TRACKS; t++)
@@ -140,7 +143,7 @@ BOOL hof_deserialize(const UBYTE *buf, LONG len)
                 e->frames = (UWORD)((p[0] << 8) | p[1]);
                 p += 2;
                 for (k = 0; k < HOF_NAME; k++) {
-                    e->name[k] = (char)*p++;
+                    e->name[k] = k < n ? (char)*p++ : ' ';
                     if (!hof_valid_char(e->name[k])) return FALSE;
                 }
                 e->name[HOF_NAME] = 0;
