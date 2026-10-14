@@ -271,7 +271,7 @@ static const char *const help_text2[] = {
     "NAJLEPSZA LINIA JAZDY JEST DYNAMICZNA:",
     "NA KAŻDYCH ZAWODACH TOR UKŁADA SIĘ",
     "INACZEJ. SZUKAJ JEJ OD PIERWSZEGO BIEGU.",
-    "",
+    "NA NIEJ UŚLIZG MNIEJ HAMUJE.",
     "NA PROSTEJ JEDŹ PROSTO: UŚLIZG HAMUJE.",
     "W ŁUKU PULSUJ PRZYCISKIEM, NIE TRZYMAJ.",
     "LUŹNE ODSYPISKO POD BANDĄ ZAKOPUJE",
@@ -1252,8 +1252,8 @@ static void render_tape(UBYTE *buf)
 static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
 
 /* stan okienka: SW_NONE albo (klatka odlotu << 2) | lampka (0 zgaszona, 1 czerwona, 2 zielona); 3 = awaria */
-#define SW_FLY   8                 /* klatki odlotu tasmy w okienku (0.16 s) - okienko znika po nich */
-#define SW_RISE  54                /* o ile tasma idzie w gore (az za gorna krawedz okienka) */
+#define SW_FLY   20                /* klatki odlotu tasmy w okienku (0.4 s) - okienko znika po nich */
+#define SW_RISE  40                /* o ile tasma idzie w gore (az za gorna krawedz okienka) */
 #define SW_BOW   8                 /* ugiecie srodka w polowie odlotu */
 #define SW_TAPE_REST (SW_Y + 38)   /* tasma w spoczynku */
 #define SW_TAPE_H 7                /* dwie wstegi po 2 px + 3 px przerwy z tasiemkami */
@@ -1370,7 +1370,8 @@ static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t)
     static UBYTE mw[SW_H][SW_W / 8], ms[SW_H][SW_W / 8];      /* wiersze okienka, bajty od SW_X */
     WORD x, r, half = (SW_TAPE_X1 - SW_TAPE_X0) / 2, mid = SW_TAPE_X0 + half, lo = 32767, hi = -1;
     WORD q = (WORD)(SW_FLY - t);
-    LONG rise = (LONG)SW_RISE * (SW_FLY * SW_FLY - q * q) / (SW_FLY * SW_FLY);
+    /* rownomiernie z lekkim hamowaniem (predkosc 1.5 -> 0.5): widac caly lot, za krawedzia pod koniec */
+    LONG rise = (LONG)SW_RISE * t * (3 * SW_FLY - t) / (2 * SW_FLY * SW_FLY);
     LONG bow_max = (LONG)4 * SW_BOW * t * q / (SW_FLY * SW_FLY);
     const WORD top = SW_Y + 3, bottom = SW_Y + SW_H - 6;       /* obszar, w ktorym widac tasme */
     for (x = SW_TAPE_X0; x < SW_TAPE_X1; x++) {

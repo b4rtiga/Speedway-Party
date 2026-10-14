@@ -2,7 +2,7 @@
 
   data/engine.raw   8 cykli zaplonu jednocylindrowego silnika (48 probek/cykl), petla
   data/crowd.raw    gwar kibicow, petla bez szwu, 11025 Hz
-  data/buzzer.raw   brzeczyk startowy 0.6 s, 11025 Hz
+  data/buzzer.raw   start: brzeczyk + puszczenie tasmy (metaliczne "klak" i swist gumy), 0.7 s, 11025 Hz
   data/whistle.raw  gwizdek sedziego z "groszkiem" 0.8 s, 22050 Hz
 Podglady: art/*.wav (engine_sweep.wav symuluje Paule: obroty od wolnych do maksymalnych).
 Uruchomienie: python tools/genaudio.py"""
@@ -67,12 +67,23 @@ def crowd(n=16384, rate=11025):
     return to_s8(x, 0.9)
 
 
-def buzzer(rate=11025, dur=0.6):
+def buzzer(rate=11025, dur=0.7):
+    """brzeczyk startowy z dzwiekiem puszczenia tasmy (jeden kanal efektow Pauli)"""
+    r = np.random.default_rng(1977)                      # osobne ziarno - inne probki bez zmian
     t = np.arange(int(rate * dur)) / rate
-    x = np.sign(np.sin(2 * np.pi * 185 * t)) * 0.6 + ((t * 370) % 1 - 0.5) * 0.8
-    x = np.tanh(x * 2.0)
-    env = np.minimum(1, t / 0.01) * np.minimum(1, (dur - t) / 0.03)
-    return to_s8(x * env)
+    bz = np.sign(np.sin(2 * np.pi * 185 * t)) * 0.6 + ((t * 370) % 1 - 0.5) * 0.8
+    bz = np.tanh(bz * 2.0) * np.minimum(1, t / 0.01) * np.minimum(1, np.maximum(0, 0.6 - t) / 0.03)
+    # "klak": zwolniony zaczep maszyny - krotki trzask i metaliczny dzwiek
+    klak = r.normal(0, 1, t.size) * np.exp(-t / 0.006) * 1.6
+    klak += np.sin(2 * np.pi * 1350 * t) * np.exp(-t / 0.035) * 0.9
+    klak += np.sin(2 * np.pi * 2210 * t) * np.exp(-t / 0.02) * 0.5
+    # swist gumy lecacej w gore: szum, ktory narasta i cichnie, coraz wyzszy
+    sw_env = np.clip((t - 0.02) / 0.05, 0, 1) * np.exp(-np.maximum(0, t - 0.07) / 0.12)
+    noise = r.normal(0, 1, t.size)
+    hp = noise - lowpass(noise, 0.25)                    # gorne pasmo
+    whoosh = lowpass(hp, 0.35) * sw_env * 1.3
+    x = np.tanh((bz * 0.85 + klak * 0.45 + whoosh * 0.7) * 1.6)   # miekkie obciecie: trzask nie zjada skali
+    return to_s8(x)
 
 
 def whistle(rate=22050, dur=0.8):

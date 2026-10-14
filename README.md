@@ -49,8 +49,9 @@ Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 
 4. [Sterowanie](#sterowanie)
 5. [Narzędzia na PC](#narzędzia-na-pc)
 6. [Struktura projektu](#struktura-projektu)
-7. [Znane ograniczenia / do zrobienia](#znane-ograniczenia--do-zrobienia)
-8. [Jak powstała gra](#jak-powstała-gra)
+7. [Stack technologiczny](#stack-technologiczny)
+8. [Znane ograniczenia / do zrobienia](#znane-ograniczenia--do-zrobienia)
+9. [Jak powstała gra](#jak-powstała-gra)
 
 ---
 
@@ -79,11 +80,11 @@ Puste miejsca przy kanapie zajmują boty:
 ### 🚦 Start spod taśmy
 To tu wygrywa się połowę biegów. Trzymasz kierunek, ręka napięta, pali się czerwone. Czekasz sekundę, dwie, trzy, nigdy nie wiesz ile.
 
-Zielone, brzęczyk, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśmy jak z procy.
+Zielone, brzęczyk, trzask zwolnionej taśmy, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśmy jak z procy.
 
 Kto nie wytrzyma nerwowo i puści za wcześnie, usłyszy gwizdek: **TAŚMA!** Sędzia macha czerwoną flagą, a druga taśma w biegu oznacza wykluczenie. Kto z kolei przegapi zielone, będzie mielił kołem w miejscu, patrząc na plecy rywali.
 
-Okrągłe światła startowe świecą w pasku na dole ekranu. W prawym dolnym rogu toru, w małym okienku, widzisz maszynę startową: lampkę i taśmę. Na zielonym taśma płynnie odlatuje w górę, a okienko znika zaraz po ruszeniu.
+Okrągłe światła startowe świecą w pasku na dole ekranu. W prawym dolnym rogu toru, w małym okienku, widzisz maszynę startową: lampkę i taśmę. Na zielonym taśma wygina się i płynnie odlatuje w górę za krawędź okienka (ok. 0,4 s), a potem okienko znika.
 
 Raz na jakiś czas maszyna startowa odmawia posłuszeństwa: światła gasną, taśma znika, a sędzia startuje bieg **flagą narodową**. Trzeba wtedy patrzeć na jego rękę.
 
@@ -296,6 +297,22 @@ data/           gotowe dane binarne (generowane narzędziami)
 art/            podglądy PNG/WAV (nie trafiają na Amigę)
 tools/          generatory, sprawdzanie kodu, symulator
 ```
+
+---
+
+## Stack technologiczny
+
+| Obszar | Czego używamy |
+|---|---|
+| Platforma docelowa | Amiga 1200: 68020, chipset AGA, 2 MB Chip RAM, bez Fast RAM, PAL 50 Hz, Kickstart 2.0+ (dyskietka) / 3.x |
+| Język i sprzęt | C (gnu99) bez bibliotek gry: gra przejmuje system i sama programuje układy AGA - Copper (8 bitplanów, paleta 24-bit, kolory per linia), Blitter, duszki 32 px (pary attached, pozycja co 1/4 px), Paula (4 kanały, muzyka w podwójnym buforze), CIA (klawiatura, joysticki, adapter LPT) |
+| Kompilator | Bebbo amiga-gcc 6.5.0b (`m68k-amigaos-gcc -m68020 -O2 -fbbb=- -noixemul`), NDK 3.9, libnix; `make` w WSL2 (Ubuntu) |
+| Emulator i pomiary | WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip, ROM AROS); wersje testowe `AUTOPLAY` (turniej botów bez klawiatury) i `SHOW_LAG` / `SHOW_START` (zgubione klatki i czasy w liniach obrazu w HUD) |
+| Narzędzia na PC | Python 3 + numpy: tor, motocykle, traktory, HUD, font, palety, konwersja ilustracji do palet AGA, dźwięki, dyskietka ADF i paczka zip; ffmpeg: dekodowanie PNG, trailer MP4, miniaturka JPG |
+| Sprawdzanie i testy | Clang z pakietu `ziglang`: kontrola typów kodu dla 68020 (atrapy NDK), symulator turnieju z tą samą logiką gry, zrzuty ekranu i trailer z prawdziwego kodu gry (emulacja buforów i duszków), testy gazety |
+| Grafika | pikselart toru, motocykli, traktorów i HUD generowany kodem; ilustracje (plansza tytułowa, podprowadzające, sędzia) przygotowane generatorem obrazów AI i przekonwertowane do palet gry narzędziami z repozytorium |
+| Dźwięk | próbki 8-bit (silnik, kibice, brzęczyk z taśmą, gwizdek) generowane w Pythonie; utwory menu jako gotowe miksy PCM 8-bit ~16 kHz |
+| Repozytorium i praca | git, GitHub; nowe funkcje na gałęziach `feature/*`, scalane po akceptacji; asystenci AI: Claude (Anthropic) i GPT-6 Astra |
 
 ---
 

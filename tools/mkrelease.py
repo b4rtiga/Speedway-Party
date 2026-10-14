@@ -28,8 +28,10 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
 - gracz 1: joystick w porcie 1, gracz 2: port 0, gracze 3-4: klawisze Z/X i N/M
   (do wyboru w ustawieniach takze strzalki i adapter 4 graczy na LPT;
   JOY 1 i strzalki dzialaja zamiennie, jesli nikt inny ich nie uzywa)
-- start: trzymaj kierunek pod tasma, PUSC na zielonym swietle
+- start: trzymaj kierunek pod tasma, PUSC na zielonym swietle (brzeczyk i trzask tasmy)
 - LEWO lamie motocykl w luk (do 40 st.), PRAWO to kontra
+- najlepsza linia (ciemniejsza, wyjezdzona sciezka) jest inna na kazdych zawodach;
+  na niej uslizg mniej hamuje
 - plansza tytulowa czeka na FIRE / Return, potem JEDZIEMY!, INSTRUKCJA
   (zasady, start, linia jazdy) albo CREDITS (tworcy)
 - menu: joystick w porcie 1 albo strzalki + Return; ESC = wyjscie z gry
