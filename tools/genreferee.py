@@ -25,8 +25,10 @@ ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "src/referee.png"
 W, H = 32, 38
 CROP_X = (0.06, 0.94)                  # ulamki szerokosci zrodla; wysokosc z proporcji 32:38 od gory
-SLOTS = [12, 17, 18, 20, 23, 24, 26, 27, 28, 29, 30, 31]   # wolne kolory HUD na portret
-FIXED = {1: (255, 255, 255), 4: (240, 240, 240), 5: (255, 220, 0), 10: (240, 190, 150),
+SLOTS = [17, 18, 20, 23, 24, 26, 27, 28, 29, 30, 31]       # wolne kolory HUD na portret
+# skora (10) i jej cien (12): wspolne z reka sedziego rysowana w grze (src/hud.c H_SKIN / H_SKIN_D)
+SKIN = {10: (222, 138, 78), 12: (140, 70, 38)}
+FIXED = {1: (255, 255, 255), 4: (240, 240, 240), 5: (255, 220, 0), **SKIN,
          11: (20, 20, 30), 14: (10, 10, 10), 15: (120, 70, 30), 16: (120, 140, 200), 19: (225, 225, 230)}
 LENS = 22
 LENS_X = (10, 18)                      # lewe szkla (4 piksele szerokosci) - hud.c lens_x
@@ -67,6 +69,7 @@ def palette():
     cols = cols[np.argsort(cols.sum(1), kind="stable")]
     pal = {k: tuple(int(round(v)) for v in c) for k, c in zip(SLOTS, cols)}
     pal[LENS] = LENS_RGB
+    pal.update(SKIN)
     return pal
 
 

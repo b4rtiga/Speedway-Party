@@ -8,7 +8,7 @@
 #define HUD_TOP 6               /* pierwszy widoczny wiersz (4 linie przerwy w Copperze) */
 
 enum { H_BG = 0, H_WHITE = 1, H_HELMET = 2, H_RED_ON = 6, H_GREEN_ON = 7, H_RED_OFF = 8, H_GREEN_OFF = 9,
-       H_SKIN = 10, H_DARK = 11, H_JACKET = 12, H_FLAG_W = 13, H_FLAG_K = 14, H_POLE = 15, H_FRAME = 16,
+       H_SKIN = 10, H_DARK = 11, H_SKIN_D = 12, H_FLAG_W = 13, H_FLAG_K = 14, H_POLE = 15, H_FRAME = 16,
        H_JACKET_D = 18, H_SHIRT = 19, H_FLAG = 21, H_FLAG_SH = 25 };
 
 /* portret sedziego 32x38, 5 planow przeplatanych (tools/genart.py) */
@@ -111,15 +111,20 @@ static void draw_lights(void)
     hrect(196, HUD_TOP + 8, 18, 18, shown.lights == 2 ? H_GREEN_ON : H_GREEN_OFF);
 }
 
-/* gruba kreska (reka) */
-static void hline_thick(WORD x0, WORD y0, WORD x1, WORD y1, UBYTE c)
+/* odcinek reki grubosci 3 px: najpierw cien przesuniety w prawo-dol, potem wierzch -
+ * rekaw w czarno-biale pasy albo opalona skora */
+static void arm_segment(WORD x0, WORD y0, WORD x1, WORD y1, BOOL sleeve)
 {
-    WORD i, n = (WORD)((x0 > x1 ? x0 - x1 : x1 - x0) + (y0 > y1 ? y0 - y1 : y1 - y0));
-    for (i = 0; i <= n; i++) {
-        WORD x = (WORD)(x0 + (x1 - x0) * i / (n ? n : 1));
-        WORD y = (WORD)(y0 + (y1 - y0) * i / (n ? n : 1));
-        hrect(x - 1, y - 1, 3, 3, c);
-    }
+    WORD dx = (WORD)(x0 > x1 ? x0 - x1 : x1 - x0), dy = (WORD)(y0 > y1 ? y0 - y1 : y1 - y0);
+    WORD n = dx > dy ? dx : dy, i;
+    UBYTE pass;
+    if (!n) n = 1;
+    for (pass = 0; pass < 2; pass++)
+        for (i = 0; i <= n; i++) {
+            WORD x = (WORD)(x0 + (x1 - x0) * i / n), y = (WORD)(y0 + (y1 - y0) * i / n);
+            if (!pass) hrect(x, y, 3, 3, sleeve ? H_FLAG_K : H_SKIN_D);
+            else hrect(x - 1, y - 1, 3, 3, sleeve ? (((x >> 1) & 1) ? H_FLAG_K : H_SHIRT) : H_SKIN);
+        }
 }
 
 #define ABSW(v) ((v) < 0 ? -(v) : (v))
@@ -247,7 +252,7 @@ static void face_update(void)
  * (zmiana jednego koloru w Copperze), szachownica rysowana kolorami 13/14. */
 static void draw_referee(void)
 {
-    WORD hx = 258, hy = HUD_TOP + (shown.wave ? 24 : 26);  /* dlon; flaga siega HUD_TOP+2 */
+    WORD hx = 256, hy = HUD_TOP + (shown.wave ? 19 : 21);  /* piesc na drzewcu; flaga od hy-19 */
     WORD i, j, y;
 
     hrect(224, HUD_TOP, SCREEN_W - 224, HUD_H - HUD_TOP - 4, H_BG);
@@ -261,15 +266,18 @@ static void draw_referee(void)
         }
     } else {
         hrect(276, HUD_TOP + 4, 20, 22, H_SKIN);
-        hrect(272, HUD_TOP + 26, 28, 12, H_JACKET);
+        hrect(272, HUD_TOP + 26, 28, 12, H_FLAG_K);
     }
     if (shown.flag == FLAG_NONE) return;
 
     set_flag_color(shown.flag);
-    hline_thick(276, HUD_TOP + 28, hx + 2, hy + 2, H_FLAG_K);     /* rekaw koszulki w pasy: kontur */
-    hline_thick(275, HUD_TOP + 27, hx + 1, hy + 1, H_SHIRT);
-    hrect(hx - 1, hy - 1, 4, 4, H_SKIN);                          /* dlon */
-    hrect(hx, hy - 22, 2, 26, H_POLE);                            /* drzewce */
+    /* reka w gorze: rekaw w pasy od barku do lokcia, opalone przedramie, piesc na drzewcu */
+    hrect(hx, hy - 19, 2, 25, H_POLE);                            /* drzewce */
+    arm_segment(264, HUD_TOP + 31, hx + 2, hy + 2, FALSE);        /* przedramie */
+    arm_segment(276, HUD_TOP + 31, 265, HUD_TOP + 32, TRUE);      /* ramie (rekaw) */
+    hrect(hx - 1, hy - 1, 4, 4, H_SKIN);                          /* piesc */
+    hrect(hx - 1, hy + 2, 4, 1, H_SKIN_D);
+    hplot(hx + 2, hy - 1, H_SKIN_D); hplot(hx + 2, hy, H_SKIN_D);
     for (j = 0; j < 13; j++)
         for (i = 0; i < 20; i++) {
             /* falowanie: przesuniecie w pionie i cieniowanie zaleznie od kolumny */
@@ -281,7 +289,7 @@ static void draw_referee(void)
             else if (shown.flag == FLAG_LAST_LAP &&                  /* "kosa": zolta z czarnym krzyzem */
                      (ABSW(j - i * 12 / 19) <= 1 || ABSW(j - (12 - i * 12 / 19)) <= 1)) c = H_FLAG_K;
             else c = ph >= 5 ? H_FLAG_SH : H_FLAG;
-            hplot(hx - 20 + i, hy - 22 + j + dy, c);
+            hplot(hx - 20 + i, hy - 19 + j + dy, c);
         }
 }
 
