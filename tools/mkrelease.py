@@ -38,7 +38,8 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
   mozna tez pisac z klawiatury, FIRE zapisz
 - rekordy zapisuja sie do halloffame.dat przy wyjsciu z gry (ESC na ekranie
   wyboru i ESC jeszcze raz); reset Amigi w trakcie gry traci wyniki z sesji
-- menu: joystick w porcie 1 albo 0 (FIRE = zatwierdz) albo strzalki + Return
+- menu: joystick w porcie 1 albo 0 (FIRE = zatwierdz) albo strzalki + Return;
+  czym zatwierdzisz JEDZIEMY!, tym steruje GRACZ 1 (JOY 0, JOY 1 albo STRZALKI)
 - ESC albo drugi przycisk joysticka = pauza / wyjscie
 
 Kod zrodlowy i opis: https://github.com/b4rtiga/Speedway-Party

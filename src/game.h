@@ -335,6 +335,7 @@ UBYTE input_read(InputPort port);
 BOOL  key_down(UBYTE rawkey);
 BOOL  input_esc(void);                            /* ESC albo drugi przycisk joysticka (port 0/1) */
 UBYTE key_get(void);                              /* nastepny wcisniety klawisz lub 0xFF */
+InputPort input_menu_fire_port(void);             /* skad przyszedl ostatni FIRE w menu */
 UBYTE input_menu(void);                           /* nowe wcisniecia: JOY1|strzalki|Return (bez myszy w porcie 0) */
 #define KEY_RETURN    0x44
 #define KEY_BACKSPACE 0x41

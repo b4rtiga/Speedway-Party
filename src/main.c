@@ -203,6 +203,18 @@ static void name_entry_done(void)
     next_name_entry();
 }
 
+/* JEDZIEMY! zatwierdzone joystickiem w porcie 0 -> GRACZ 1 na JOY 0, z klawiatury -> STRZALKI,
+ * joystickiem w porcie 1 -> JOY 1. Gracz, ktory mial ten port, dostaje dotychczasowy port gracza 1. */
+static void player1_port(InputPort p)
+{
+    UBYTE i;
+    InputPort old = g_tour.riders[0].input;
+    if (old == p) return;
+    for (i = 1; i < MAX_RIDERS; i++)
+        if (g_tour.riders[i].input == p) g_tour.riders[i].input = old;
+    g_tour.riders[0].input = p;
+}
+
 BOOL g_paused, g_pause_quit;
 
 /* ESC: pauza z pytaniem. W turnieju - "wyjsc do menu glownego?", w menu glownym -
@@ -271,7 +283,7 @@ static void update_state(void)
     case GS_MENU:                        /* JEDZIEMY! -> ustawienia, CREDITS -> plansza tworcow */
         if (state_timer > FPS / 4) {
             UBYTE pick = ui_menu_update();
-            if (pick == 1) enter(GS_SETUP);
+            if (pick == 1) { player1_port(input_menu_fire_port()); enter(GS_SETUP); }
             else if (pick == 2) { ui_help_enter(0); enter(GS_HELP); }
             else if (pick == 3) enter(GS_RECORDS);
             else if (pick == 4) enter(GS_CREDITS);

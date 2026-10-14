@@ -59,7 +59,7 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ### Ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy, poziom botów, stan toru (suchy, wilgotny, mokry – na start losowany) i muzyka. Kursor stoi od razu na **START TURNIEJU**. Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy, poziom botów, stan toru (suchy, wilgotny, mokry – na start losowany) i muzyka. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz JEDZIEMY!: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
 ![Ustawienia](../art/screen_02_setup.png)
 

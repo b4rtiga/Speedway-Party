@@ -18,6 +18,7 @@
 static UBYTE keys[128];
 static UBYTE keyq[8], keyq_head, keyq_tail;
 static UBYTE menu_prev[3], menu_edge;    /* osobno: port 1, port 0, strzalki */
+static UBYTE menu_fire_src;              /* zrodlo ostatniego FIRE w menu (indeks w src[]) */
 static UBYTE port_state[INPUT_NONE];
 
 void input_init(void)
@@ -26,6 +27,11 @@ void input_init(void)
     CIAB_DDRA &= (UBYTE)~0x07;
     REG16(R_POTGO) = 0xFF00;           /* linie POT jako wyjscia w stanie wysokim: drugi przycisk joysticka */
 }
+
+static const UBYTE menu_src[3] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ARROWS };
+
+/* czym naciesnieto ostatni FIRE w menu: JOY 1, JOY 0 albo STRZALKI (Return) */
+InputPort input_menu_fire_port(void) { return (InputPort)menu_src[menu_fire_src]; }
 
 static UBYTE decode_joy(UWORD d)
 {
@@ -105,12 +111,13 @@ void input_update(void)
         /* menu: joysticki w obu portach i strzalki; kazde zrodlo ma wlasne wykrywanie wcisniec,
          * wiec stale "wcisniete" bity z portu 0 (pusty port, mysz) nie blokuja tych samych
          * kierunkow ze strzalek i portu 1 */
-        static const UBYTE src[3] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ARROWS };
         UBYTE k;
         menu_edge = 0;
         for (k = 0; k < 3; k++) {
-            UBYTE m = port_state[src[k]];
-            menu_edge |= (UBYTE)(m & ~menu_prev[k]);
+            UBYTE m = port_state[menu_src[k]];
+            UBYTE e = (UBYTE)(m & ~menu_prev[k]);
+            if (e & BTN_FIRE) menu_fire_src = k;
+            menu_edge |= e;
             menu_prev[k] = m;
         }
     }
