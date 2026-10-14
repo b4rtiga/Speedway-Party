@@ -1398,7 +1398,7 @@ static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
 /* stan okienka: SW_NONE albo (klatka odlotu << 2) | lampka (0 zgaszona, 1 czerwona, 2 zielona); 3 = awaria */
 #define SW_FLY   20                /* klatki odlotu tasmy w okienku (0.4 s) - okienko znika po nich */
 #define SW_RISE  40                /* o ile tasma idzie w gore (az za gorna krawedz okienka) */
-#define SW_BOW   8                 /* ugiecie srodka w polowie odlotu */
+#define SW_BOW   2                 /* delikatne ugiecie srodka w polowie odlotu (px) */
 #define SW_TAPE_REST (SW_Y + 38)   /* tasma w spoczynku */
 #define SW_TAPE_H 7                /* dwie wstegi po 2 px + 3 px przerwy z tasiemkami */
 #define SW_TAPE_X0 (SW_X + 11)     /* miedzy slupkami maszyny */
