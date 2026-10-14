@@ -714,7 +714,7 @@ static void draw_hold(UBYTE *b)
     UBYTE m = not_holding_mask(), g;
     WORD y = PANEL_Y + 34;
     char s[48];
-    panel(b, PANEL_X, PANEL_Y + 10, PANEL_W, 92, U_PANEL, U_GOLD);
+    panel(b, PANEL_X, PANEL_Y + 10, PANEL_W, 76, U_PANEL, U_GOLD);
     text_draw_center(b, PANEL_Y + 18, "CZEKAMY NA START", U_GOLD, U_SHADOW);
     for (g = 0; g < MAX_RIDERS && y < PANEL_Y + 60; g++)
         if (m & (1 << g)) {
@@ -723,7 +723,6 @@ static void draw_hold(UBYTE *b)
             y += 12;
         }
     text_draw_center(b, PANEL_Y + 66, "TRZYMAJ LEWO LUB PRAWO", U_WHITE, U_SHADOW);
-    text_draw_center(b, PANEL_Y + 82, "JOY 1: JOYSTICK LUB STRZAŁKI", U_GREY, 0);
 }
 
 /* pauza: panel z pytaniem (na torze w prostokacie nakladek, w menu na srodku ekranu) */
