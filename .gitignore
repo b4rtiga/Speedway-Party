@@ -30,4 +30,3 @@ Thumbs.db
 # podglady robocze z generatorow (genart, genaudio, preview_roost, plot_wear)
 /build/
 /resources/
-/feature/

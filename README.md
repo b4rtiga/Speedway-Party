@@ -312,7 +312,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 | Sprawdzanie i testy | Clang z pakietu `ziglang`: kontrola typów kodu dla 68020 (atrapy NDK), symulator turnieju z tą samą logiką gry, zrzuty ekranu i trailer z prawdziwego kodu gry (emulacja buforów i duszków), testy gazety |
 | Grafika | pikselart toru, motocykli, traktorów i HUD generowany kodem; ilustracje (plansza tytułowa, podprowadzające, sędzia) przygotowane generatorem obrazów AI i przekonwertowane do palet gry narzędziami z repozytorium |
 | Dźwięk | próbki 8-bit (silnik, kibice, brzęczyk z taśmą, gwizdek) generowane w Pythonie; utwory menu jako gotowe miksy PCM 8-bit ~16 kHz |
-| Repozytorium i praca | git, GitHub; nowe funkcje na gałęziach `feature/*`, scalane po akceptacji; asystenci AI: Claude (Anthropic) i GPT-6 Astra |
+| Repozytorium i praca | git, GitHub; asystenci AI: Claude (Anthropic) i GPT-6 Astra |
 
 ---
 
