@@ -65,7 +65,7 @@ Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, 
 
 Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko zawodnicy z remisu, a pola startowe są losowane. Nie ma liczenia zwycięstw ani kombinowania, decyduje tor.
 
-Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę. Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
+Plansza tytułowa czeka na FIRE. Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę, a kursor stoi od razu na START TURNIEJU. Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
 
 Puste miejsca przy kanapie zajmują boty:
 - **Nowicjusz** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.
@@ -79,12 +79,12 @@ Zielone, brzęczyk, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśm
 
 Kto nie wytrzyma nerwowo i puści za wcześnie, usłyszy gwizdek: **TAŚMA!** Sędzia macha czerwoną flagą, a druga taśma w biegu oznacza wykluczenie. Kto z kolei przegapi zielone, będzie mielił kołem w miejscu, patrząc na plecy rywali.
 
-W prawym dolnym rogu ekranu, w małym okienku, widzisz maszynę startową: lampkę i taśmę. Na zielonym taśma płynnie odlatuje w górę, a okienko znika zaraz po ruszeniu.
+Okrągłe światła startowe świecą w pasku na dole ekranu. W prawym dolnym rogu toru, w małym okienku, widzisz maszynę startową: lampkę i taśmę. Na zielonym taśma płynnie odlatuje w górę, a okienko znika zaraz po ruszeniu.
 
 Raz na jakiś czas maszyna startowa odmawia posłuszeństwa: światła gasną, taśma znika, a sędzia startuje bieg **flagą narodową**. Trzeba wtedy patrzeć na jego rękę.
 
 ### 🚩 Flagi sędziego
-Sędzia w rogu ekranu pokazuje flagi jak na prawdziwych zawodach. Gdy nic się nie dzieje, mruga i zerka na boki zza przyciemnianych okularów.
+Sędzia w rogu ekranu, w koszulce w czarno-białe pasy, pokazuje flagi jak na prawdziwych zawodach: macha nimi uniesioną ręką. Gdy nic się nie dzieje, mruga i zerka na boki zza przyciemnianych okularów.
 
 | Flaga | Znaczenie |
 |---|---|
@@ -213,7 +213,7 @@ Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
 | Brak dźwięku | brak `data/*.raw` |
 | Brak muzyki w menu | `MUSIC = BRAK` w `build.cfg`, brak `data/music.raw` albo opcja MUZYKA: NIE w ustawieniach |
 | Gracze 3–4 na adapterze LPT nie reagują | bity adaptera w `src/input.c`, oznaczone „sprawdzić” |
-| Strzałki nie działają, bieg czeka na start | w szablonie WinUAE (`joyport1=kbd2`) strzałki i prawy Ctrl emulują **joystick w porcie 1** - wybierz w menu **JOY 1**, nie STRZAŁKI. Opcja STRZAŁKI czyta klawiaturę Amigi. Gdy bieg czeka na gracza, który nie trzyma kierunku, gra pokazuje podpowiedź |
+| Strzałki nie działają, bieg czeka na start | w szablonie WinUAE (`joyport1=kbd2`) strzałki i prawy Ctrl emulują **joystick w porcie 1**. Ustawienia **JOY 1** i **STRZAŁKI** czytają oba źródła (joystick w porcie 1 i strzałki z klawiatury), chyba że drugie wybrał inny gracz. Gdy bieg czeka na gracza, który nie trzyma kierunku, gra pokazuje podpowiedź |
 
 ---
 
@@ -224,7 +224,7 @@ Każdy gracz ma tylko **LEWO i PRAWO**. Gaz jest automatyczny.
 | | Gracz 1 | Gracz 2 | Gracz 3 | Gracz 4 |
 |---|---|---|---|---|
 | domyślnie | joystick port 1 | joystick port 0 | klawisze **Z / X** | klawisze **N / M** |
-| do wyboru w menu | + adapter 4 graczy (LPT), strzałki | | | |
+| do wyboru w menu | + adapter 4 graczy (LPT), strzałki (JOY 1 i strzałki działają zamiennie, jeśli nikt inny ich nie używa) | | | |
 
 - **Start spod taśmy:** trzymaj dowolny kierunek. Na zielonym świetle **puść**. Puszczenie przed zielonym to taśma (falstart). Trzymanie dłużej niż 0,3 s po zielonym to mielenie kołem w miejscu.
 - **Jazda:** LEWO łamie motocykl w łuk (do 40°), PRAWO to kontra (do ok. 14°, głównie prostuje). Szczegóły w sekcji [Mechanika gry](#mechanika-gry).
@@ -255,6 +255,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `python tools/mksocial.py` | miniaturka do podglądu linków na GitHubie, `art/social_preview.jpg` (1280×640, poniżej limitu 1 MB; wymaga ffmpeg) |
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` z prawdziwego kodu gry: menu, półtora okrążenia biegu i przejście do ilustracji tytułowej (wymaga ffmpeg) |
 | `make dist EXTRA=-DAUTOPLAY` | wersja testowa bez klawiatury: sama przechodzi przez menu i rozgrywa turniej botów (do sprawdzania w emulatorze) |
+| `make dist EXTRA=-DSHOW_LAG` | wersja pomiarowa: w HUD zgubione klatki biegu i szczytowy czas (w liniach obrazu) logiki, rysowania toru, duszków+HUD+dźwięku i czekania na Blitter |
 
 Geometria toru jest zapisana w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS` w `tools/genart.py`. Wartości (`HALF_L, R_IN, R_OUT`) muszą być identyczne.
 
@@ -267,17 +268,17 @@ src/
   main.c        pętla 50 Hz, maszyna stanów turnieju
   system.c      przejęcie i oddanie sprzętu, własne przerwanie VBL
   video.c       Copper-listy AGA: 8 bitplanów, paleta 24-bit, kolory per linia, HUD, podwójny bufor
-  sprites.c     duszki 32 px (pary attached), klatki motocykli
+  sprites.c     duszki 32 px (pary attached), klatki motocykli, kopia na motocykl i bufor, pozycja co 1/4 px
   blit.c        Blitter: wypełnianie, kopiowanie, kropki „cookie-cut” (szpryca)
   start.c       procedura startowa, taśma, refleks
   race.c        model jazdy: auto-gaz, uślizg, banda, kontakt, okrążenia
   ai.c          boty: Nowicjusz / Profesjonalista / Mistrz
   roost.c       szpryca i woda z polewaczki (cząsteczki Blittera)
-  track.c       geometria owalu, mapa przyczepności, wilgotność
+  track.c       geometria owalu, mapa przyczepności, wilgotność, wyjeżdżone ścieżki (przemalowanie w kolejce)
   tractors.c    przerwa na tor (traktory na duszkach)
   tournament.c  tabela 15 biegów, punkty, biegi nominowane
   ui.c, text.c  ekrany tekstowe, font z polskimi literami
-  hud.c         HUD: kolejność, okrążenie, światła, sędzia z flagą
+  hud.c         HUD: kolory kasków w kolejności, okrążenie, okrągłe światła, sędzia z flagą
   audio.c       Paula: silniki, kibice, brzęczyk, gwizdek, muzyka w menu
   input.c       joysticki, adapter LPT, klawiatura (CIA)
   assets.c      ładowanie data/ przed przejęciem sprzętu
@@ -295,7 +296,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 ## Znane ograniczenia / do zrobienia
 
 ### Stan
-- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS) w 50 FPS: plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Pojedyncze klatki gubią się jeszcze przy wejściu na bieg, przed startem.
+- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS): plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Menu chodzi w 50 FPS. W biegu gra wciąż czasem gubi klatki i ruch motocykli nie jest jeszcze w pełni płynny. Pomiar daje wersja `make dist EXTRA=-DSHOW_LAG` (liczby w HUD).
 - **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
 - Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
 - Gra zajmuje ok. 1,2–1,4 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka: 208 KiB „Black Motor” albo 428 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Na Amidze z Fast RAM muzyka ląduje w Fast RAM.
@@ -314,7 +315,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - więcej torów i stadionów
 - prawdziwe nagranie silnika żużlowego (z licencją)
 - test na prawdziwym A1200 i z oryginalnym Kickstartem 3.1
-- usunięcie zgubionych klatek przy wejściu na bieg
+- pełne 50 FPS w biegu (płynny ruch motocykli)
 - sprawdzenie zapisu rekordów toru (`records.dat`) na Amidze
 
 ---
