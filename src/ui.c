@@ -16,6 +16,7 @@
 #include "hw.h"
 #include "system.h"
 #include "ui.h"
+#include "hof.h"
 
 /* kolory palety interfejsu (track.c) */
 enum { U_PANEL = 96, U_PANEL2, U_BORDER, U_WHITE, U_RAINBOW, U_GOLD, U_GREY,
@@ -173,10 +174,10 @@ static void draw_title(UBYTE *b)
 
 /* ==================== WYBOR PO PLANSZY TYTULOWEJ ==================== */
 
-/* Na tle ilustracji tytulowej: JEDZIEMY! (dalej do ustawien), INSTRUKCJA albo CREDITS. */
-#define MENU_ITEMS 3
-#define MENU_Y0    156                      /* pierwsza pozycja; kolejne co MENU_DY */
-#define MENU_DY    22
+/* Na tle ilustracji tytulowej: JEDZIEMY! (dalej do ustawien), INSTRUKCJA, REKORDY albo CREDITS. */
+#define MENU_ITEMS 4
+#define MENU_Y0    146                      /* pierwsza pozycja; kolejne co MENU_DY */
+#define MENU_DY    20
 static UBYTE menu_row;
 
 void ui_menu_enter(UBYTE row) { menu_row = (UBYTE)(row < MENU_ITEMS ? row : 0); }
@@ -192,7 +193,7 @@ UBYTE ui_menu_update(void)
 
 static void draw_menu(UBYTE *b)
 {
-    static const char *items[MENU_ITEMS] = { "JEDZIEMY!", "INSTRUKCJA", "CREDITS" };
+    static const char *items[MENU_ITEMS] = { "JEDZIEMY!", "INSTRUKCJA", "REKORDY", "CREDITS" };
     UBYTE i;
     if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
     text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
@@ -221,6 +222,140 @@ static void draw_credits(UBYTE *b)
     text_draw_center(b, 176, "ŻYCZĘ UDANEJ ZABAWY", U_WHITE, U_SHADOW);
     text_draw_center(b, 188, "I SZEROKIEJ NA OSTATNIM ŁUKU!", U_GOLD, U_SHADOW);
     if (blink) text_draw_center(b, 238, "FIRE - POWRÓT", U_RAINBOW, U_SHADOW);
+}
+
+/* ======================== REKORDY TORU ========================== */
+
+static char *fmt_time(char *p, UWORD frames, BOOL hundredths);
+static UBYTE rawkey_char(UBYTE k);
+
+/* tabela TOP 5: "1. ABC  62.34" - puste miejsca jako kreski */
+static void draw_hof_list(UBYTE *b, WORD y, const char *title, const HofEntry *list)
+{
+    UBYTE i;
+    char s[24], *p;
+    text_draw_center(b, y, title, U_GOLD, U_SHADOW);
+    for (i = 0; i < HOF_N; i++) {
+        const HofEntry *e = &list[i];
+        WORD ry = (WORD)(y + 16 + i * 13);
+        p = text_uint(s, (ULONG)(i + 1), 1);
+        text_cat(p, ".");
+        text_draw(b, 104, ry, s, U_GREY, 0);
+        if (!e->frames) { text_draw(b, 128, ry, "---", U_GREY, 0); text_draw(b, 184, ry, "--.--", U_GREY, 0); continue; }
+        s[0] = e->init[0]; s[1] = e->init[1]; s[2] = e->init[2]; s[3] = 0;
+        text_draw(b, 128, ry, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
+        p = fmt_time(s, e->frames, TRUE);
+        text_cat(p, " S");
+        text_draw(b, 184, ry, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
+    }
+}
+
+static void draw_records(UBYTE *b)
+{
+    const HofTrack *h = &g_hof[g_tour.track.type % NUM_TRACKS];
+    char s[32];
+    text_draw_big_center(b, 8, "REKORDY", U_RAINBOW, U_SHADOW);
+    text_cat(text_cat(s, "TOR: "), track_name(g_tour.track.type));
+    text_draw_center(b, 34, s, U_WHITE, U_SHADOW);
+    draw_hof_list(b, 54, "NAJLEPSZE BIEGI", h->heat);
+    draw_hof_list(b, 140, "NAJLEPSZE OKRĄŻENIA", h->lap);
+    if (blink) text_draw_center(b, 238, "FIRE - POWRÓT", U_RAINBOW, U_SHADOW);
+}
+
+/* ---- wpis inicjalow: zawodnik-czlowiek, ktory wjechal do TOP 5 ---- */
+
+static const char init_chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-";
+static UBYTE init_rider, init_pos;
+static char  init_buf[HOF_INIT + 1];
+
+void ui_initials_enter(UBYTE rider)
+{
+    init_rider = rider;
+    init_pos = 0;
+    hof_default_initials(init_buf, g_tour.riders[rider].name);
+}
+
+const char *ui_initials(void) { return init_buf; }
+
+static char init_step(char c, BYTE dir)
+{
+    UBYTE i, n = sizeof(init_chars) - 1;
+    for (i = 0; i < n && init_chars[i] != c; i++) ;
+    if (i == n) i = 0;
+    return init_chars[(i + n + dir) % n];
+}
+
+/* GORA/DOL - znak, LEWO/PRAWO - pozycja, pisanie z klawiatury, FIRE/Return - zatwierdz */
+BOOL ui_initials_update(void)
+{
+    UBYTE m = input_menu(), k;
+    BOOL changed = FALSE, done = FALSE;
+    while ((k = key_get()) != 0xFF) {
+        UBYTE c;
+        if (k == KEY_RETURN) { done = TRUE; continue; }
+        if (k == KEY_BACKSPACE) {
+            if (init_pos) init_pos--;
+            init_buf[init_pos] = '-';
+            changed = TRUE;
+            continue;
+        }
+        c = rawkey_char(k);
+        if (c >= PL_FIRST && c < PL_FIRST + PL_COUNT) c = (UBYTE)"ACELNOSZZ"[c - PL_FIRST];
+        if (c && hof_valid_char((char)c)) {
+            init_buf[init_pos] = (char)c;
+            if (init_pos < HOF_INIT - 1) init_pos++;
+            changed = TRUE;
+        }
+    }
+    if (m & BTN_UP)    { init_buf[init_pos] = init_step(init_buf[init_pos], 1); changed = TRUE; }
+    if (m & BTN_DOWN)  { init_buf[init_pos] = init_step(init_buf[init_pos], -1); changed = TRUE; }
+    if ((m & BTN_LEFT) && init_pos > 0)             { init_pos--; changed = TRUE; }
+    if ((m & BTN_RIGHT) && init_pos < HOF_INIT - 1) { init_pos++; changed = TRUE; }
+    if (m & BTN_FIRE) done = TRUE;
+    if (changed) ui_invalidate();
+    return done;
+}
+
+/* miejsca zawodnika czekajace na inicjaly: "BIEG - 2. MIEJSCE" */
+static void initials_place(UBYTE *b, WORD y, const char *what, const HofEntry *list)
+{
+    UBYTE i;
+    char s[32], *p;
+    for (i = 0; i < HOF_N; i++)
+        if (list[i].frames && (UBYTE)list[i].init[HOF_INIT] == (UBYTE)(init_rider + 1)) {
+            p = text_cat(s, what);
+            p = text_uint(p, (ULONG)(i + 1), 1);
+            p = text_cat(p, ". MIEJSCE  ");
+            p = fmt_time(p, list[i].frames, TRUE);
+            text_cat(p, " S");
+            text_draw_center(b, y, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
+            return;
+        }
+}
+
+static void draw_initials(UBYTE *b)
+{
+    const HofTrack *h = &g_hof[g_tour.track.type % NUM_TRACKS];
+    char s[NAME_LEN + 1];
+    UBYTE i;
+    text_draw_big_center(b, 10, "REKORDY", U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 38, "WJECHAŁEŚ DO PIĄTKI NAJLEPSZYCH!", U_GOLD, U_SHADOW);
+    helmet_box(b, 96, 58, init_rider);
+    name_trunc(s, g_tour.riders[init_rider].name, 12);
+    text_draw(b, 120, 59, s, U_WHITE, U_SHADOW);
+    initials_place(b, 82, "BIEG - ", h->heat);
+    initials_place(b, 96, "OKRĄŻENIE - ", h->lap);
+    text_draw_center(b, 120, "WPISZ INICJAŁY:", U_GREY, 0);
+    for (i = 0; i < HOF_INIT; i++) {
+        WORD x = (WORD)(120 + i * 32);       /* tlo kursora od x-8: wyrownane do slowa */
+        char c[2];
+        c[0] = init_buf[i]; c[1] = 0;
+        if (i == init_pos && blink) blit_fill(b, x - 8, 136, 32, 26, U_CURSOR);
+        text_draw_big(b, x, 140, c, i == init_pos ? U_RAINBOW : U_WHITE, U_SHADOW);
+    }
+    text_draw_center(b, 184, "GÓRA/DÓŁ - ZNAK, LEWO/PRAWO - POZYCJA", U_GREY, 0);
+    text_draw_center(b, 198, "MOŻNA TEŻ PISAĆ Z KLAWIATURY", U_GREY, 0);
+    text_draw_center(b, 224, "FIRE - ZAPISZ", U_WHITE, U_SHADOW);
 }
 
 /* ========================== INSTRUKCJA =========================== */
@@ -1486,6 +1621,7 @@ static BOOL state_uses_track(GameState s)
 
 static UBYTE race_lines_ok[2];          /* lista biegu ma juz stale kolory linii */
 static BOOL  news_lines;                /* linie maja kolory gazety (papier) */
+static BOOL  bg_ready;                  /* line_bg ma gradient menu (tor i gazeta go nadpisuja) */
 
 static void update_line_colors(void)
 {
@@ -1493,6 +1629,7 @@ static void update_line_colors(void)
     if (state_uses_track(g_tour.state)) {
         if (race_lines_ok[g_video.back]) return;    /* stale - nie zapisuj co klatke */
         race_lines_ok[g_video.back] = 1;
+        bg_ready = FALSE;                           /* line_bg wspolne: po biegu gradient od nowa */
         /* ramka obrazu (overscan) w kolorze betonu trybun - bez czarnych pasow po bokach toru */
         for (i = 0; i < PLAY_H; i++) { line_bg[i] = BORDER_RACE; line_fg[i] = 0xFFF; }
     } else if (g_tour.state == GS_NEWS) {
@@ -1501,7 +1638,6 @@ static void update_line_colors(void)
         news_lines = TRUE;
         for (i = 0; i < FULL_H; i++) { line_bg[i] = NEWS_PAPER; line_fg[i] = NEWS_INK; }
     } else {
-        static BOOL bg_ready;
         UWORD k = (UWORD)((g_frame >> 1) % 48), r = 0;
         race_lines_ok[0] = race_lines_ok[1] = 0;
         if (news_lines) { news_lines = FALSE; bg_ready = FALSE; }
@@ -1534,6 +1670,7 @@ static void draw_blink_line(UBYTE *b)
     case GS_TABLE:   s = "FIRE - DALEJ"; break;
     case GS_PODIUM:  s = "FIRE - NOWY TURNIEJ"; break;
     case GS_CREDITS: s = "FIRE - POWRÓT"; break;
+    case GS_RECORDS: s = "FIRE - POWRÓT"; break;
     case GS_NEWS:    y = 240; s = "FIRE - NASTĘPNY TURNIEJ"; break;
     default: return;
     }
@@ -1564,6 +1701,7 @@ void ui_render(void)
         blink = new_blink;
         /* w menu miga jeden napis - odswiezany sam pasek; kursor edycji nazwiska - caly ekran */
         if (g_tour.state == GS_SETUP) { if (editing) ui_invalidate(); }
+        else if (g_tour.state == GS_INITIALS) ui_invalidate();             /* migajacy kursor */
         else if (!state_uses_track(g_tour.state)) blink_dirty[0] = blink_dirty[1] = 1;
     }
     video_set_menu(!state_uses_track(g_tour.state));   /* menu: caly ekran bez HUD */
@@ -1629,6 +1767,8 @@ panel_done:
     case GS_MENU:      draw_menu(b); break;
     case GS_CREDITS:   draw_credits(b); break;
     case GS_HELP:      draw_help(b); break;
+    case GS_RECORDS:   draw_records(b); break;
+    case GS_INITIALS:  draw_initials(b); break;
     case GS_NEWS:      draw_news(b); break;
     case GS_SETUP:     draw_setup(b); break;
     case GS_TABLE:     draw_table(b); break;

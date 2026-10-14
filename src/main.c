@@ -160,6 +160,42 @@ static void next_heat(void)
     enter(GS_TABLE);
 }
 
+/* po wyniku biegu: polewanie toru albo nastepny bieg */
+static void after_result(void)
+{
+    if (tournament_watering_after(g_tour.current_heat + 1)) {
+        grading_start_wet = g_tour.track.wetness;
+        g_grading_progress = 0;
+        roost_reset();
+        tractors_begin();
+        enter(GS_TRACK_GRADING);
+    } else {
+        track_dry_step();
+        next_heat();
+    }
+}
+
+/* Gracze, ktorzy wjechali do TOP 5 rekordow toru, po kolei wpisuja inicjaly. */
+static UBYTE initials_from;
+static void next_initials(void)
+{
+    UBYTE r;
+    for (r = initials_from; r < MAX_RIDERS; r++)
+        if (g_tour.riders[r].control == CTRL_HUMAN && records_needs_initials(r)) {
+            initials_from = (UBYTE)(r + 1);
+            ui_initials_enter(r);
+            enter(GS_INITIALS);
+            return;
+        }
+    after_result();
+}
+
+static void initials_done(void)
+{
+    records_set_initials((UBYTE)(initials_from - 1), ui_initials());
+    next_initials();
+}
+
 BOOL g_paused, g_pause_quit;
 
 /* ESC: pauza z pytaniem. W turnieju - "wyjsc do menu glownego?", w menu glownym -
@@ -187,8 +223,13 @@ static BOOL handle_pause(void)
         enter(GS_MENU);
         return TRUE;
     }
-    if (edge && (g_tour.state == GS_CREDITS || g_tour.state == GS_HELP)) {   /* ESC: powrot do wyboru */
-        ui_menu_enter((UBYTE)(g_tour.state == GS_HELP ? 1 : 2));
+    if (edge && g_tour.state == GS_INITIALS) {       /* ESC: zostaja inicjaly z ekranu */
+        initials_done();
+        return TRUE;
+    }
+    if (edge && (g_tour.state == GS_CREDITS || g_tour.state == GS_HELP || g_tour.state == GS_RECORDS)) {
+        /* ESC: powrot do wyboru */
+        ui_menu_enter((UBYTE)(g_tour.state == GS_HELP ? 1 : g_tour.state == GS_RECORDS ? 2 : 3));
         enter(GS_MENU);
         return TRUE;
     }
@@ -222,12 +263,22 @@ static void update_state(void)
             UBYTE pick = ui_menu_update();
             if (pick == 1) enter(GS_SETUP);
             else if (pick == 2) { ui_help_enter(0); enter(GS_HELP); }
-            else if (pick == 3) enter(GS_CREDITS);
+            else if (pick == 3) enter(GS_RECORDS);
+            else if (pick == 4) enter(GS_CREDITS);
         }
         break;
 
     case GS_CREDITS:                     /* bez limitu czasu: FIRE / Return (albo ESC) wraca */
+        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(3); enter(GS_MENU); }
+        break;
+
+    case GS_RECORDS:                     /* tabela rekordow: FIRE / Return (albo ESC) wraca */
         if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(2); enter(GS_MENU); }
+        break;
+
+    case GS_INITIALS:                    /* wpis inicjalow; swiezy FIRE po chwili */
+        if (state_timer > FPS / 2) { if (ui_initials_update()) initials_done(); }
+        else while (key_get() != 0xFF) ;  /* wcisniecia sprzed ekranu nie wpisuja znakow */
         break;
 
     case GS_HELP:                        /* LEWO/PRAWO - strony, FIRE / Return (albo ESC) wraca */
@@ -277,16 +328,8 @@ static void update_state(void)
 
     case GS_HEAT_RESULT:
         if (state_timer >= RESULT_FRAMES || (state_timer > RESULT_MIN && ui_confirm())) {
-            if (tournament_watering_after(g_tour.current_heat + 1)) {
-                grading_start_wet = g_tour.track.wetness;
-                g_grading_progress = 0;
-                roost_reset();
-                tractors_begin();
-                enter(GS_TRACK_GRADING);
-            } else {
-                track_dry_step();
-                next_heat();
-            }
+            initials_from = 0;
+            next_initials();
         }
         break;
 

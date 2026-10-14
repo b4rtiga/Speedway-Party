@@ -33,7 +33,10 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
 - najlepsza linia (ciemniejsza, wyjezdzona sciezka) jest inna na kazdych zawodach;
   na niej uslizg mniej hamuje
 - plansza tytulowa czeka na FIRE / Return, potem JEDZIEMY!, INSTRUKCJA
-  (zasady, start, linia jazdy) albo CREDITS (tworcy)
+  (zasady, start, linia jazdy), REKORDY (TOP 5 biegow i okrazen) albo CREDITS
+- gracz w TOP 5 wpisuje inicjaly: GORA/DOL znak, LEWO/PRAWO pozycja, FIRE zapisz
+- rekordy zapisuja sie do halloffame.dat przy wyjsciu z gry (ESC na ekranie
+  wyboru i ESC jeszcze raz); reset Amigi w trakcie gry traci wyniki z sesji
 - menu: joystick w porcie 1 albo 0 (FIRE = zatwierdz) albo strzalki + Return
 - ESC albo drugi przycisk joysticka = pauza / wyjscie
 

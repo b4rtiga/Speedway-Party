@@ -50,9 +50,10 @@ Plansza tytułowa czeka na FIRE. Potem wybierasz:
 
 - **JEDZIEMY!** – przejście do ustawień turnieju,
 - **INSTRUKCJA** – trzy strony: zasady turnieju i flagi, start i sterowanie, linia jazdy ze schematem toru (LEWO/PRAWO zmienia stronę),
+- **REKORDY** – tabele rekordów toru,
 - **CREDITS** – plansza twórców.
 
-Z instrukcji i twórców wracasz FIRE albo ESC.
+Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ![Wybór po planszy tytułowej](../art/screen_18_menu.png)
 
@@ -83,6 +84,18 @@ Po biegu – wyniki z punktami i czasem. Po biegach 4, 7, 11 i 13 traktory równ
 ![Wyniki biegu](../art/screen_07_result.png)
 
 ![Gazeta po zawodach](../art/screen_23_gazeta.png)
+
+### Rekordy toru
+
+Tor ma dwie tabele: **5 najlepszych biegów** (czas całych 4 okrążeń) i **5 najlepszych okrążeń**. Po każdym biegu wpada do nich każdy, kto dojechał do mety i ma wystarczająco dobry czas – także boty (jako `CPU`). Przy równym czasie wyżej zostaje ten, kto wpisał się wcześniej.
+
+Gracz, który wjechał do piątki, po wynikach biegu wpisuje **trzy znaki inicjałów** (domyślnie pierwsze litery nazwiska): GÓRA/DÓŁ zmienia znak (A–Z, 0–9, `-`), LEWO/PRAWO pozycję, można też pisać z klawiatury (Backspace cofa). FIRE albo Return zapisuje, ESC zostawia to, co jest na ekranie. Gdy rekord pobiło kilku graczy, wpisują po kolei.
+
+Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zostaje jako `halloffame.bak`) przy wyjściu z gry: ESC na ekranie wyboru i ESC jeszcze raz. Reset albo wyłączenie Amigi w trakcie gry traci wyniki z tej sesji, a na zabezpieczonej dyskietce zapis się po cichu nie udaje. Stary plik `records.dat` jest wczytywany raz, przy pierwszym starcie.
+
+![Wpis inicjałów](../art/screen_24_inicjaly.png)
+
+![Rekordy toru](../art/screen_25_rekordy.png)
 
 ## 4. Zasady turnieju
 
@@ -244,7 +257,7 @@ Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; 
 | `hud.c` | pasek na dole ekranu, sędzia |
 | `audio.c` | Paula: silniki, kibice, efekty, muzyka |
 | `input.c` | joysticki, klawiatura, adapter LPT |
-| `assets.c`, `records.c` | wczytywanie danych, rekordy toru (`records.dat`) |
+| `assets.c`, `records.c`, `hof.c` | wczytywanie danych; rekordy toru TOP 5 (`halloffame.dat`: zapis, kopia, import starego `records.dat`; logika tabel w `hof.c`) |
 
 ### Dane (katalog data/)
 
@@ -320,7 +333,7 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 - Adapter 4 graczy na porcie równoległym nie był testowany.
 - Tylko PAL.
 
-**Do zrobienia:** rekordy toru z tabelą TOP 5 i inicjałami, tryb treningu, więcej torów, test na prawdziwym A1200.
+**Do zrobienia:** tryb treningu, więcej torów, test na prawdziwym A1200.
 
 ## 13. Jak aktualizować tę dokumentację
 

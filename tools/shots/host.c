@@ -1,6 +1,7 @@
 /* host.c - podmiany sprzetu i systemu dla zrzutow ekranu na PC:
  * Blitter w oprogramowaniu (te same operacje co blit.c), przechwytywanie palet,
  * kolorow per linia i wskaznikow duszkow, ladowanie data/ zamiast PROGDIR:data/. */
+#include <dos/dosextens.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -67,6 +68,9 @@ BOOL g_music_enabled = TRUE;                 /* audio.c (opcja w ustawieniach) *
 BPTR Open(CONST_STRPTR name, LONG mode) { (void)name; (void)mode; return 0; }   /* records.c: bez zapisu */
 LONG Write(BPTR f, CONST APTR b, LONG n) { (void)f; (void)b; return n; }
 BOOL Close(BPTR f) { (void)f; return TRUE; }
+BOOL Rename(CONST_STRPTR a, CONST_STRPTR b) { (void)a; (void)b; return FALSE; }
+BOOL DeleteFile(CONST_STRPTR a) { (void)a; return FALSE; }
+struct Task *FindTask(CONST_STRPTR n) { static struct Process p; (void)n; return (struct Task *)&p; }
 void sfx_buzzer(void) {}
 void sfx_whistle(void) {}
 UBYTE input_menu(void) { return 0; }

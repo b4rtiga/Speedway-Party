@@ -12,4 +12,5 @@ struct Library *OpenLibrary(CONST_STRPTR libName, ULONG version);
 void CloseLibrary(struct Library *library);
 ULONG AvailMem(ULONG req);
 void StackSwap(struct StackSwapStruct *newStack);
+struct Task *FindTask(CONST_STRPTR name);
 #endif

@@ -13,6 +13,7 @@
 #include "game.h"
 #include "video.h"
 #include "ui.h"
+#include "hof.h"
 
 extern RGB24 cur_play[256], cur_hud[32], cur_menu[256];
 extern UWORD cap_bg[FULL_H], cap_fg[FULL_H];
@@ -330,6 +331,19 @@ static int screenshots(void)
     g_frame = 0;                      /* faza migania: napis o rekordzie */
     g_tour.state = GS_HEAT_RESULT; render(); hud_update(); shot("07_result", FALSE);
     g_frame = 16;
+
+    {
+        /* wpis inicjalow: zawodnik 0 jako czlowiek z 2. czasem biegu i rekordem okrazenia */
+        HofTrack *h = &g_hof[g_tour.track.type % NUM_TRACKS];
+        char in[HOF_INIT + 1];
+        hof_default_initials(in, g_tour.riders[0].name);
+        hof_insert(h->heat, (UWORD)(h->heat[0].frames ? h->heat[0].frames + 7 : 3200), in, 1);
+        hof_insert(h->lap, (UWORD)(h->lap[0].frames ? h->lap[0].frames - 3 : 640), in, 1);
+        ui_initials_enter(0);
+        g_tour.state = GS_INITIALS; render(); shot("24_inicjaly", FALSE);
+        hof_set_initials(0, "B4R");
+        g_tour.state = GS_RECORDS;  render(); shot("25_rekordy", FALSE);
+    }
 
     g_tour.state = GS_TRACK_GRADING;
     roost_reset();
