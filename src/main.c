@@ -232,7 +232,7 @@ static void update_state(void)
 #ifdef AUTOPLAY
         /* test bez klawiatury: po 3 s pokaz (same boty) i start turnieju */
         if (state_timer == 3 * FPS) { g_tour.num_humans = 0; tournament_default_names(); ui_invalidate(); }
-        if (state_timer > 4 * FPS || ui_setup_update()) {
+        if (state_timer > 4 * FPS) {        /* bez reakcji na klawisze - nic nie zepsuje testu */
 #else
         if (ui_setup_update()) {
 #endif
@@ -385,9 +385,27 @@ static int game_main(void)
 #ifdef SHOW_LAG
         UWORD v0, v1, v2, v3;
 #endif
+#ifdef SHOW_START
+        BOOL start_win;
+#endif
         system_wait_vbl();
 #ifdef SHOW_LAG
         v0 = hw_vpos();
+#endif
+#ifdef SHOW_START
+        {
+            /* okno startu (zielone + 20 klatek): kolumna 0 = zgubione klatki w oknie */
+            extern UWORD g_prof[4];
+            static ULONG last_lag;
+            const Heat *hh = &g_tour.heat;
+            UWORD lost;
+            if (g_lag < last_lag) last_lag = 0;          /* licznik wyzerowany na nowy bieg */
+            lost = (UWORD)(g_lag - last_lag);
+            last_lag = g_lag;
+            start_win = (BOOL)(g_tour.state == GS_HEAT && (hh->phase == HEAT_TAPE_UP ||
+                               (hh->phase == HEAT_RACING && hh->race_frames < 20)));
+            if (start_win) g_prof[0] = (UWORD)(g_prof[0] + lost);
+        }
 #endif
         input_update();
         update_state();
@@ -414,7 +432,18 @@ static int game_main(void)
          * czekanie na Blitter */
         /* kolumny 0-2: czesci logiki biegu (race.c), 3: cala logika (wejscie + update_state) */
         (void)v2; (void)v3;
+#ifndef SHOW_START
         prof_add(3, v0, v1);
+#else
+        if (start_win) {                 /* szczyty w oknie startu: logika, rysowanie, duszki+HUD */
+            extern UWORD g_prof[4];
+            UWORD d1 = (UWORD)(v1 >= v0 ? v1 - v0 : v1 + 313 - v0), d2 = (UWORD)(v2 >= v1 ? v2 - v1 : v2 + 313 - v1),
+                  d3 = (UWORD)(v3 >= v2 ? v3 - v2 : v3 + 313 - v2);
+            if (d1 > g_prof[1]) g_prof[1] = d1;
+            if (d2 > g_prof[2]) g_prof[2] = d2;
+            if (d3 > g_prof[3]) g_prof[3] = d3;
+        }
+#endif
 #endif
         video_swap();
     }

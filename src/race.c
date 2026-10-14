@@ -289,7 +289,11 @@ void race_update(void)
      * 120-170 linii wiazki (pomiar w WinUAE) i ruch gubil klatki. */
     track_tick(0);
 #ifdef SHOW_LAG
+#ifndef SHOW_START
     prof_add(0, p0, p1); prof_add(1, p1, p2); prof_add(2, p2, hw_vpos());
+#else
+    (void)p0; (void)p1; (void)p2;
+#endif
 #endif
 
     /* ostatni na mecie -> jeszcze 2 s jazdy wybiegu, dopiero potem plansza wynikow */

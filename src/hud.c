@@ -27,6 +27,9 @@ typedef enum { FLAG_NONE = 0, FLAG_RED, FLAG_LAST_LAP, FLAG_CHECKERED, FLAG_YELL
                FLAG_NATIONAL } Flag;
 
 static struct { UBYTE order[4], lap, lights, flag, wave, menu; UWORD lag; } shown;
+#ifdef SHOW_LAG
+static UWORD shown_prof[4] = { 999, 999, 999, 999 };   /* diagnostyka: liczby profilu w HUD */
+#endif
 
 static void hplot(WORD x, WORD y, UBYTE c)
 {
@@ -417,7 +420,6 @@ void hud_update(void)
     {
         /* profil (linie wiazki, pod swiatlami): logika, rysowanie toru, duszki+HUD+dzwiek, Blitter */
         extern UWORD g_prof[4];
-        static UWORD shown_prof[4] = { 999, 999, 999, 999 };
         UBYTE k;
         for (k = 0; k < 4; k++)
             if (g_prof[k] != shown_prof[k]) {
@@ -447,6 +449,9 @@ void hud_update(void)
         if (cached & (1 << wave)) ref_cache_io(wave, FALSE);
         else { draw_referee(); ref_cache_io(wave, TRUE); cached |= (UBYTE)(1 << wave); }
         face_drawn = 0xFF;                               /* portret przerysowany - twarz od nowa */
+#ifdef SHOW_LAG
+        shown_prof[3] = 999;                             /* rog sedziego zakryl 4. liczbe profilu */
+#endif
     }
     face_update();
 }

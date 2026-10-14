@@ -30,6 +30,7 @@ enum { U_PANEL = 96, U_PANEL2, U_BORDER, U_WHITE, U_RAINBOW, U_GOLD, U_GREY,
 typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE, OV_HOLD } Overlay;
 
 static UBYTE serial = 1, drawn_serial[2];
+static UBYTE panel_ov[2];                /* nakladka narysowana w panelu bufora (OV_NONE = pusty) */
 static UBYTE buf_is_track[2];
 static UBYTE tape_drawn[2] = { 0xFF, 0xFF };
 static UBYTE blink;
@@ -1165,13 +1166,6 @@ static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c)
         if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
 }
 
-static void restore_px(UBYTE *buf, WORD x, WORD y)
-{
-    LONG o = (LONG)y * PLAY_STRIDE + (x >> 3);
-    UBYTE pl;
-    for (pl = 0; pl < PLAY_DEPTH; pl++, o += ROW_BYTES) buf[o] = g_video.background[o];
-}
-
 static UBYTE tape_style(void)
 {
     if (g_tour.state != GS_HEAT || g_tour.heat.emergency) return TAPE_GONE;   /* awaria: start z flagi */
@@ -1192,8 +1186,12 @@ static void render_tape(UBYTE *buf)
     if (tape_drawn[g_video.back] == style) return;
     hw_wait_blit();
     for (y = t->tape_y0; y <= t->tape_y1; y++) {
-        WORD k;
-        for (k = -3; k <= 4; k += 1) restore_px(buf, x + k, y);
+        /* tlo pod tasma (x-3..x+4) wraca bajtami: 1-2 bajty na plan zamiast 8 pikseli x 8 planow */
+        WORD bx, bx0 = (WORD)((x - 3) >> 3), bx1 = (WORD)((x + 4) >> 3);
+        LONG o = (LONG)y * PLAY_STRIDE;
+        UBYTE pl;
+        for (pl = 0; pl < PLAY_DEPTH; pl++, o += ROW_BYTES)
+            for (bx = bx0; bx <= bx1; bx++) buf[o + bx] = g_video.background[o + bx];
         switch (style) {
         case 0:                                         /* napieta: 3 px bieli + cien */
             plot(buf, x - 1, y, 1); plot(buf, x, y, 1); plot(buf, x + 1, y, 1);
@@ -1340,6 +1338,10 @@ static WORD tape_rows[2][2];        /* wiersze tasmy narysowanej w buforze (do z
  * srodek zostaje troche w tyle (luk w dol najwiekszy w polowie odlotu). */
 static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t)
 {
+    /* Najpierw maski wierszy (biale wstegi i srebrne tasiemki) w pamieci, potem zapis do ekranu
+     * bajtami: dawniej kazdy piksel tasmy osobno w 8 planach - w klatkach odlotu, czyli dokladnie
+     * w chwili startu, to gubilo klatki. */
+    static UBYTE mw[SW_H][SW_W / 8], ms[SW_H][SW_W / 8];      /* wiersze okienka, bajty od SW_X */
     WORD x, r, half = (SW_TAPE_X1 - SW_TAPE_X0) / 2, mid = SW_TAPE_X0 + half, lo = 32767, hi = -1;
     WORD q = (WORD)(SW_FLY - t);
     LONG rise = (LONG)SW_RISE * (SW_FLY * SW_FLY - q * q) / (SW_FLY * SW_FLY);
@@ -1348,17 +1350,46 @@ static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t)
     for (x = SW_TAPE_X0; x < SW_TAPE_X1; x++) {
         WORD d = (WORD)(x - mid);
         WORD yy = (WORD)(SW_TAPE_REST - rise + bow_max * (half * half - d * d) / (half * half));
+        WORD bx = (WORD)((x - SW_X) >> 3);
+        UBYTE bit = (UBYTE)(0x80 >> ((x - SW_X) & 7));
+        BOOL tie = (BOOL)(((x - SW_TAPE_X0) & 7) == 3);
         for (r = 0; r < SW_TAPE_H; r++) {
-            WORD py = (WORD)(yy + r);
-            UBYTE c;
-            if (py < top || py >= bottom) continue;
+            WORD py = (WORD)(yy + r), row;
             /* dwie biale wstegi (wiersze 0-1 i 5-6), miedzy nimi co 8 px cienka tasiemka */
-            if (r < 2 || r >= SW_TAPE_H - 2) c = U_WHITE;
-            else if (((x - SW_TAPE_X0) & 7) == 3) c = U_SILVER;
-            else continue;
-            plot(b, x, py, c);
-            if (py < lo) lo = py;
-            if (py > hi) hi = py;
+            BOOL white = (BOOL)(r < 2 || r >= SW_TAPE_H - 2);
+            if (py < top || py >= bottom || (!white && !tie)) continue;
+            row = (WORD)(py - SW_Y);
+            if (py < lo) {                                 /* nowy wiersz: maski od zera */
+                WORD k, z;
+                for (z = py; z < (lo == 32767 ? py + 1 : lo); z++)
+                    for (k = 0; k < SW_W / 8; k++) mw[z - SW_Y][k] = ms[z - SW_Y][k] = 0;
+                lo = py;
+            }
+            if (py > hi) {
+                WORD k, z;
+                for (z = (WORD)(hi < 0 ? py : hi + 1); z <= py; z++)
+                    for (k = 0; k < SW_W / 8; k++) mw[z - SW_Y][k] = ms[z - SW_Y][k] = 0;
+                hi = py;
+            }
+            if (white) mw[row][bx] |= bit; else ms[row][bx] |= bit;
+        }
+    }
+    if (hi >= 0) {
+        WORD y;
+        hw_wait_blit();
+        for (y = lo; y <= hi; y++) {
+            const UBYTE *w = mw[y - SW_Y], *s = ms[y - SW_Y];
+            UBYTE *row = b + (LONG)y * PLAY_STRIDE + SW_X / 8;
+            WORD k;
+            for (k = 0; k < SW_W / 8; k++) {
+                UBYTE m = (UBYTE)(w[k] | s[k]), pl;
+                UBYTE *d = row + k;
+                if (!m) continue;
+                for (pl = 0; pl < PLAY_DEPTH; pl++, d += ROW_BYTES) {
+                    UBYTE v = (UBYTE)((((U_WHITE >> pl) & 1) ? w[k] : 0) | (((U_SILVER >> pl) & 1) ? s[k] : 0));
+                    *d = (UBYTE)((*d & ~m) | v);
+                }
+            }
         }
     }
     tape_rows[bi][0] = hi >= 0 ? lo : -1;
@@ -1515,6 +1546,7 @@ void ui_render(void)
             track_forget_wear(bi);
             startwin_drawn[bi] = SW_NONE;
             drawn_serial[bi] = 0;
+            panel_ov[bi] = OV_NONE;                       /* swiezy tor - panel pusty */
         }
         track_flush_wear(bi, b);                          /* wyjezdzone sciezki */
         update_startwin(b, bi);                           /* przed nakladkami - nie tnie panelu */
@@ -1525,8 +1557,15 @@ void ui_render(void)
             if (ov != last_ov || mask != last_mask) { last_ov = ov; last_mask = mask; ui_invalidate(); }
         }
         if (drawn_serial[bi] != serial) {
+            /* Panel nakladek (224x112, 8 planow) kopiowany z tla tylko, gdy jest co pokazac albo
+             * zdjac - zmiany fazy startu (czerwone, zielone, ruszenie) bez nakladki go nie ruszaja.
+             * Dawniej 4 takie kopie w pierwszych klatkach po zielonym gubily klatki na starcie. */
+            UBYTE ov = (UBYTE)current_overlay();
+            drawn_serial[bi] = serial;
+            if (ov == OV_NONE && panel_ov[bi] == OV_NONE) goto panel_done;
+            panel_ov[bi] = ov;
             blit_copy(b, g_video.background, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
-            switch (current_overlay()) {
+            switch (ov) {
             case OV_FALSE_START: draw_false_start(b); break;
             case OV_RESULT:      draw_result(b); break;
             case OV_GRADING:     draw_grading(b); break;
@@ -1534,8 +1573,8 @@ void ui_render(void)
             case OV_HOLD:        draw_hold(b); break;
             default: break;
             }
-            drawn_serial[bi] = serial;
         }
+panel_done:
         render_tape(b);
         return;
     }
