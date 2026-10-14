@@ -13,6 +13,7 @@
 #include "game.h"
 #include "video.h"
 #include "ui.h"
+#include "hw.h"
 #include "hof.h"
 
 extern RGB24 cur_play[256], cur_hud[32], cur_menu[256];
@@ -165,6 +166,8 @@ static void nominate_all(void)
  * procedury startowej do mety, wyniki biegu i tabela z punktacja. Same boty.
  * ------------------------------------------------------------------------------ */
 static long trailer_frames;
+static FILE *trailer_audio;              /* TRAILER_AUDIO: okres i glosnosc kanalow silnikow co klatke */
+static void close_trailer_audio(void) { fclose(trailer_audio); }
 
 static void tframe(BOOL sprites)
 {
@@ -178,6 +181,13 @@ static void tframe(BOOL sprites)
     hud_update();
     compose(sprites);
     fwrite(rgb, 1, sizeof(rgb), stdout);
+    audio_update();                               /* prawdziwa logika dzwieku gry (audio.c) */
+    if (trailer_audio) {
+        /* rejestry Pauli AUD0/AUD1: PER (+6), VOL (+8) - mikser: tools/trailer_audio.py */
+        UWORD r[4];
+        r[0] = REG16(0x0A6); r[1] = REG16(0x0A8); r[2] = REG16(0x0B6); r[3] = REG16(0x0B8);
+        fwrite(r, sizeof(r), 1, trailer_audio);
+    }
     trailer_frames++;
     g_video.front = g_video.back;                 /* podwojny bufor jak na Amidze */
     g_video.back ^= 1;
@@ -204,6 +214,13 @@ static int trailer(void)
     ui_init();
     hud_init();
     g_frame = 0;
+    {
+        const char *ap = getenv("TRAILER_AUDIO");
+        if (ap) trailer_audio = fopen(ap, "wb");
+        if (trailer_audio) atexit(close_trailer_audio);
+    }
+    audio_init();
+    audio_start();
 
     tenter(GS_TITLE);  thold(5 * FPS, FALSE);                 /* plansza tytulowa */
     ui_menu_enter(0);

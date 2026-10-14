@@ -23,6 +23,9 @@ const UWORD *cap_spr[8];
 APTR AllocMem(ULONG size, ULONG flags) { (void)flags; return calloc(1, size); }
 void FreeMem(APTR p, ULONG size) { (void)size; free(p); }
 
+/* audio.c: probki nie sa potrzebne - trailer czyta tylko rejestry okresu i glosnosci */
+void *asset_load_alloc(const char *name, ULONG *size, ULONG memflags) { (void)name; (void)size; (void)memflags; return 0; }
+
 BOOL asset_load(const char *name, void *dst, LONG size)
 {
     char path[256];
@@ -64,7 +67,6 @@ void video_set_menu(BOOL menu) { g_video.menu = (UBYTE)(menu ? 1 : 0); }
 void video_set_sprite(UBYTE n, const UWORD *data) { cap_spr[n] = data; }
 UBYTE *video_backbuffer(void) { return g_video.play[g_video.back]; }
 
-BOOL g_music_enabled = TRUE;                 /* audio.c (opcja w ustawieniach) */
 BPTR Open(CONST_STRPTR name, LONG mode) { (void)name; (void)mode; return 0; }   /* records.c: bez zapisu */
 LONG Read(BPTR f, APTR b, LONG n) { (void)f; (void)b; (void)n; return -1; }
 LONG Write(BPTR f, CONST APTR b, LONG n) { (void)f; (void)b; return n; }
@@ -72,8 +74,6 @@ BOOL Close(BPTR f) { (void)f; return TRUE; }
 BOOL Rename(CONST_STRPTR a, CONST_STRPTR b) { (void)a; (void)b; return FALSE; }
 BOOL DeleteFile(CONST_STRPTR a) { (void)a; return FALSE; }
 struct Task *FindTask(CONST_STRPTR n) { static struct Process p; (void)n; return (struct Task *)&p; }
-void sfx_buzzer(void) {}
-void sfx_whistle(void) {}
 UBYTE input_menu(void) { return 0; }
 UBYTE key_get(void) { return 0xFF; }
 BOOL  key_down(UBYTE k) { (void)k; return FALSE; }

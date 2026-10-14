@@ -107,11 +107,15 @@ static inline UWORD hw_vpos(void)
 /* czeka n zmian linii wiazki (64 us kazda) - poprawnie takze przez koniec ramki (311 -> 0) */
 static inline void hw_wait_lines(UWORD n)
 {
+#ifdef HOST_SIM
+    (void)n;                                 /* PC (zrzuty, trailer): wiazka stoi - nie czekamy */
+#else
     UWORD last = hw_vpos();
     while (n) {
         UWORD v = hw_vpos();
         if (v != last) { last = v; n--; }
     }
+#endif
 }
 
 #endif
