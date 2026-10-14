@@ -234,7 +234,7 @@ Na gołym A1200 program i dane siedzą w Chip RAM, który współdzieli z układ
 
 ### Dźwięk (Paula)
 
-Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; w menu – muzyka w podwójnym buforze), kibice, efekty (brzęczyk z trzaskiem taśmy, gwizdek, okrzyk trybun, gdy zwycięzca przecina metę). Silnik to pętla 8 cykli zapłonu z nagrania (`data/engine.raw`); wysokość tonu zmienia się z obrotami przez okres odtwarzania Pauli. Okrzyk trybun (`data/cheer.raw`, 2,6 s) generuje `tools/genaudio.py`; jeśli w `src/` leży nagranie `crowd_cheer.wav`, okrzyk powstaje z niego (mono, 11 025 Hz, najwyżej 3 s).
+Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; w menu – muzyka w podwójnym buforze), kibice, efekty (brzęczyk z trzaskiem taśmy, gwizdek, okrzyk trybun, gdy prowadzący wjeżdża na ostatnią prostą – ok. 0,6 s przed metą). Silnik to pętla 8 cykli zapłonu z nagrania (`data/engine.raw`); wysokość tonu zmienia się z obrotami przez okres odtwarzania Pauli. Okrzyk trybun (`data/cheer.raw`, 2,6 s) generuje `tools/genaudio.py`; jeśli w `src/` leży nagranie `crowd_cheer.wav`, okrzyk powstaje z niego (mono, 11 025 Hz, najwyżej 3 s).
 
 ### Moduły
 

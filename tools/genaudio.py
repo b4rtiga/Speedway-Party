@@ -5,7 +5,7 @@
   data/crowd.raw    gwar kibicow, petla bez szwu, 11025 Hz
   data/buzzer.raw   start: brzeczyk + puszczenie tasmy (metaliczne "klak" i swist gumy), 0.7 s, 11025 Hz
   data/whistle.raw  gwizdek sedziego z "groszkiem" 0.8 s, 22050 Hz
-  data/cheer.raw    okrzyk trybun, gdy zwyciezca przecina mete, 2.6 s, 11025 Hz - syntetyczny;
+  data/cheer.raw    okrzyk trybun, gdy prowadzacy wjezdza na ostatnia prosta, 2.6 s, 11025 Hz - syntetyczny;
                     gdy jest nagranie CHEER_WAV, cheer.raw powstaje z niego (mono, 11025 Hz, do 3 s)
 Podglady: art/*.wav (engine_sweep.wav symuluje Paule: obroty od wolnych do maksymalnych).
 Uruchomienie: python tools/genaudio.py"""

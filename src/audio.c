@@ -3,7 +3,7 @@
  *   kanal 0 (L): silnik lidera          - petla 8 zaplonow, okres z obrotow
  *   kanal 1 (P): silnik drugiego        - jw.
  *   kanal 2 (P): gwar kibicow           - petla, glosnosc plynnie do celu
- *   kanal 3 (L): efekty jednorazowe     - brzeczyk, gwizdek, okrzyk trybun na mecie
+ *   kanal 3 (L): efekty jednorazowe     - brzeczyk, gwizdek, okrzyk trybun na ostatniej prostej
  *
  * Jednorazowy efekt na Pauli: start DMA laduje (latch) LC/LEN do licznikow,
  * wiec w nastepnej klatce wpisujemy do LC/LEN 2-slowowa cisze - po koncu
@@ -77,6 +77,7 @@ static UBYTE  sfx_relatch;                /* klatki do podmiany LC/LEN na cisze 
 static UWORD eng_rpm[2], eng_vol[2];
 static UBYTE crowd_vol, crowd_target, crowd_boost;
 static UBYTE last_leader = 0xFF, last_finished;
+static BOOL  cheered;                     /* okrzyk na ostatniej prostej juz byl w tym biegu */
 
 BOOL audio_init(void)
 {
@@ -360,17 +361,32 @@ static void update_crowd(void)
                 if (last_leader != 0xFF && last_leader != i && h->race_frames > 3 * FPS) crowd_boost = 60;
                 last_leader = i;
             }
-        if (h->finished_count != last_finished) {                       /* meta */
-            if (h->finished_count == 1) {                               /* zwyciezca: okrzyk trybun */
+        if (h->phase == HEAT_RACING && !cheered) {
+            /* prowadzacy wjezdza na ostatnia prosta (wyjscie z ostatniego luku w ostatnim
+             * okrazeniu; meta = (LAPS + 1) okrazen dystansu, prosta zaczyna sie tape_s przed nia):
+             * okrzyk trybun, ok. 0.6 s przed meta */
+            const Track *t = &g_tour.track;
+            LONG lead = 0, entry = (LONG)(LAPS_PER_HEAT + 1) * t->lap_length - t->tape_s;
+            for (i = 0; i < MAX_RIDERS; i++) {
+                const Bike *b = &g_tour.bikes[i];
+                if (!b->empty && b->state != BIKE_EXCLUDED && b->race_distance > lead) lead = b->race_distance;
+            }
+            if (lead >= entry) {
+                cheered = TRUE;
                 crowd_boost = 150;
                 play_sfx(S_CHEER, PER_CHEER, 64);
             }
+        }
+        if (h->phase != HEAT_RACING && h->phase != HEAT_FINISHED) cheered = FALSE;   /* start / powtorka */
+        if (h->finished_count != last_finished) {                       /* meta: gwar w gore */
+            if (h->finished_count == 1) crowd_boost = 150;
             last_finished = h->finished_count;
         }
     } else {
         crowd_target = (s == GS_HEAT_RESULT || s == GS_TRACK_GRADING || s == GS_TABLE || s == GS_PRESENT) ? 10 : 0;
         last_leader = 0xFF;
         last_finished = 0;
+        cheered = FALSE;
     }
     if (crowd_boost) { crowd_boost--; if (crowd_target < 48) crowd_target = 48; }
     if (g_paused) crowd_target = 4;
