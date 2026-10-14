@@ -170,6 +170,55 @@ static void draw_title(UBYTE *b)
     text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GREY, 0);
 }
 
+/* ==================== WYBOR PO PLANSZY TYTULOWEJ ==================== */
+
+/* Na tle ilustracji tytulowej: JEDZIEMY! (dalej do ustawien) albo CREDITS (plansza tworcow). */
+static UBYTE menu_row;
+#define MENU_Y0 166                         /* pierwsza pozycja; druga 24 px nizej */
+
+void ui_menu_enter(UBYTE row) { menu_row = (UBYTE)(row & 1); }
+
+UBYTE ui_menu_update(void)
+{
+    UBYTE m = input_menu();
+    if (m & (BTN_UP | BTN_DOWN | BTN_LEFT | BTN_RIGHT)) { menu_row ^= 1; ui_invalidate(); }
+    if (ui_confirm()) return (UBYTE)(menu_row + 1);
+    return 0;
+}
+
+static void draw_menu(UBYTE *b)
+{
+    static const char *items[2] = { "JEDZIEMY!", "CREDITS" };
+    UBYTE i;
+    if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
+    text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
+    text_draw_big_center(b, 38, "PARTY", U_GOLD, U_SHADOW);
+    text_draw_center(b, 64, "AMIGA 1200", U_WHITE, U_SHADOW);
+    for (i = 0; i < 2; i++) {
+        WORD y = (WORD)(MENU_Y0 + i * 24);
+        if (i == menu_row) blit_fill(b, 96, y - 4, 128, 17, U_CURSOR);
+        text_draw_center(b, y, items[i], i == menu_row ? U_RAINBOW : U_WHITE, U_SHADOW);
+    }
+    text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GREY, 0);
+}
+
+/* ======================== PLANSZA TWORCOW ========================= */
+
+static void draw_credits(UBYTE *b)
+{
+    text_draw_big_center(b, 10, "SPEEDWAY PARTY", U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 36, "TWÓRCY", U_GOLD, U_SHADOW);
+    text_draw_center(b, 62, "GRĘ STWORZYŁ b4rtiga", U_WHITE, U_SHADOW);
+    text_draw_center(b, 86, "PRZY POMOCY SZTUCZNEJ INTELIGENCJI:", U_GREY, 0);
+    text_draw_center(b, 98, "CLAUDE (ANTHROPIC) ORAZ GPT-6 ASTRA", U_WHITE, U_SHADOW);
+    text_draw_center(b, 122, "KOD ŹRÓDŁOWY (LICENCJA MIT):", U_GREY, 0);
+    text_draw_center(b, 134, "github.com/b4rtiga/Speedway-Party", U_GOLD, U_SHADOW);
+    text_draw_center(b, 160, "DZIĘKUJĘ ZA ZAINTERESOWANIE GRĄ!", U_WHITE, U_SHADOW);
+    text_draw_center(b, 176, "ŻYCZĘ UDANEJ ZABAWY", U_WHITE, U_SHADOW);
+    text_draw_center(b, 188, "I SZEROKIEJ NA OSTATNIM ŁUKU!", U_GOLD, U_SHADOW);
+    if (blink) text_draw_center(b, 238, "FIRE - POWRÓT", U_RAINBOW, U_SHADOW);
+}
+
 BOOL ui_title_update(void)
 {
     return (input_menu() & BTN_FIRE) != 0;
@@ -1195,6 +1244,7 @@ static void draw_blink_line(UBYTE *b)
     case GS_TABLE:   s = "FIRE - DALEJ"; break;
     case GS_PRESENT: s = "FIRE - POD TAŚMĘ!"; break;
     case GS_PODIUM:  s = "FIRE - NOWY TURNIEJ"; break;
+    case GS_CREDITS: s = "FIRE - POWRÓT"; break;
     default: return;
     }
     if (g_paused) return;                                /* okno pauzy - pasek moglby je przeciac */
@@ -1272,6 +1322,8 @@ void ui_render(void)
     drawn_serial[bi] = serial;
     switch (g_tour.state) {
     case GS_TITLE:     draw_title(b); break;
+    case GS_MENU:      draw_menu(b); break;
+    case GS_CREDITS:   draw_credits(b); break;
     case GS_SETUP:     draw_setup(b); break;
     case GS_TABLE:     draw_table(b); break;
     case GS_PRESENT:   draw_present(b, bi); break;

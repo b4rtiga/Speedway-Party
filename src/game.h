@@ -210,6 +210,8 @@ typedef enum {
     GS_TRACK_GRADING,    /* rownanie i polewanie (traktory) */
     GS_PODIUM,
     GS_PRESENT,          /* prezentacja przed biegiem: podprowadzajace z tablicami w kolorach pol */
+    GS_MENU,             /* po planszy tytulowej: JEDZIEMY! / CREDITS */
+    GS_CREDITS,          /* plansza TWORCY */
     GS_QUIT
 } GameState;
 

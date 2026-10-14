@@ -10,7 +10,7 @@ Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. 
 ### 🎬 Trailer
 [![Trailer Speedway Party - kliknij, żeby obejrzeć](art/trailer_thumb.png)](art/trailer.mp4)
 
-[art/trailer.mp4](art/trailer.mp4) (34 s): plansza tytułowa, ustawienia, program zawodów, prezentacja zawodników, start spod taśmy i półtora okrążenia biegu, a na koniec przejście z efektem pikselizacji do ilustracji tytułowej. Podkład: „Black Motor”. Obraz rysuje prawdziwy kod gry skompilowany na PC (te same piksele co na Amidze).
+[art/trailer.mp4](art/trailer.mp4) (36 s): plansza tytułowa, wybór JEDZIEMY!/CREDITS, ustawienia, program zawodów, prezentacja zawodników, start spod taśmy i półtora okrążenia biegu, a na koniec przejście z efektem pikselizacji do ilustracji tytułowej. Podkład: „Black Motor”. Obraz rysuje prawdziwy kod gry skompilowany na PC (te same piksele co na Amidze).
 
 Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
@@ -19,7 +19,7 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 | ![Ustawienia](art/screen_02_setup.png) | ![Program zawodów i tabela](art/screen_03_table.png) | ![Prezentacja przed biegiem](art/screen_17_prezentacja.png) |
 | ![Start spod taśmy](art/screen_04_gate_red.png) | ![Taśma!](art/screen_06_false_start.png) | ![Wyniki biegu](art/screen_07_result.png) |
 | ![Przerwa na tor](art/screen_08_grading.png) | ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Awaria maszyny startowej](art/screen_16_awaria.png) |
-| ![Podium](art/screen_10_podium.png) | | |
+| ![Podium](art/screen_10_podium.png) | ![Wybór po planszy tytułowej](art/screen_18_menu.png) | ![Twórcy](art/screen_19_credits.png) |
 
 
 ## Pobierz i zagraj
@@ -65,7 +65,7 @@ Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, 
 
 Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko zawodnicy z remisu, a pola startowe są losowane. Nie ma liczenia zwycięstw ani kombinowania, decyduje tor.
 
-Plansza tytułowa czeka na FIRE. Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę, a kursor stoi od razu na START TURNIEJU. Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
+Plansza tytułowa czeka na FIRE, potem wybierasz **JEDZIEMY!** albo **CREDITS** (plansza twórców; FIRE albo ESC wraca). Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę, a kursor stoi od razu na START TURNIEJU. Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
 
 Puste miejsca przy kanapie zajmują boty:
 - **Nowicjusz** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.

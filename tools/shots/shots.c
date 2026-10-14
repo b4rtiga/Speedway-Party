@@ -205,6 +205,8 @@ static int trailer(void)
     g_frame = 0;
 
     tenter(GS_TITLE);  thold(5 * FPS, FALSE);                 /* plansza tytulowa */
+    ui_menu_enter(0);
+    tenter(GS_MENU);   thold(FPS * 3 / 2, FALSE);             /* JEDZIEMY! / CREDITS */
     g_tour.start_condition = 0;                               /* suchy tor */
     tenter(GS_SETUP);  thold(FPS * 3 / 2, FALSE);             /* ustawienia: 1 gracz... */
     g_tour.num_humans = 0;                                    /* ...zmiana na pokaz: same boty */
@@ -272,6 +274,9 @@ static int screenshots(void)
     g_frame = 16;                     /* migajace napisy widoczne */
 
     g_tour.state = GS_TITLE;   render(); shot("01_title", FALSE);
+    ui_menu_enter(0);
+    g_tour.state = GS_MENU;    render(); shot("18_menu", FALSE);
+    g_tour.state = GS_CREDITS; render(); shot("19_credits", FALSE);
     g_tour.num_humans = 2;
     tournament_default_names();       /* GRACZ 2 zamiast CPU 2 */
     g_tour.state = GS_SETUP;   render(); shot("02_setup", FALSE);

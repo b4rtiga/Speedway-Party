@@ -181,9 +181,14 @@ static BOOL handle_pause(void)
         }
         return TRUE;
     }
+    if (edge && g_tour.state == GS_CREDITS) {     /* ESC na planszy tworcow: powrot do wyboru */
+        ui_menu_enter(1);
+        enter(GS_MENU);
+        return TRUE;
+    }
     if (edge) {
         g_paused = TRUE;
-        g_pause_quit = (BOOL)(g_tour.state == GS_SETUP || g_tour.state == GS_TITLE);
+        g_pause_quit = (BOOL)(g_tour.state == GS_SETUP || g_tour.state == GS_TITLE || g_tour.state == GS_MENU);
         ui_invalidate();
         return TRUE;
     }
@@ -203,7 +208,19 @@ static void update_state(void)
 #ifdef AUTOPLAY
         if (state_timer > TITLE_FRAMES) { enter(GS_SETUP); break; }
 #endif
-        if (ui_title_update() || (state_timer > FPS / 2 && ui_confirm())) enter(GS_SETUP);
+        if (ui_title_update() || (state_timer > FPS / 2 && ui_confirm())) { ui_menu_enter(0); enter(GS_MENU); }
+        break;
+
+    case GS_MENU:                        /* JEDZIEMY! -> ustawienia, CREDITS -> plansza tworcow */
+        if (state_timer > FPS / 4) {
+            UBYTE pick = ui_menu_update();
+            if (pick == 1) enter(GS_SETUP);
+            else if (pick == 2) enter(GS_CREDITS);
+        }
+        break;
+
+    case GS_CREDITS:                     /* bez limitu czasu: FIRE / Return (albo ESC) wraca */
+        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(1); enter(GS_MENU); }
         break;
 
     case GS_SETUP:
