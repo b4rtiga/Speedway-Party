@@ -30,7 +30,8 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
   JOY 1 i strzalki dzialaja zamiennie, jesli nikt inny ich nie uzywa)
 - start: trzymaj kierunek pod tasma, PUSC na zielonym swietle
 - LEWO lamie motocykl w luk (do 40 st.), PRAWO to kontra
-- plansza tytulowa czeka na FIRE / Return, potem JEDZIEMY! albo CREDITS (tworcy)
+- plansza tytulowa czeka na FIRE / Return, potem JEDZIEMY!, INSTRUKCJA
+  (zasady, start, idealna linia) albo CREDITS (tworcy)
 - menu: joystick w porcie 1 albo strzalki + Return; ESC = wyjscie z gry
 
 Kod zrodlowy i opis: https://github.com/b4rtiga/Speedway-Party

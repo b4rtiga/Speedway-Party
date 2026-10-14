@@ -172,30 +172,33 @@ static void draw_title(UBYTE *b)
 
 /* ==================== WYBOR PO PLANSZY TYTULOWEJ ==================== */
 
-/* Na tle ilustracji tytulowej: JEDZIEMY! (dalej do ustawien) albo CREDITS (plansza tworcow). */
+/* Na tle ilustracji tytulowej: JEDZIEMY! (dalej do ustawien), INSTRUKCJA albo CREDITS. */
+#define MENU_ITEMS 3
+#define MENU_Y0    156                      /* pierwsza pozycja; kolejne co MENU_DY */
+#define MENU_DY    22
 static UBYTE menu_row;
-#define MENU_Y0 166                         /* pierwsza pozycja; druga 24 px nizej */
 
-void ui_menu_enter(UBYTE row) { menu_row = (UBYTE)(row & 1); }
+void ui_menu_enter(UBYTE row) { menu_row = (UBYTE)(row < MENU_ITEMS ? row : 0); }
 
 UBYTE ui_menu_update(void)
 {
     UBYTE m = input_menu();
-    if (m & (BTN_UP | BTN_DOWN | BTN_LEFT | BTN_RIGHT)) { menu_row ^= 1; ui_invalidate(); }
+    if (m & (BTN_UP | BTN_LEFT))    { menu_row = (UBYTE)((menu_row + MENU_ITEMS - 1) % MENU_ITEMS); ui_invalidate(); }
+    if (m & (BTN_DOWN | BTN_RIGHT)) { menu_row = (UBYTE)((menu_row + 1) % MENU_ITEMS); ui_invalidate(); }
     if (ui_confirm()) return (UBYTE)(menu_row + 1);
     return 0;
 }
 
 static void draw_menu(UBYTE *b)
 {
-    static const char *items[2] = { "JEDZIEMY!", "CREDITS" };
+    static const char *items[MENU_ITEMS] = { "JEDZIEMY!", "INSTRUKCJA", "CREDITS" };
     UBYTE i;
     if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
     text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
     text_draw_big_center(b, 38, "PARTY", U_GOLD, U_SHADOW);
     text_draw_center(b, 64, "AMIGA 1200", U_WHITE, U_SHADOW);
-    for (i = 0; i < 2; i++) {
-        WORD y = (WORD)(MENU_Y0 + i * 24);
+    for (i = 0; i < MENU_ITEMS; i++) {
+        WORD y = (WORD)(MENU_Y0 + i * MENU_DY);
         if (i == menu_row) blit_fill(b, 96, y - 4, 128, 17, U_CURSOR);
         text_draw_center(b, y, items[i], i == menu_row ? U_RAINBOW : U_WHITE, U_SHADOW);
     }
@@ -217,6 +220,135 @@ static void draw_credits(UBYTE *b)
     text_draw_center(b, 176, "ŻYCZĘ UDANEJ ZABAWY", U_WHITE, U_SHADOW);
     text_draw_center(b, 188, "I SZEROKIEJ NA OSTATNIM ŁUKU!", U_GOLD, U_SHADOW);
     if (blink) text_draw_center(b, 238, "FIRE - POWRÓT", U_RAINBOW, U_SHADOW);
+}
+
+/* ========================== INSTRUKCJA =========================== */
+
+/* Trzy strony tekstu fontem gry (najwyzej 40 znakow w wierszu); na trzeciej schemat owalu
+ * z idealna linia. Tresc zgodna z mechanika (race.c, start.c, track.c, tournament.c). */
+#define HELP_PAGES 3
+static UBYTE help_page;
+static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c);
+static void rect_px(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c);
+
+static const char *const help_title[HELP_PAGES] = { "ZASADY TURNIEJU", "START I STEROWANIE", "IDEALNA LINIA" };
+static const char *const help_text0[] = {
+    "TURNIEJ TO 15 BIEGÓW PO 4 OKRĄŻENIA.",
+    "W KAŻDYM BIEGU JADĄ CZTEREJ ZAWODNICY,",
+    "PUNKTY ZA MIEJSCA: 3 - 2 - 1 - 0.",
+    "KAŻDY STARTUJE Z KAŻDEGO POLA A-D.",
+    "W BIEGACH NOMINOWANYCH LIDER TABELI",
+    "WYBIERA POLE PIERWSZY. REMIS O PODIUM",
+    "ROZSTRZYGA BIEG DODATKOWY.",
+    "PO BIEGACH 4, 7, 11 I 13 TOR JEST",
+    "RÓWNANY I POLEWANY, POTEM PRZESYCHA.",
+    "",
+    "FLAGI SĘDZIEGO:",
+    "CZERWONA - PRZERWANIE BIEGU",
+    "CZARNA - WYKLUCZENIE ZAWODNIKA",
+    "ŻÓŁTA Z KRZYŻEM - OSTATNIE OKRĄŻENIE",
+    "NIEBIESKA - ZARAZ ZDUBLUJE CIĘ LIDER",
+    "SZACHOWNICA - KONIEC BIEGU",
+    0 };
+static const char *const help_text1[] = {
+    "GAZ JEST ZAWSZE ODKRĘCONY DO KOŃCA.",
+    "LEWO - ŁAMIESZ MOTOCYKL W UŚLIZG,",
+    "       SKRĘCASZ W ŁUK (DO 40 STOPNI).",
+    "PRAWO - KONTRA, PROSTUJE MOTOCYKL.",
+    "",
+    "START SPOD TAŚMY:",
+    "1. TRZYMAJ LEWO LUB PRAWO.",
+    "2. PATRZ NA ŚWIATŁA I OKIENKO TAŚMY.",
+    "3. PUŚĆ OD RAZU NA ZIELONYM!",
+    "IM SZYBCIEJ PUŚCISZ, TYM LEPSZY START.",
+    "ZA WCZEŚNIE - TAŚMA I OSTRZEŻENIE,",
+    "DRUGA TAŚMA - WYKLUCZENIE Z BIEGU.",
+    "ZA PÓŹNO - KOŁO MIELI W MIEJSCU.",
+    "",
+    "ESC - PAUZA.",
+    0 };
+static const char *const help_text2[] = {
+    "NA PROSTEJ JEDŹ PROSTO: KAŻDY STOPIEŃ",
+    "UŚLIZGU KOSZTUJE PRĘDKOŚĆ.",
+    "WEJDŹ W ŁUK SZEROKO, ZŁAM PRZED NIM",
+    "I PULSUJ PRZYCISKIEM, NIE TRZYMAJ GO.",
+    "W POŁOWIE ŁUKU ZBLIŻ SIĘ DO KRAWĘŻNIKA,",
+    "WYJDŹ SZEROKO NA PEŁNYM GAZIE.",
+    "CIEMNA, WYJEŻDŻONA ŚCIEŻKA TRZYMA",
+    "NAJLEPIEJ. OMIJAJ SZPRYCĘ RYWALA.",
+    "SZEROKA NIESIE: POD BANDĄ, SZYBKO",
+    "I W LEKKIM UŚLIZGU. BANDA HAMUJE.",
+    0 };
+static const char *const *const help_text[HELP_PAGES] = { help_text0, help_text1, help_text2 };
+
+void ui_help_enter(UBYTE page) { help_page = (UBYTE)(page < HELP_PAGES ? page : 0); }
+
+BOOL ui_help_update(void)
+{
+    UBYTE m = input_menu();
+    if ((m & BTN_LEFT) && help_page > 0)               { help_page--; ui_invalidate(); }
+    if ((m & BTN_RIGHT) && help_page < HELP_PAGES - 1) { help_page++; ui_invalidate(); }
+    return ui_confirm();
+}
+
+/* Schemat owalu na stronie 3: banda, kraweznik, idealna linia i kierunek jazdy.
+ * s = 0..255 wokol owalu od srodka dolnej prostej, przeciwnie do wskazowek zegara;
+ * r = odleglosc od osi owalu (promien luku). */
+#define HD_CX   160
+#define HD_CY   82
+#define HD_HALF 58                              /* polowa prostej */
+static void help_oval_point(WORD s, WORD r, WORD *x, WORD *y)
+{
+    if (s < 32 || s >= 224) {                   /* dolna prosta: w prawo */
+        WORD t = (WORD)(s < 32 ? s : s - 256);
+        *x = (WORD)(HD_CX + t * HD_HALF / 32); *y = (WORD)(HD_CY + r);
+    } else if (s < 96) {                        /* prawy luk: w gore */
+        angle8 a = (angle8)(64 - (s - 32) * 2);
+        *x = (WORD)(HD_CX + HD_HALF + (((LONG)COS(a) * r) >> 14));
+        *y = (WORD)(HD_CY + (((LONG)SIN(a) * r) >> 14));
+    } else if (s < 160) {                       /* gorna prosta: w lewo */
+        *x = (WORD)(HD_CX + HD_HALF - (s - 96) * HD_HALF / 32); *y = (WORD)(HD_CY - r);
+    } else {                                    /* lewy luk: w dol */
+        angle8 a = (angle8)(192 - (s - 160) * 2);
+        *x = (WORD)(HD_CX - HD_HALF + (((LONG)COS(a) * r) >> 14));
+        *y = (WORD)(HD_CY + (((LONG)SIN(a) * r) >> 14));
+    }
+}
+
+static void draw_help_oval(UBYTE *b)
+{
+    WORD s, x, y;
+    for (s = 0; s < 256; s++) {
+        help_oval_point(s, 36, &x, &y); plot(b, x, y, U_WHITE);        /* banda */
+        help_oval_point(s, 13, &x, &y); plot(b, x, y, U_RED);          /* kraweznik */
+    }
+    for (s = 0; s < 256; s += 4) {
+        /* idealna linia: na prostych szeroko, w polowie luku przy krawezniku */
+        WORD r = 32;
+        if (s >= 32 && s < 96)   r = (WORD)(32 - ((15L * SIN((angle8)((s - 32) * 2))) >> 14));
+        if (s >= 160 && s < 224) r = (WORD)(32 - ((15L * SIN((angle8)((s - 160) * 2))) >> 14));
+        help_oval_point(s, r, &x, &y);
+        rect_px(b, x, y, 2, 2, U_GOLD);
+    }
+    for (s = 0; s < 4; s++)                                            /* strzalka: jazda w prawo */
+        rect_px(b, HD_CX - 4 + s * 2, HD_CY + 20 + s, 2, (WORD)(7 - 2 * s), U_GREEN);
+}
+
+static void draw_help(UBYTE *b)
+{
+    const char *const *t = help_text[help_page];
+    char s[32], *p;
+    WORD y = (WORD)(help_page == 2 ? 124 : 52);
+    text_draw_big_center(b, 6, "INSTRUKCJA", U_RAINBOW, U_SHADOW);
+    p = text_cat(s, help_title[help_page]);
+    p = text_cat(p, "  ");
+    p = text_uint(p, (ULONG)(help_page + 1), 1);
+    p = text_cat(p, "/");
+    text_uint(p, HELP_PAGES, 1);
+    text_draw_center(b, 32, s, U_GOLD, 0);
+    if (help_page == 2) draw_help_oval(b);
+    for (; *t; t++, y += 11) text_draw_center(b, y, *t, U_WHITE, U_SHADOW);
+    text_draw_center(b, 240, "LEWO/PRAWO - STRONA   FIRE - POWRÓT", U_GREY, 0);
 }
 
 BOOL ui_title_update(void)
@@ -1324,6 +1456,7 @@ void ui_render(void)
     case GS_TITLE:     draw_title(b); break;
     case GS_MENU:      draw_menu(b); break;
     case GS_CREDITS:   draw_credits(b); break;
+    case GS_HELP:      draw_help(b); break;
     case GS_SETUP:     draw_setup(b); break;
     case GS_TABLE:     draw_table(b); break;
     case GS_PRESENT:   draw_present(b, bi); break;

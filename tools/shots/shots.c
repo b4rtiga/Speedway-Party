@@ -277,6 +277,10 @@ static int screenshots(void)
     ui_menu_enter(0);
     g_tour.state = GS_MENU;    render(); shot("18_menu", FALSE);
     g_tour.state = GS_CREDITS; render(); shot("19_credits", FALSE);
+    g_tour.state = GS_HELP;
+    ui_help_enter(0);          render(); shot("20_instrukcja_1", FALSE);
+    ui_help_enter(1);          render(); shot("21_instrukcja_2", FALSE);
+    ui_help_enter(2);          render(); shot("22_instrukcja_3", FALSE);
     g_tour.num_humans = 2;
     tournament_default_names();       /* GRACZ 2 zamiast CPU 2 */
     g_tour.state = GS_SETUP;   render(); shot("02_setup", FALSE);

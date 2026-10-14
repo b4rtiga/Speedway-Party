@@ -181,8 +181,8 @@ static BOOL handle_pause(void)
         }
         return TRUE;
     }
-    if (edge && g_tour.state == GS_CREDITS) {     /* ESC na planszy tworcow: powrot do wyboru */
-        ui_menu_enter(1);
+    if (edge && (g_tour.state == GS_CREDITS || g_tour.state == GS_HELP)) {   /* ESC: powrot do wyboru */
+        ui_menu_enter((UBYTE)(g_tour.state == GS_HELP ? 1 : 2));
         enter(GS_MENU);
         return TRUE;
     }
@@ -215,12 +215,17 @@ static void update_state(void)
         if (state_timer > FPS / 4) {
             UBYTE pick = ui_menu_update();
             if (pick == 1) enter(GS_SETUP);
-            else if (pick == 2) enter(GS_CREDITS);
+            else if (pick == 2) { ui_help_enter(0); enter(GS_HELP); }
+            else if (pick == 3) enter(GS_CREDITS);
         }
         break;
 
     case GS_CREDITS:                     /* bez limitu czasu: FIRE / Return (albo ESC) wraca */
-        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(1); enter(GS_MENU); }
+        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(2); enter(GS_MENU); }
+        break;
+
+    case GS_HELP:                        /* LEWO/PRAWO - strony, FIRE / Return (albo ESC) wraca */
+        if (state_timer > FPS / 4 && ui_help_update()) { ui_menu_enter(1); enter(GS_MENU); }
         break;
 
     case GS_SETUP:
