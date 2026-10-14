@@ -1313,6 +1313,7 @@ static void startwin_from_cache(UBYTE *b, WORD y0, WORD y1)
 {
     WORD y;
     UBYTE pl, k;
+    hw_wait_blit();       /* np. kopia calego tla toru do bufora - inaczej Blitter nadpisalby okienko */
     for (y = y0; y <= y1; y++) {
         LONG o = (LONG)y * PLAY_STRIDE + SW_X / 8;
         const UBYTE *src = sw_cache + (LONG)(y - SW_Y) * PLAY_STRIDE + SW_X / 8;

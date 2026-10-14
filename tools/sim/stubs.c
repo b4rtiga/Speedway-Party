@@ -18,6 +18,7 @@ void video_blend_track_palette_lazy(UBYTE wet) { (void)wet; }
 void video_palette_tick(void) { }
 BOOL blit_init(void) { return TRUE; }
 void blit_free(void) {}
+void blit_wait(void) {}
 void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color) { (void)buf; (void)x; (void)y; (void)big; (void)color; }
 void blit_restore(UBYTE *d, const UBYTE *s, WORD x, WORD y, BOOL big) { (void)d; (void)s; (void)x; (void)y; (void)big; }
 void blit_dots_begin(void) {}

@@ -83,6 +83,7 @@ static void put_px(UBYTE *buf, WORD x, WORD y, UBYTE c)
 }
 BOOL blit_init(void) { return TRUE; }
 void blit_free(void) {}
+void blit_wait(void) {}
 void blit_clear(UBYTE *buf) { memset(buf, 0, FULL_SIZE); }
 void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE c)
 {

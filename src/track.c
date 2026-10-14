@@ -328,6 +328,7 @@ void track_tick(UWORD rows)
         if (++grip_row >= GRIP_H) grip_row = 0;
     }
     if (!pristine) { vis_n = 0; return; }
+    if (rows && (vis_n || cur_gx >= 0)) blit_wait();       /* Blitter moze jeszcze czytac tlo */
     while (rows) {
         if (cur_gx < 0) {                          /* nastepna komorka z kolejki */
             WORD gy, gx, k;

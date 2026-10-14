@@ -12,6 +12,7 @@ void blit_copy(UBYTE *dst, const UBYTE *src, WORD x, WORD y, WORD w, WORD h);
 /* Czasteczki: dowolne x (przesuniecie Blittera), blok 2 slowa x 1-2 linie x 8 planow.
  * x <= SCREEN_W - 17, y <= PLAY_H - 2. */
 BOOL blit_init(void);
+void blit_wait(void);                                                /* czeka, az Blitter skonczy */
 void blit_free(void);
 void blit_dots_begin(void);                                           /* raz przed seria blit_dot */
 void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color);     /* cookie-cut, minterm $CA */

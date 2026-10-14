@@ -153,3 +153,5 @@ void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, BOOL big)
     REG32(R_BLTDPT) = (ULONG)(dst + o);
     REG16(R_BLTSIZE) = (UWORD)(((big ? DOT_ROWS_BIG : PLAY_DEPTH) << 6) | DOT_WORDS);
 }
+
+void blit_wait(void) { hw_wait_blit(); }
