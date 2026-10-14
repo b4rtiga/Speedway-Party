@@ -1451,7 +1451,8 @@ static void update_startwin(UBYTE *b, UBYTE bi)
          * Dawniej pelne rysowanie w kazdym buforze przy czerwonym i przy zielonym gubilo klatki
          * w chwili startu. */
         UBYTE lamp = (UBYTE)(st & 3);
-        BOOL full = (BOOL)(old == SW_NONE || (old & 3) != lamp);
+        BOOL full = (BOOL)(old == SW_NONE || (old & 3) == 3 || lamp == 3);   /* calosc: pojawienie sie, awaria */
+        BOOL lamp_only = (BOOL)(!full && (old & 3) != lamp);                /* zmiana swiatla: same wiersze lampki */
         if (cache_lamp < 0 || (cache_lamp == 3) != (lamp == 3)) {
             draw_startwin_static(b, lamp);
             startwin_to_cache(b);
@@ -1465,8 +1466,9 @@ static void update_startwin(UBYTE *b, UBYTE bi)
         if (full) {
             startwin_from_cache(b, SW_Y, SW_Y + SW_H - 1);
             tape_rows[bi][0] = -1;
-        } else if (tape_rows[bi][0] >= 0) {
-            startwin_from_cache(b, tape_rows[bi][0], tape_rows[bi][1]);
+        } else {
+            if (lamp_only) startwin_from_cache(b, SW_Y + 8, SW_Y + 12);     /* wiersze lampki (draw_lamp) */
+            if (tape_rows[bi][0] >= 0) startwin_from_cache(b, tape_rows[bi][0], tape_rows[bi][1]);
         }
     }
     if ((st & 3) != 3) draw_tape_ribbon(b, bi, (WORD)(st >> 2));

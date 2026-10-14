@@ -221,7 +221,7 @@ Na gołym A1200 program i dane siedzą w Chip RAM, który współdzieli z układ
 
 ### Dźwięk (Paula)
 
-Cztery kanały: dwa silniki (lider i drugi zawodnik; w menu – muzyka w podwójnym buforze), kibice, efekty (brzęczyk z trzaskiem taśmy, gwizdek). Silnik to pętla 8 cykli zapłonu z nagrania (`data/engine.raw`); wysokość tonu zmienia się z obrotami przez okres odtwarzania Pauli.
+Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; w menu – muzyka w podwójnym buforze), kibice, efekty (brzęczyk z trzaskiem taśmy, gwizdek). Silnik to pętla 8 cykli zapłonu z nagrania (`data/engine.raw`); wysokość tonu zmienia się z obrotami przez okres odtwarzania Pauli.
 
 ### Moduły
 
@@ -315,7 +315,7 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 - Gra działa w WinUAE w 50 FPS; w całym biegu gubią się pojedyncze klatki (kilka przy odlocie taśmy i zmianie flagi).
 - **Nie była jeszcze testowana na prawdziwym A1200** ani z oryginalnym Kickstartem 3.1.
 - Zajmuje ok. 1,2–1,4 MB Chip RAM, więc potrzebuje 2 MB Chip.
-- Słychać tylko dwa silniki naraz (Paula ma 4 kanały).
+- Słychać tylko dwa silniki naraz (Paula ma 4 kanały): dwóch najwyżej sklasyfikowanych, którzy jeszcze jadą.
 - Dźwięk silnika pochodzi z nagrania wygenerowanego przez AI (500 cm³, 10 000 obr/min), zapętlonego narzędziem `tools/import_engine.py`.
 - Adapter 4 graczy na porcie równoległym nie był testowany.
 - Tylko PAL.

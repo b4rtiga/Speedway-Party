@@ -292,10 +292,21 @@ static void pick_engines(UBYTE out[2])
     out[0] = out[1] = 0xFF;
     /* pod tasma: pola A i D (szeroko w stereo); w biegu: dwaj pierwsi */
     if (g_tour.heat.phase < HEAT_TAPE_UP) { out[0] = 0; out[1] = 3; return; }
-    for (i = 0; i < MAX_RIDERS && n < 2; i++) {
-        UBYTE k;
-        for (k = 0; k < MAX_RIDERS; k++)
-            if (g_tour.bikes[k].position == i && g_tour.bikes[k].state != BIKE_EXCLUDED) out[n++] = k;
+    /* Paula ma na silniki tylko 2 kanaly: najpierw ci, ktorzy jeszcze jada (wg miejsca), a ci za
+     * meta na wybiegu dopiero, gdy na torze zostalo mniej niz dwoch - inaczej pod koniec biegu
+     * slychac bylo dwoch zwalniajacych zwyciezcow, a nie walke o dalsze miejsca */
+    {
+        UBYTE pass;
+        for (pass = 0; pass < 2 && n < 2; pass++)
+            for (i = 0; i < MAX_RIDERS && n < 2; i++) {
+                UBYTE k;
+                for (k = 0; k < MAX_RIDERS && n < 2; k++) {
+                    const Bike *b = &g_tour.bikes[k];
+                    if (b->position != i || b->state == BIKE_EXCLUDED || b->empty) continue;
+                    if ((b->state == BIKE_FINISHED) != (pass == 1)) continue;
+                    out[n++] = k;
+                }
+            }
     }
 }
 
