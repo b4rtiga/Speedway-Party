@@ -98,7 +98,19 @@ void input_update(void)
     }
 }
 
+/* JOY 1 odpowiada tez na strzalki z klawiatury, chyba ze ktos gra na strzalkach osobno:
+ * w emulatorze strzalki nie zawsze trafiaja do portu joysticka (zalezy od konfiguracji). */
+static BOOL arrows_free(void)
+{
+    UBYTE i;
+    for (i = 0; i < g_tour.num_humans && i < MAX_RIDERS; i++)
+        if (g_tour.riders[i].input == INPUT_KEYS_ARROWS) return FALSE;
+    return TRUE;
+}
+
 UBYTE input_read(InputPort port)
 {
+    if (port == INPUT_JOY1 && arrows_free())
+        return (UBYTE)(port_state[INPUT_JOY1] | (port_state[INPUT_KEYS_ARROWS] & (BTN_LEFT | BTN_RIGHT | BTN_FIRE)));
     return port < INPUT_NONE ? port_state[port] : 0;
 }

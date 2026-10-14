@@ -31,7 +31,7 @@ FIXED = {1: (255, 255, 255), 4: (240, 240, 240), 5: (255, 220, 0), 10: (240, 190
 LENS = 22
 LENS_X = (10, 18)                      # lewe szkla (4 piksele szerokosci) - hud.c lens_x
 LENS_Y = 12                            # dwa wiersze szkiel - hud.c FACE_Y0
-LENS_RGB = (130, 32, 28)               # czerwonawe przyciemniane szkla
+LENS_RGB = (58, 50, 66)                # ciemne, dymione szkla (zrenice kolorem 11)
 DITHER = 0.0
 
 
@@ -92,8 +92,10 @@ def image():
                 X, Y = x + dx, y + dy
                 if 0 <= X < W and Y < H and vis[Y, X]:
                     work[Y, X] += err * f / 16
-    for lx in LENS_X:                                   # szkla pod animacje zrenic
+    for lx in LENS_X:                                   # oprawka (czarna) i szkla pod animacje zrenic
+        out[LENS_Y - 1:LENS_Y + 3, lx - 1:lx + 5] = 14
         out[LENS_Y:LENS_Y + 2, lx:lx + 4] = LENS
+    out[LENS_Y, LENS_X[0] + 4:LENS_X[1]] = 14           # mostek
     return out
 
 

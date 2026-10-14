@@ -723,7 +723,7 @@ static void draw_hold(UBYTE *b)
             y += 12;
         }
     text_draw_center(b, PANEL_Y + 66, "TRZYMAJ LEWO LUB PRAWO", U_WHITE, U_SHADOW);
-    text_draw_center(b, PANEL_Y + 82, "WINUAE: STRZAŁKI = JOY 1", U_GREY, 0);
+    text_draw_center(b, PANEL_Y + 82, "JOY 1: JOYSTICK LUB STRZAŁKI", U_GREY, 0);
 }
 
 /* pauza: panel z pytaniem (na torze w prostokacie nakladek, w menu na srodku ekranu) */
