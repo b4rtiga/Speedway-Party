@@ -51,10 +51,12 @@ static UBYTE *girls_img;            /* podprowadzajace (data/girls.bin) */
 #define GIRL_BYTES  (GIRL_W / 8)
 #define GIRL_SIZE   ((ULONG)GIRL_H * PLAY_DEPTH * GIRL_BYTES)
 static UBYTE *sw_cache;             /* tlo okienka startu bez tasmy (wiersze okienka, uklad ekranu) */
-/* okienko maszyny startowej (prawy dolny rog toru) */
-#define SW_X 208
-#define SW_Y 138                   /* ponizej obszaru nakladek (PANEL_Y + PANEL_H = 136) */
-#define SW_W 112
+/* okienko maszyny startowej: na srodku ekranu, na murawie wewnatrz owalu (zawodnicy przy
+ * starcie stoja na dolnej prostej, y >= 140). Lezy w obszarze nakladek - gdy nakladka jest
+ * na ekranie (czekamy na start, falstart, pauza), okienko sie chowa. */
+#define SW_X 96                    /* 96..223: srodek ekranu, wyrownane do slowa (Blitter) */
+#define SW_Y 67                    /* srodek murawy (CY = 100) */
+#define SW_W 128
 #define SW_H 66
 
 
@@ -1395,7 +1397,8 @@ static void render_tape(UBYTE *buf)
 static UBYTE startwin_drawn[2] = { SW_NONE, SW_NONE };
 
 /* stan okienka: SW_NONE albo (klatka odlotu << 2) | lampka (0 zgaszona, 1 czerwona, 2 zielona); 3 = awaria */
-#define SW_FLY   20                /* klatki odlotu tasmy w okienku (0.4 s) - okienko znika po nich */
+#define SW_FLY   10                /* klatki odlotu tasmy w okienku (0.2 s) - okienko znika po nich */
+#define SW_LAMP_X (SW_X + SW_W / 2 - 4)   /* lampka na srodku poprzeczki */
 #define SW_RISE  40                /* o ile tasma idzie w gore (az za gorna krawedz okienka) */
 #define SW_BOW   2                 /* delikatne ugiecie srodka w polowie odlotu (px) */
 #define SW_TAPE_REST (SW_Y + 38)   /* tasma w spoczynku */
@@ -1425,7 +1428,7 @@ static UBYTE startwin_px(WORD x, WORD y, UBYTE lamp)
 {
     static const UBYTE lamp_col[3] = { U_PANEL, U_RED, U_GREEN };
     if (y == SW_Y + 6 || y == SW_Y + 7) return U_GREY;                       /* poprzeczka */
-    if (y >= SW_Y + 8 && y < SW_Y + 13 && x >= SW_X + 52 && x < SW_X + 60) return lamp_col[lamp];
+    if (y >= SW_Y + 8 && y < SW_Y + 13 && x >= SW_LAMP_X && x < SW_LAMP_X + 8) return lamp_col[lamp];
     if (y < SW_Y + 24) {                                                     /* trybuna z kibicami */
         if (y >= SW_Y + 4 && (y - (SW_Y + 4)) % 3 == 0 && ((x - (SW_X + 3)) & 1) == 0)
             return (UBYTE)(140 + ((x * 7 + y * 13) % 32));
@@ -1473,7 +1476,7 @@ static void draw_lamp(UBYTE *b, UBYTE lamp)
 {
     WORD x, y;
     for (y = SW_Y + 8; y < SW_Y + 13; y++)
-        for (x = SW_X + 52; x < SW_X + 60; x++) plot(b, x, y, startwin_px(x, y, lamp));
+        for (x = SW_LAMP_X; x < SW_LAMP_X + 8; x++) plot(b, x, y, startwin_px(x, y, lamp));
 }
 
 /* wiersze y0..y1 obszaru okienka z zapamietanego tla do bufora - procesorem (bez Blittera) */
@@ -1726,7 +1729,10 @@ void ui_render(void)
             track_flush_wear(bi, b, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
         else
             track_flush_wear(bi, b, 0, 0, 0, 0);
-        update_startwin(b, bi);                           /* przed nakladkami - nie tnie panelu */
+        /* okienko lezy w obszarze nakladek: przy nakladce schowane (panel je przykrywa),
+         * po jej zdjeciu rysowane od nowa w nastepnej klatce */
+        if (panel_ov[bi] != OV_NONE || current_overlay() != OV_NONE) startwin_drawn[bi] = SW_NONE;
+        else update_startwin(b, bi);
         {
             /* nakladka zalezna od stanu gry (np. podpowiedz pod tasma) - zmiana = przerysowanie */
             static UBYTE last_ov = OV_NONE, last_mask;

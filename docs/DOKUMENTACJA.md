@@ -73,7 +73,7 @@ Przed każdym biegiem program pokazuje, kto startuje z którego pola, oraz tabel
 
 ### Bieg
 
-Na dole ekranu jest pasek: kolory kasków w kolejności na torze, numer okrążenia, okrągłe światła startowe i sędzia z flagą. W prawym dolnym rogu toru przy starcie widać okienko maszyny startowej z lampką i taśmą.
+Na dole ekranu jest pasek: kolory kasków w kolejności na torze, numer okrążenia, okrągłe światła startowe i sędzia z flagą. Przy starcie na środku ekranu, na murawie (nad zawodnikami na prostej), widać okienko maszyny startowej z lampką i taśmą.
 
 ![Start spod taśmy](../art/screen_04_gate_red.png)
 
