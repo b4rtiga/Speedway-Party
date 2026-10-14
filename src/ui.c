@@ -33,6 +33,7 @@ static UBYTE serial = 1, drawn_serial[2];
 static UBYTE buf_is_track[2];
 static UBYTE tape_drawn[2] = { 0xFF, 0xFF };
 static UBYTE blink;
+static UBYTE blink_dirty[2];        /* tylko migajacy napis do odswiezenia (bez przerysowania ekranu) */
 
 /* menu ustawien */
 static UBYTE setup_row;
@@ -42,6 +43,11 @@ static UBYTE pick_cursor, pick_prev;
 #define BORDER_RACE 0x334          /* 12-bit: ciemny beton trybun */
 static UWORD line_bg[FULL_H], line_fg[FULL_H], rainbow[48];
 static UBYTE *title_img;            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
+static UBYTE *girls_img;            /* podprowadzajace (data/girls.bin) */
+#define GIRL_W      48
+#define GIRL_H      96
+#define GIRL_BYTES  (GIRL_W / 8)
+#define GIRL_SIZE   ((ULONG)GIRL_H * PLAY_DEPTH * GIRL_BYTES)
 static UBYTE *sw_cache;             /* tlo okienka startu bez tasmy (wiersze okienka, uklad ekranu) */
 /* okienko maszyny startowej (prawy dolny rog toru) */
 #define SW_X 208
@@ -79,6 +85,11 @@ void ui_init(void)
         title_img = 0;
     }
     sw_cache = AllocMem((ULONG)SW_H * PLAY_STRIDE, MEMF_ANY);   /* bez pamieci: pelne przerysowanie */
+    girls_img = AllocMem(4 * GIRL_SIZE, MEMF_ANY);
+    if (girls_img && !asset_load("PROGDIR:data/girls.bin", girls_img, 4 * GIRL_SIZE)) {
+        FreeMem(girls_img, 4 * GIRL_SIZE);
+        girls_img = 0;                  /* bez pliku: same tablice */
+    }
     if (title_img) {
         /* ilustracja ma wlasna palete (kolory napisow menu bez zmian) - dla list Coppera menu;
          * przy pierwszej zmianie wilgotnosci menu wraca do palety toru (napisy te same) */
@@ -96,6 +107,7 @@ void ui_free(void)
 {
     if (title_img) FreeMem(title_img, FULL_SIZE);
     if (sw_cache) FreeMem(sw_cache, (ULONG)SW_H * PLAY_STRIDE);
+    if (girls_img) FreeMem(girls_img, 4 * GIRL_SIZE);
 }
 
 static UBYTE *back(void) { return video_backbuffer(); }
@@ -498,6 +510,54 @@ static void draw_table(UBYTE *b)
     text_draw_center(b, 211, s, U_GOLD, 0);
     record_text(s, TRUE);
     text_draw_center(b, 222, s, U_GOLD, 0);
+    if (blink) text_draw_center(b, 238, "FIRE - DALEJ", U_RAINBOW, U_SHADOW);
+}
+
+/* ===================== PREZENTACJA PRZED BIEGIEM ====================== */
+
+/* Podprowadzajace: grafika 48x96 z tools/gengirls.py (data/girls.bin, 4 postacie planarnie,
+ * 6 bajtow szerokosci). Kopia z maska: przezroczyste piksele (kolor 0) zostawiaja tlo,
+ * wiec dlonie nachodza na tablice. Kolory w palecie toru (180..191, 221..239). */
+
+static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE gate)
+{
+    const UBYTE *src = girls_img + gate * GIRL_SIZE;
+    WORD y;
+    UBYTE pl, k;
+    /* tablica nad glowa: sam kolor pola, ciemny kontur */
+    rect_px(b, x0 - 6, y0 - 22, GIRL_W + 12, 24, U_SHADOW);
+    rect_px(b, x0 - 4, y0 - 20, GIRL_W + 8, 20, (UBYTE)(U_HELMET + gate));
+    if (!girls_img) return;
+    hw_wait_blit();
+    for (y = 0; y < GIRL_H; y++, src += PLAY_DEPTH * GIRL_BYTES)
+        for (k = 0; k < GIRL_BYTES; k++) {
+            UBYTE mask = 0;
+            UBYTE *d = b + (LONG)(y0 + y) * PLAY_STRIDE + x0 / 8 + k;
+            for (pl = 0; pl < PLAY_DEPTH; pl++) mask |= src[pl * GIRL_BYTES + k];
+            if (!mask) continue;
+            for (pl = 0; pl < PLAY_DEPTH; pl++, d += ROW_BYTES)
+                *d = (UBYTE)((*d & ~mask) | src[pl * GIRL_BYTES + k]);
+        }
+}
+
+static void draw_present(UBYTE *b)
+{
+    UBYTE hn = g_tour.current_heat, g;
+    char s[48], *p;
+    if (hn == RUNOFF_HEAT) text_cat(s, "BIEG DODATKOWY");
+    else { p = text_cat(s, "BIEG "); text_uint(p, (ULONG)(hn + 1), 1); }
+    text_draw_big_center(b, 8, s, U_RAINBOW, U_SHADOW);
+    text_draw_center(b, 34, "PREZENTACJA ZAWODNIKÓW", U_GOLD, 0);
+    hw_wait_blit();
+    for (g = 0; g < 4; g++) {
+        WORD cx = (WORD)(40 + g * 80), y = 72;
+        if (g_tour.heat_table[hn][g] == 0xFF) continue;          /* puste pole (bieg dodatkowy) */
+        draw_girl(b, (WORD)(cx - GIRL_W / 2), y, g);
+        name_trunc(s, g_tour.riders[g_tour.heat_table[hn][g]].name, 9);
+        text_draw(b, (WORD)(cx - text_len(s) * 4), y + GIRL_H + 8, s, U_WHITE, U_SHADOW);
+        s[0] = gate_letter[g]; s[1] = 0;
+        text_draw(b, cx - 4, y + GIRL_H + 22, s, U_GREY, 0);
+    }
     if (blink) text_draw_center(b, 238, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);
 }
 
@@ -1025,16 +1085,52 @@ static void update_line_colors(void)
         /* ramka obrazu (overscan) w kolorze betonu trybun - bez czarnych pasow po bokach toru */
         for (i = 0; i < PLAY_H; i++) { line_bg[i] = BORDER_RACE; line_fg[i] = 0xFFF; }
     } else {
-        UWORD ph = (UWORD)(g_frame >> 1);
+        static BOOL bg_ready;
+        UWORD k = (UWORD)((g_frame >> 1) % 48), r = 0;
         race_lines_ok[0] = race_lines_ok[1] = 0;
+        if (!bg_ready) {
+            /* tlo: granat -> fiolet -> granat (stale, liczone raz) */
+            bg_ready = TRUE;
+            for (i = 0; i < FULL_H; i++) {
+                UWORD t = (UWORD)((i < FULL_H / 2 ? i : FULL_H - 1 - i) * 13 / 16);
+                line_bg[i] = (UWORD)(((t / 26) << 8) | ((t / 52) << 4) | (2 + t / 18));
+            }
+        }
         for (i = 0; i < FULL_H; i++) {
-            /* tlo: granat -> fiolet -> granat; tekst: przesuwajaca sie tecza */
-            UWORD t = (UWORD)((i < FULL_H / 2 ? i : FULL_H - 1 - i) * 13 / 16);
-            line_bg[i] = (UWORD)(((t / 26) << 8) | ((t / 52) << 4) | (2 + t / 18));
-            line_fg[i] = rainbow[(i / 3 + ph) % 48];
+            /* tekst: przesuwajaca sie tecza (kolor co 3 linie) - bez dzielenia, co klatke */
+            line_fg[i] = rainbow[k];
+            if (++r == 3) { r = 0; if (++k == 48) k = 0; }
         }
     }
     video_set_lines(line_bg, line_fg);
+}
+
+/* Migajacy napis menu: pasek odtwarzany z tla (ilustracja na planszy tytulowej, inaczej
+ * kolor 0) i napis rysowany co drugie mrugniecie. Pelne przerysowanie ekranu menu trwa
+ * na A1200 bez Fast RAM kilka klatek - przy mruganiu co 16 klatek menu zwalnialo do ~5 kl./s. */
+static void draw_blink_line(UBYTE *b)
+{
+    WORD y = 238;
+    const char *s;
+    switch (g_tour.state) {
+    case GS_TITLE:   y = 206; s = "NACIŚNIJ FIRE"; break;
+    case GS_TABLE:   s = "FIRE - DALEJ"; break;
+    case GS_PRESENT: s = "FIRE - POD TAŚMĘ!"; break;
+    case GS_PODIUM:  s = "FIRE - NOWY TURNIEJ"; break;
+    default: return;
+    }
+    if (g_paused) return;                                /* okno pauzy - pasek moglby je przeciac */
+    if (g_tour.state == GS_TITLE && title_img) blit_copy(b, title_img, 0, y - 1, SCREEN_W, 11);
+    else blit_fill(b, 0, y - 1, SCREEN_W, 11, 0);
+    if (blink) text_draw_center(b, y, s, U_RAINBOW, U_SHADOW);
+#ifdef SHOW_LAG
+    {
+        char t[12];
+        text_uint(t, g_lag % 100000, 1);
+        blit_fill(b, 0, 0, 64, 12, 0);
+        text_draw(b, 4, 2, t, U_RED, U_SHADOW);
+    }
+#endif
 }
 
 void ui_render(void)
@@ -1045,7 +1141,9 @@ void ui_render(void)
 
     if (new_blink != blink) {
         blink = new_blink;
-        if (!state_uses_track(g_tour.state)) ui_invalidate();   /* migaja tylko napisy w menu */
+        /* w menu miga jeden napis - odswiezany sam pasek; kursor edycji nazwiska - caly ekran */
+        if (g_tour.state == GS_SETUP) { if (editing) ui_invalidate(); }
+        else if (!state_uses_track(g_tour.state)) blink_dirty[0] = blink_dirty[1] = 1;
     }
     video_set_menu(!state_uses_track(g_tour.state));   /* menu: caly ekran bez HUD */
     update_line_colors();
@@ -1084,7 +1182,11 @@ void ui_render(void)
         return;
     }
 
-    if (drawn_serial[bi] == serial && buf_is_track[bi] == 0) return;
+    if (drawn_serial[bi] == serial && buf_is_track[bi] == 0) {
+        if (blink_dirty[bi]) { blink_dirty[bi] = 0; draw_blink_line(b); }
+        return;
+    }
+    blink_dirty[bi] = 0;
     blit_clear(b);
     buf_is_track[bi] = 0;
     roost_forget_buffer(bi);
@@ -1093,6 +1195,7 @@ void ui_render(void)
     case GS_TITLE:     draw_title(b); break;
     case GS_SETUP:     draw_setup(b); break;
     case GS_TABLE:     draw_table(b); break;
+    case GS_PRESENT:   draw_present(b); break;
     case GS_GATE_PICK: draw_pick(b); break;
     case GS_PODIUM:    draw_podium(b); break;
     default: break;

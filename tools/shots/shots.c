@@ -216,6 +216,7 @@ static int trailer(void)
     track_random_surface();
     track_set_wetness(start_wet[g_tour.start_condition]);
     tenter(GS_TABLE);  thold(FPS * 7 / 2, FALSE);             /* program zawodow */
+    tenter(GS_PRESENT); thold(3 * FPS, FALSE);               /* podprowadzajace z tablicami */
 
     begin(0);                                                 /* bieg 1: start i jazda do mety */
     tenter(GS_HEAT);
@@ -286,6 +287,7 @@ static int screenshots(void)
     if (tournament_watering_after(4)) track_apply_watering();
     g_tour.current_heat = 4;
     g_tour.state = GS_TABLE;   render(); shot("03_table", FALSE);
+    g_tour.state = GS_PRESENT; render(); shot("17_prezentacja", FALSE);
 
     begin(4);                         /* bieg 5: czerwone swiatlo pod tasma */
     g_tour.state = GS_HEAT;

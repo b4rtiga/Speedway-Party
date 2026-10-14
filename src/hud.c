@@ -86,18 +86,12 @@ static void hglyph(WORD x, WORD y, UBYTE g, UBYTE c) { hglyph_s(x, y, g, c, 3, H
 static void draw_order(void)
 {
     UBYTE i;
-    /* shown.order: kolor kasku (pole) w bitach 0-3, numer zawodnika w bitach 4-7 */
+    /* shown.order: kolor kasku (pole) w bitach 0-3, numer zawodnika w bitach 4-7;
+     * na ekranie sam kolor kasku (kolor = pole startowe, jak na zuzlu) */
     for (i = 0; i < 4; i++) {
         UBYTE v = shown.order[i];
-        UBYTE gate = (UBYTE)(v & 0x0F), rider = (UBYTE)(v >> 4);
         hrect(8 + i * 22, HUD_TOP + 8, 18, 18, H_FRAME);
-        if (v == 0xFF) { hrect(10 + i * 22, HUD_TOP + 10, 14, 14, H_BG); continue; }
-        {
-            UBYTE helmet = (UBYTE)(H_HELMET + gate);
-            UBYTE ink = gate >= 2 ? H_FLAG_K : H_WHITE;      /* bialy/zolty kask: czarna cyfra */
-            hrect(10 + i * 22, HUD_TOP + 10, 14, 14, helmet);
-            hglyph_s(14 + i * 22, HUD_TOP + 12, (UBYTE)(rider + 1), ink, 2, helmet);
-        }
+        hrect(10 + i * 22, HUD_TOP + 10, 14, 14, v == 0xFF ? H_BG : (UBYTE)(H_HELMET + (v & 0x0F)));
     }
 }
 

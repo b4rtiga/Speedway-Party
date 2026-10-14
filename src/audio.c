@@ -352,7 +352,7 @@ static void update_crowd(void)
             last_finished = h->finished_count;
         }
     } else {
-        crowd_target = (s == GS_HEAT_RESULT || s == GS_TRACK_GRADING || s == GS_TABLE) ? 10 : 0;
+        crowd_target = (s == GS_HEAT_RESULT || s == GS_TRACK_GRADING || s == GS_TABLE || s == GS_PRESENT) ? 10 : 0;
         last_leader = 0xFF;
         last_finished = 0;
     }

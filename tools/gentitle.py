@@ -2,7 +2,7 @@
 
     python tools/gentitle.py [src/title.png]
 
-Kadr 320x256 z obrazu (dowolny rozmiar PNG 8 bit RGB/RGBA), wlasna paleta 222 kolorow
+Kadr 320x256 z obrazu (dowolny rozmiar PNG 8 bit RGB/RGBA), wlasna paleta 191 kolorow
 (median cut) i dithering Floyda-Steinberga. Indeksy 0 (tlo z Coppera), 96..112 (kolory napisow
 menu, m.in. 100 = teczowy kolor z Coppera) i 240..255 (duszki) zostaja nietkniete - ich RGB
 kopiujemy z palety toru (data/track0.pal), wiec napisy w menu wygladaja jak dotad.
@@ -17,7 +17,8 @@ from mksocial import read_png, write_png       # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 W, H = 320, 256
-FREE = [i for i in range(1, 96)] + [i for i in range(113, 240)]   # indeksy dla obrazu
+# indeksy dla obrazu; 180..191 i 221..239 zostaja z palety toru (podprowadzajace, tools/gengirls.py)
+FREE = [i for i in range(1, 96)] + [i for i in range(113, 240) if not (180 <= i <= 191 or 221 <= i <= 239)]
 
 # kadr w ukladzie zrodla (ulamki szerokosci/wysokosci): zawodnicy, reflektory, trybuny
 CROP = (0.0, 0.215, 1.0, 0.86)                   # x0, y0, x1, y1

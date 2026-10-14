@@ -209,6 +209,7 @@ typedef enum {
     GS_HEAT_RESULT,
     GS_TRACK_GRADING,    /* rownanie i polewanie (traktory) */
     GS_PODIUM,
+    GS_PRESENT,          /* prezentacja przed biegiem: podprowadzajace z tablicami w kolorach pol */
     GS_QUIT
 } GameState;
 

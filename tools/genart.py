@@ -130,6 +130,10 @@ ramp(208, 4, (20, 90, 30), (90, 190, 70))    # traktor
 setc(212, 25, 25, 25); setc(213, 80, 80, 80); setc(214, 160, 200, 230); setc(215, 230, 230, 230)
 ramp(216, 4, (110, 120, 135), (190, 200, 215))  # wieza sedziowska
 setc(220, 60, 120, 170)                      # szyby
+# 180..191, 221..239: podprowadzajace (ekran prezentacji) - kolory z tools/gengirls.py
+from gengirls import PALETTE as GIRLS_PALETTE   # noqa: E402
+for i, c in GIRLS_PALETTE.items():
+    setc(i, *c)
 # 240..255 duszki (pary attached dziela te kolory)
 for i, c in {241: (16, 16, 20), 242: (70, 72, 80), 243: (170, 175, 190), 244: (255, 255, 255),
              245: (52, 58, 80), 246: (112, 124, 160), 247: (250, 120, 20), 248: (150, 152, 162),

@@ -23,7 +23,7 @@ SpeedwayParty: $(OBJ)
 src/%.o: src/%.c src/*.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
-DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw
+DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/girls.bin data/hud.pal data/referee.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw
 
 # Muzyka w menu: miks z src/music/$(MUSIC)/ kopiowany jako data/music.raw (MUSIC=BRAK - bez muzyki).
 # Plik jest odtwarzany przy kazdej zmianie build.cfg albo wybranego utworu.
@@ -62,6 +62,7 @@ release: dist
 assets:
 	python tools/genart.py
 	python tools/gentitle.py
+	python tools/gengirls.py
 	python tools/genaudio.py
 	python tools/genfont.py
 

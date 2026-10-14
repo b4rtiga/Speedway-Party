@@ -215,9 +215,13 @@ static void update_state(void)
 
     case GS_TABLE:
 #ifdef AUTOPLAY
-        if (state_timer > 3 * FPS) { begin_heat(); break; }
+        if (state_timer > 3 * FPS) { enter(GS_PRESENT); break; }
 #endif
-        if (state_timer > FPS / 2 && ui_confirm()) begin_heat();
+        if (state_timer > FPS / 2 && ui_confirm()) enter(GS_PRESENT);
+        break;
+
+    case GS_PRESENT:                     /* podprowadzajace: 3 s albo FIRE wczesniej */
+        if (state_timer > 3 * FPS || (state_timer > FPS / 4 && ui_confirm())) begin_heat();
         break;
 
     case GS_HEAT:
