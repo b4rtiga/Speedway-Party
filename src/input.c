@@ -17,7 +17,7 @@
 
 static UBYTE keys[128];
 static UBYTE keyq[8], keyq_head, keyq_tail;
-static UBYTE menu_prev, menu_edge;
+static UBYTE menu_prev[3], menu_edge;    /* osobno: port 1, port 0, strzalki */
 static UBYTE port_state[INPUT_NONE];
 
 void input_init(void)
@@ -133,9 +133,16 @@ void input_update(void)
     {
         /* menu: joysticki w obu portach i strzalki (mysz w porcie 0 rusza menu tylko, gdy sie nia
          * jedzie - stojaca nic nie wciska) */
-        UBYTE m = (UBYTE)(port_state[INPUT_JOY1] | port_state[INPUT_JOY0] | port_state[INPUT_KEYS_ARROWS]);
-        menu_edge = (UBYTE)(m & ~menu_prev);
-        menu_prev = m;
+        /* kazde zrodlo ma wlasne wykrywanie wcisniec: stale "wcisniete" bity z portu 0 (mysz,
+         * pusty port) nie blokuja tych samych kierunkow ze strzalek i portu 1 */
+        static const UBYTE src[3] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ARROWS };
+        UBYTE k;
+        menu_edge = 0;
+        for (k = 0; k < 3; k++) {
+            UBYTE m = port_state[src[k]];
+            menu_edge |= (UBYTE)(m & ~menu_prev[k]);
+            menu_prev[k] = m;
+        }
     }
 }
 

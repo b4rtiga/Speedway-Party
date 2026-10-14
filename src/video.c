@@ -207,11 +207,16 @@ static void write_palette(UWORD *pal_moves, UWORD index, const RGB24 *c)
     bankbase[(34 + i) * 2 + 1] = rgb_lo(c);
 }
 
+/* Listy menu maja wlasna palete (ilustracja tytulowa, video_set_menu_palette) - paleta toru
+ * trafia do nich tylko, gdy wlasnej nie ma. Dawniej kazda zmiana palety toru (start turnieju,
+ * schniecie) psula ilustracje na ekranie wyboru. */
+static BOOL menu_own_pal;
+
 void video_set_play_palette(const RGB24 *pal)
 {
     UWORD i;
     UBYTE b, m;
-    for (m = 0; m < 2; m++)
+    for (m = 0; m < (menu_own_pal ? 1 : 2); m++)
         for (b = 0; b < 2; b++)
             for (i = 0; i < 256; i++)
                 write_palette(g_video.cop_play_pal[m][b], i, &pal[i]);
@@ -220,6 +225,7 @@ void video_set_play_palette(const RGB24 *pal)
 /* paleta tylko dla list Coppera menu (plansza tytulowa z wlasna paleta ilustracji) */
 void video_set_menu_palette(const RGB24 *pal)
 {
+    menu_own_pal = TRUE;
     UWORD i;
     UBYTE b;
     for (b = 0; b < 2; b++)
@@ -279,7 +285,7 @@ void video_palette_tick(void)
         c.r = (UBYTE)(d->r + (((WORD)w->r - d->r) * lazy_wet >> 8));
         c.g = (UBYTE)(d->g + (((WORD)w->g - d->g) * lazy_wet >> 8));
         c.b = (UBYTE)(d->b + (((WORD)w->b - d->b) * lazy_wet >> 8));
-        for (m = 0; m < 2; m++)
+        for (m = 0; m < (menu_own_pal ? 1 : 2); m++)
             for (b = 0; b < 2; b++) write_palette(g_video.cop_play_pal[m][b], lazy_i, &c);
     }
 }
