@@ -1038,7 +1038,6 @@ static void draw_present(UBYTE *b, UBYTE bi)
     if (hn == RUNOFF_HEAT) text_cat(s, "BIEG DODATKOWY");
     else { p = text_cat(s, "BIEG "); text_uint(p, (ULONG)(hn + 1), 1); }
     text_draw_big_center(b, 8, s, U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 34, "PREZENTACJA ZAWODNIKÓW", U_GOLD, 0);
     for (g = 0; g < 4; g++) {
         WORD cx = (WORD)(gate_x(g) + GIRL_W / 2);
         UBYTE r = g_tour.heat_table[hn][g];
