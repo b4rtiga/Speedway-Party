@@ -240,15 +240,6 @@ static UBYTE  level_drawn[GRIP_H][GRIP_W];
 static UBYTE  wear_dirty[2][GRIP_H][GRIP_W];
 static UWORD  wear_dirty_n[2];             /* ile komorek czeka - 0 = nic do roboty */
 
-static UBYTE get_px(const UBYTE *buf, WORD x, WORD y)
-{
-    const UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
-    UBYTE bit = (UBYTE)(0x80 >> (x & 7)), c = 0, pl;
-    for (pl = 0; pl < PLAY_DEPTH; pl++, p += ROW_BYTES)
-        if (*p & bit) c |= (UBYTE)(1 << pl);
-    return c;
-}
-
 static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c);
 
 static UWORD pack_at(WORD gx, WORD gy)
@@ -260,20 +251,28 @@ static UWORD pack_at(WORD gx, WORD gy)
 
 /* Przemalowanie komorki: ubicie interpolowane miedzy srodkami sasiednich komorek
  * (bez widocznych kwadratow), przyciemnienie z ditheringiem, rzadkie ziarna koleiny. */
-static BOOL cell_visual(WORD gx, WORD gy)
+/* Przemalowanie komorki po wierszach: komorka 8x8 to w kazdym wierszu jeden bajt na plan,
+ * wiec wiersz = 8 odczytow i 8 zapisow. Kolory wynikaja z ubicia interpolowanego miedzy
+ * srodkami komorek (pk = ubicie komorki i sasiadow z chwili rozpoczecia). */
+static void cell_rows(WORD gx, WORD gy, const UWORD pk[3][3], WORD r0, WORD r1)
 {
-    UBYTE lvl = (UBYTE)(g_tour.track.pack[gy][gx] >> 6);
-    WORD x, y;
-    if (!pristine || lvl == level_drawn[gy][gx]) return FALSE;
-    level_drawn[gy][gx] = lvl;
-    for (y = gy * GRIP_CELL; y < (gy + 1) * GRIP_CELL; y++)
-        for (x = gx * GRIP_CELL; x < (gx + 1) * GRIP_CELL; x++) {
-            UBYTE c = get_px(pristine, x, y);
-            WORD fx = x - GRIP_CELL / 2, fy = y - GRIP_CELL / 2;
-            WORD cx0 = (WORD)(fx >> 3), cy0 = (WORD)(fy >> 3), tx = (WORD)(fx & 7), ty = (WORD)(fy & 7);
-            UWORD f = (UWORD)((pack_at(cx0, cy0) * (8 - tx) * (8 - ty) + pack_at(cx0 + 1, cy0) * tx * (8 - ty)
-                             + pack_at(cx0, cy0 + 1) * (8 - tx) * ty + pack_at(cx0 + 1, cy0 + 1) * tx * ty) >> 6);
+    WORD r, k;
+    for (r = r0; r < r1; r++) {
+        WORD y = (WORD)(gy * GRIP_CELL + r);
+        WORD ty = (WORD)(r < 4 ? r + 4 : r - 4), a = (WORD)(r < 4 ? 0 : 1);
+        LONG off = (LONG)y * PLAY_STRIDE + gx;
+        const UBYTE *src = pristine + off;
+        UBYTE *dst = g_video.background + off;
+        UBYTE in[PLAY_DEPTH], out[PLAY_DEPTH], pl;
+        for (pl = 0; pl < PLAY_DEPTH; pl++) { in[pl] = src[pl * ROW_BYTES]; out[pl] = 0; }
+        for (k = 0; k < GRIP_CELL; k++) {
+            WORD x = (WORD)(gx * GRIP_CELL + k);
+            WORD tx = (WORD)(k < 4 ? k + 4 : k - 4), c0 = (WORD)(k < 4 ? 0 : 1);
+            UBYTE bit = (UBYTE)(0x80 >> k), c = 0;
+            UWORD f = (UWORD)((pk[a][c0] * (8 - tx) * (8 - ty) + pk[a][c0 + 1] * tx * (8 - ty)
+                             + pk[a + 1][c0] * (8 - tx) * ty + pk[a + 1][c0 + 1] * tx * ty) >> 6);
             UBYTE hash = (UBYTE)((x * 73 + y * 151 + ((x * y) >> 2)) & 0xFF);
+            for (pl = 0; pl < PLAY_DEPTH; pl++) if (in[pl] & bit) c |= (UBYTE)(1 << pl);
             if (c >= 16 && c < 48) {                       /* nawierzchnia: ciemniej i gladziej */
                 UBYTE base = (UBYTE)(16 + ((c - 16) & ~7)), sh = (UBYTE)(c - base);
                 UBYTE d = (UBYTE)((f * 6 + hash) >> 8);    /* 0..6 z ditheringiem */
@@ -282,18 +281,26 @@ static BOOL cell_visual(WORD gx, WORD gy)
             } else if (c >= 52 && c < 56 && f > 120) {     /* kamyczki zepchniete z linii */
                 c = 16 + 3 * 8 + 2;
             }
-            plot(g_video.background, x, y, c);
+            for (pl = 0; pl < PLAY_DEPTH; pl++) if (c & (1 << pl)) out[pl] |= bit;
         }
-    if (!wear_dirty[0][gy][gx]) { wear_dirty[0][gy][gx] = 1; wear_dirty_n[0]++; }
-    if (!wear_dirty[1][gy][gx]) { wear_dirty[1][gy][gx] = 1; wear_dirty_n[1]++; }
-    return TRUE;
+        for (pl = 0; pl < PLAY_DEPTH; pl++) dst[pl * ROW_BYTES] = out[pl];
+    }
 }
 
-/* Przemalowanie komorki (piksel po pikselu, 8 planow) jest drogie - komorki czekaja w kolejce
- * i track_tick() maluje kilka na klatke. Inaczej kilka zmian naraz (albo caly tor po losowaniu)
- * zjadalo klatke albo kilka i ruch szarpal / muzyka sie przycinala. */
+/* gotowa komorka trafia do obu buforow ekranu (track_flush_wear) */
+static void cell_done(WORD gx, WORD gy)
+{
+    if (!wear_dirty[0][gy][gx]) { wear_dirty[0][gy][gx] = 1; wear_dirty_n[0]++; }
+    if (!wear_dirty[1][gy][gx]) { wear_dirty[1][gy][gx] = 1; wear_dirty_n[1]++; }
+}
+
+/* Komorki do przemalowania czekaja w kolejce, a track_tick() maluje po kilka WIERSZY na klatke
+ * (pomiar w WinUAE: cala komorka naraz to ok. 100 linii wiazki, do 2 komorek w klatce
+ * gubilo klatki w biegu). Na ekran komorka trafia dopiero gotowa. */
 static UBYTE vis_pending[GRIP_H][GRIP_W];
 static UWORD vis_n, vis_cursor;
+static WORD  cur_gx = -1, cur_gy, cur_row;   /* komorka w trakcie malowania (-1 = brak) */
+static UWORD cur_pk[3][3];
 static UBYTE grip_rows_left, grip_row;     /* przeliczanie przyczepnosci po kawalku (schniecie) */
 
 static void mark_visual(WORD gx, WORD gy)
@@ -311,8 +318,8 @@ static void all_cells_visual(void)
             if (g_tour.track.zone[gy][gx] != GRIP_WALL) mark_visual(gx, gy);
 }
 
-/* raz na klatke: najwyzej budget przemalowanych komorek i 2 wiersze przyczepnosci */
-void track_tick(UWORD budget)
+/* raz na klatke: najwyzej rows wierszy komorek i 2 wiersze mapy przyczepnosci */
+void track_tick(UWORD rows)
 {
     UBYTE r;
     for (r = 0; r < 2 && grip_rows_left; r++, grip_rows_left--) {
@@ -320,20 +327,38 @@ void track_tick(UWORD budget)
         for (gx = 0; gx < GRIP_W; gx++) cell_grip(gx, grip_row);
         if (++grip_row >= GRIP_H) grip_row = 0;
     }
-    while (vis_n && budget) {
-        WORD gy = (WORD)(vis_cursor / GRIP_W), gx = (WORD)(vis_cursor % GRIP_W);
-        if (++vis_cursor >= GRIP_W * GRIP_H) vis_cursor = 0;
-        if (!vis_pending[gy][gx]) continue;
-        vis_pending[gy][gx] = 0;
-        vis_n--;
-        if (cell_visual(gx, gy)) budget--;
+    if (!pristine) { vis_n = 0; return; }
+    while (rows) {
+        if (cur_gx < 0) {                          /* nastepna komorka z kolejki */
+            WORD gy, gx, k;
+            UBYTE lvl;
+            if (!vis_n) return;
+            gy = (WORD)(vis_cursor / GRIP_W); gx = (WORD)(vis_cursor % GRIP_W);
+            if (++vis_cursor >= GRIP_W * GRIP_H) vis_cursor = 0;
+            if (!vis_pending[gy][gx]) continue;
+            vis_pending[gy][gx] = 0;
+            vis_n--;
+            lvl = (UBYTE)(g_tour.track.pack[gy][gx] >> 6);
+            if (lvl == level_drawn[gy][gx]) continue;   /* wrocila do narysowanego poziomu */
+            level_drawn[gy][gx] = lvl;
+            for (k = 0; k < 9; k++) cur_pk[k / 3][k % 3] = pack_at((WORD)(gx + k % 3 - 1), (WORD)(gy + k / 3 - 1));
+            cur_gx = gx; cur_gy = gy; cur_row = 0;
+        }
+        {
+            WORD n = (WORD)(GRIP_CELL - cur_row);
+            if ((UWORD)n > rows) n = (WORD)rows;        /* rows bez znaku (0xFFFF = wszystko) */
+            cell_rows(cur_gx, cur_gy, (const UWORD (*)[3])cur_pk, cur_row, (WORD)(cur_row + n));
+            cur_row = (WORD)(cur_row + n);
+            rows = (UWORD)(rows - n);
+            if (cur_row >= GRIP_CELL) { cell_done(cur_gx, cur_gy); cur_gx = -1; }
+        }
     }
 }
 
 /* wszystko od razu (przed biegiem, zrzuty) */
 void track_tick_flush(void)
 {
-    while (vis_n || grip_rows_left) track_tick(0xFFFF);
+    while (vis_n || grip_rows_left || cur_gx >= 0) track_tick(0xFFFF);
 }
 
 /* Inny tor na kazdy turniej: 1-2 wyjezdzone sciezki w losowym miejscu przekroju
@@ -475,7 +500,7 @@ void track_dry_step(void)
     if (t->wetness == 0) return;
     t->wetness = t->wetness > 12 ? t->wetness - 12 : 0;
     grip_rows_left = GRIP_H;                       /* przyczepnosc przeliczy track_tick po 2 wiersze */
-    video_blend_track_palette(t->wetness);
+    video_blend_track_palette_lazy(t->wetness);    /* paleta po 64 kolory na klatke */
 }
 
 static void set_rgb(RGB24 *p, UBYTE r, UBYTE g, UBYTE b) { p->r = r; p->g = g; p->b = b; }

@@ -779,14 +779,16 @@ static void draw_table(UBYTE *b)
 #define SWAY_Y0     30                      /* pas bioder (wiersze postaci) */
 #define SWAY_Y1     88
 #define SWAY_MID    58
-#define SWAY_STEP   3                       /* klatek na faze (16 faz = ok. 1 s) */
+#define SWAY_STEP   2                       /* klatek na faze (32 fazy = ok. 1.3 s) */
 #define SWAY_AMP    5                       /* wychylenie bioder w polowkach piksela (2.5 px) */
 static UWORD present_t;                     /* klatki od wejscia na ekran prezentacji */
 static UBYTE present_drawn[2][4];           /* faza narysowana w buforze (0xFF = brak) */
-static const BYTE sway_tab[16] = { 0, 24, 45, 59, 64, 59, 45, 24, 0, -24, -45, -59, -64, -59, -45, -24 };   /* 64 sin */
+static const BYTE sway_tab[32] = { 0, 12, 24, 36, 45, 53, 59, 63, 64, 63, 59, 53, 45, 36, 24, 12,
+                                   0, -12, -24, -36, -45, -53, -59, -63, -64, -63, -59, -53, -45, -36, -24, -12 };   /* 64 sin */
 
 static WORD gate_x(UBYTE g) { return (WORD)(16 + g * 80); }
-static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t / SWAY_STEP + g * 5) & 15); }
+/* faza podprowadzajacej g: kazda w innym rytmie i zmienia faze w innej klatce (praca rozlozona) */
+static UBYTE sway_phase(UBYTE g) { return (UBYTE)(((present_t + g) / SWAY_STEP + g * 10) & 31); }
 
 void ui_present_start(void)
 {

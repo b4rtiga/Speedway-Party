@@ -260,6 +260,30 @@ void video_blend_track_palette(UBYTE wet)
     video_set_play_palette(tmp);
 }
 
+/* To samo po kawalku: 64 kolory na klatke (cala paleta w 4 klatki). Pelne mieszanie
+ * i wpis 1024 kolorow do list Coppera naraz kosztowalo ok. pol klatki - w biegu (schniecie)
+ * i przy rownaniu toru gubilo klatke. */
+static UBYTE lazy_wet;
+static UWORD lazy_i = 256;
+
+void video_blend_track_palette_lazy(UBYTE wet) { lazy_wet = wet; lazy_i = 0; }
+
+void video_palette_tick(void)
+{
+    UWORD end;
+    if (lazy_i >= 256) return;
+    for (end = (UWORD)(lazy_i + 64); lazy_i < end; lazy_i++) {
+        const RGB24 *d = &g_video.pal_dry[lazy_i], *w = &g_video.pal_wet[lazy_i];
+        RGB24 c;
+        UBYTE b, m;
+        c.r = (UBYTE)(d->r + (((WORD)w->r - d->r) * lazy_wet >> 8));
+        c.g = (UBYTE)(d->g + (((WORD)w->g - d->g) * lazy_wet >> 8));
+        c.b = (UBYTE)(d->b + (((WORD)w->b - d->b) * lazy_wet >> 8));
+        for (m = 0; m < 2; m++)
+            for (b = 0; b < 2; b++) write_palette(g_video.cop_play_pal[m][b], lazy_i, &c);
+    }
+}
+
 void video_set_sprite(UBYTE n, const UWORD *data)
 {
     UBYTE m;

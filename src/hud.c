@@ -312,6 +312,27 @@ static void draw_referee(void)
         }
 }
 
+/* Rog sedziego (x 224..319, wiersze HUD_TOP..+37) dla obu faz machania: zapis z HUD do bufora
+ * (save) albo z bufora do HUD. Kopia dlugimi slowami - ulamek kosztu rysowania. */
+#define RC_X0    224
+#define RC_LONGS ((SCREEN_W - RC_X0) / 32)              /* 3 dlugie slowa na plan */
+#define RC_ROWS  REF_H
+static ULONG ref_cache[2][RC_ROWS * HUD_DEPTH * RC_LONGS];
+
+static void ref_cache_io(UBYTE wave, BOOL save)
+{
+    ULONG *c = ref_cache[wave & 1];
+    WORD y;
+    UBYTE pl, k;
+    for (y = 0; y < RC_ROWS; y++)
+        for (pl = 0; pl < HUD_DEPTH; pl++) {
+            ULONG *h = (ULONG *)(g_video.hud + (LONG)(HUD_TOP + y) * HUD_STRIDE + pl * ROW_BYTES + RC_X0 / 8);
+            for (k = 0; k < RC_LONGS; k++, c++) {
+                if (save) *c = h[k]; else h[k] = *c;
+            }
+        }
+}
+
 /* poza biegiem: pusty HUD (sam gradient tla) */
 static void enter_menu_mode(void)
 {
@@ -403,9 +424,9 @@ void hud_update(void)
                 UWORD v = (UWORD)(g_prof[k] % 1000);
                 WORD x = (WORD)(146 + k * 26);
                 shown_prof[k] = g_prof[k];
-                hglyph_s(x, HUD_TOP + 30, (UBYTE)(v / 100), H_WHITE, 2, H_BG);
-                hglyph_s(x + 8, HUD_TOP + 30, (UBYTE)(v / 10 % 10), H_WHITE, 2, H_BG);
-                hglyph_s(x + 16, HUD_TOP + 30, (UBYTE)(v % 10), H_WHITE, 2, H_BG);
+                hglyph_s(x, HUD_TOP + 21, (UBYTE)(v / 100), H_WHITE, 2, H_BG);
+                hglyph_s(x + 8, HUD_TOP + 21, (UBYTE)(v / 10 % 10), H_WHITE, 2, H_BG);
+                hglyph_s(x + 16, HUD_TOP + 21, (UBYTE)(v % 10), H_WHITE, 2, H_BG);
             }
     }
     /* diagnostyka: zgubione klatki w biegu (gra nie zdazyla w 1/50 s) - 3 cyfry obok okrazen */
@@ -417,9 +438,19 @@ void hud_update(void)
         hglyph_s(162, HUD_TOP + 9, (UBYTE)(v % 10), H_RED_ON, 2, H_BG);
     }
 #endif
-    if (flag != shown.flag || wave != shown.wave) {
-        shown.flag = flag; shown.wave = wave; draw_referee();
+    if (flag != shown.flag) {
+        /* nowa flaga: obie fazy machania rysowane raz i zapamietane (rysowanie piksel po pikselu
+         * co 16 klatek gubilo klatke przy kazdym machnieciu) */
+        UBYTE w;
+        shown.flag = flag;
+        for (w = 0; w < 2; w++) { shown.wave = w; draw_referee(); ref_cache_io(w, TRUE); }
+        shown.wave = wave;
+        ref_cache_io(wave, FALSE);
         face_drawn = 0xFF;                               /* portret przerysowany - twarz od nowa */
+    } else if (wave != shown.wave) {
+        shown.wave = wave;
+        ref_cache_io(wave, FALSE);                       /* machniecie: sama kopia z bufora */
+        face_drawn = 0xFF;
     }
     face_update();
 }

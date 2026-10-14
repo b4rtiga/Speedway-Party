@@ -36,7 +36,7 @@ UWORD g_grading_progress;
 
 #ifdef SHOW_LAG
 UWORD g_prof[4];                         /* maks. liczba linii z ostatnich 32 klatek */
-static void prof_add(UBYTE i, UWORD a, UWORD b)
+void prof_add(UBYTE i, UWORD a, UWORD b)
 {
     static UWORD peak[4];
     static UBYTE n;
@@ -201,7 +201,7 @@ static void update_state(void)
     state_timer++;
     /* poza biegiem tor przemalowuje sie w tle (np. po losowaniu nawierzchni) */
     if (g_tour.state == GS_TABLE || g_tour.state == GS_PRESENT || g_tour.state == GS_GATE_PICK ||
-        g_tour.state == GS_HEAT_RESULT || g_tour.state == GS_TRACK_GRADING) track_tick(3);
+        g_tour.state == GS_HEAT_RESULT || g_tour.state == GS_TRACK_GRADING) track_tick(16);   /* 2 komorki */
 
     switch (g_tour.state) {
     case GS_TITLE:                       /* plansza tytulowa: czeka na FIRE / Return */
@@ -290,7 +290,7 @@ static void update_state(void)
         roost_update(FALSE);
         if ((state_timer & 7) == 0) {
             UWORD wet = (UWORD)(grading_start_wet + (UWORD)(255 - grading_start_wet) * state_timer / GRADING_FRAMES);
-            video_blend_track_palette((UBYTE)(wet > 255 ? 255 : wet));
+            video_blend_track_palette_lazy((UBYTE)(wet > 255 ? 255 : wet));
             g_grading_progress = (UWORD)(255UL * state_timer / GRADING_FRAMES);
             ui_invalidate();
         }
@@ -391,6 +391,7 @@ static int game_main(void)
 #endif
         input_update();
         update_state();
+        video_palette_tick();           /* mieszanie palety toru po kawalku (schniecie, polewanie) */
 #ifdef SHOW_LAG
         v1 = hw_vpos();
 #endif
@@ -411,7 +412,9 @@ static int game_main(void)
 #ifdef SHOW_LAG
         /* profil (linie wiazki, 313 na klatke PAL): logika, rysowanie toru, duszki+HUD+dzwiek,
          * czekanie na Blitter */
-        prof_add(0, v0, v1); prof_add(1, v1, v2); prof_add(2, v2, v3); prof_add(3, v3, hw_vpos());
+        /* kolumny 0-2: czesci logiki biegu (race.c), 3: cala logika (wejscie + update_state) */
+        (void)v2; (void)v3;
+        prof_add(3, v0, v1);
 #endif
         video_swap();
     }

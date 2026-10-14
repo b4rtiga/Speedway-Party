@@ -40,6 +40,8 @@ void video_set_play_palette(const RGB24 *pal) { memcpy(cur_play, pal, sizeof(cur
 void video_set_menu_palette(const RGB24 *pal) { memcpy(cur_menu, pal, sizeof(cur_menu)); }
 void video_set_hud_palette(const RGB24 *pal) { memcpy(cur_hud, pal, sizeof(cur_hud)); }
 void video_set_hud_color(UBYTE i, UBYTE r, UBYTE g, UBYTE b) { cur_hud[i].r = r; cur_hud[i].g = g; cur_hud[i].b = b; }
+void video_palette_tick(void) { }
+void video_blend_track_palette_lazy(UBYTE wet);
 void video_blend_track_palette(UBYTE wet)
 {
     UWORD i;
@@ -51,6 +53,7 @@ void video_blend_track_palette(UBYTE wet)
     }
     memcpy(cur_menu, cur_play, sizeof(cur_menu));       /* jak w grze: obie listy Coppera */
 }
+void video_blend_track_palette_lazy(UBYTE wet) { video_blend_track_palette(wet); }   /* PC: od razu */
 void video_set_lines(const UWORD *bg, const UWORD *fg)
 {
     size_t n = (g_video.menu ? FULL_H : PLAY_H) * sizeof(UWORD);

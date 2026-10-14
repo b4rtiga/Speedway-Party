@@ -321,7 +321,7 @@ void     track_flush_wear(UBYTE bi, UBYTE *buf);  /* dokopiuj zmienione komorki 
 void     track_forget_wear(UBYTE bi);             /* bufor dostal cale tlo */
 void     track_dry_step(void);
 UBYTE    track_pack_at(WORD x, WORD y);           /* ubicie nawierzchni 0..255 (wyjezdzona sciezka) */
-void     track_tick(UWORD budget);       /* raz na klatke: kolejka przemalowan i przyczepnosci */
+void     track_tick(UWORD rows);         /* raz na klatke: wiersze komorek do przemalowania, przyczepnosc */
 void     track_tick_flush(void);
 angle8   atan2_8(LONG dy, LONG dx);
 #define TRACK_HALF_WIDTH (g_tour.track.half_width)   /* zalezy od wybranego toru */

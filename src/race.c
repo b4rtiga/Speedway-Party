@@ -8,6 +8,10 @@
  *   Im mocniej zlamany, tym nizsza predkosc maksymalna i wiekszy opor boczny.
  * Wartosci do strojenia zebrane w #define (symulator: tools/sim). */
 #include "game.h"
+#ifdef SHOW_LAG
+#include "hw.h"
+void prof_add(UBYTE i, UWORD a, UWORD b);
+#endif
 
 #define MAX_SPEED       BIKE_MAX_SPEED
 #define DRIFT_MAX       28           /* 40 st. (256 jednostek = 360 st.) */
@@ -257,6 +261,9 @@ void race_update(void)
     Heat *h = &g_tour.heat;
     UBYTE i, active = 0, done = 0;
 
+#ifdef SHOW_LAG
+    UWORD p0 = hw_vpos(), p1, p2;
+#endif
     h->race_frames++;
     if (h->danger_timer) h->danger_timer--;
     for (i = 0; i < MAX_RIDERS; i++) {
@@ -266,12 +273,21 @@ void race_update(void)
         if (b->state != BIKE_EXCLUDED) active++;
         if (b->state == BIKE_FINISHED) done++;
     }
+#ifdef SHOW_LAG
+    p1 = hw_vpos();
+#endif
     roost_update(TRUE);
     collisions();
     update_positions();
+#ifdef SHOW_LAG
+    p2 = hw_vpos();
+#endif
 
     if (h->race_frames % DRY_EVERY == 0) track_dry_step();
-    track_tick(2);                       /* wyjezdzone sciezki: najwyzej 2 przemalowania na klatke */
+    track_tick(2);                       /* wyjezdzone sciezki: 2 wiersze komorki na klatke (ok. 25 linii) */
+#ifdef SHOW_LAG
+    prof_add(0, p0, p1); prof_add(1, p1, p2); prof_add(2, p2, hw_vpos());
+#endif
 
     /* ostatni na mecie -> jeszcze 2 s jazdy wybiegu, dopiero potem plansza wynikow */
     if (end_wait) {
