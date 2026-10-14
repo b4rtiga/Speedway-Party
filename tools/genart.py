@@ -41,7 +41,7 @@ def set_preset(i):
     global HALF_L, R_IN, R_OUT, R_MID, TAPE_X, GATE_X, GATE_STEP, GATE_Y, SURFACE
     _, HALF_L, R_IN, R_OUT, SURFACE = PRESETS[i]
     R_MID = (R_IN + R_OUT) // 2
-    TAPE_X = CX                              # linia startu na srodku prostej (jak track.c)
+    TAPE_X = CX + 32                         # linia startu 10% ekranu w prawo od srodka prostej (jak track.c)
     GATE_X = TAPE_X - 9
     GATE_STEP = (R_OUT - R_IN - 2 * GATE_FIRST) // 3
     GATE_Y = [CY + R_IN + GATE_FIRST + i * GATE_STEP for i in range(4)]

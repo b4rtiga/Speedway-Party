@@ -33,6 +33,7 @@ static const TrackDef *def = &track_defs[0];
 #define R_OUT   (def->r_out)
 #define R_MID   ((R_IN + R_OUT) / 2)
 #define GATE_FIRST 7        /* pole A: 7 px od kraweznika */
+#define TAPE_SHIFT 32       /* linia startu 32 px (10% ekranu) w prawo od srodka prostej - jak genart.py */
 #define GATE_STEP  ((R_OUT - R_IN - 2 * GATE_FIRST) / 3)
 #define PI_RMID ((LONG)R_MID * 355 / 113)
 
@@ -650,7 +651,7 @@ void track_select(UBYTE type)
         t->wp[i].outer_ofs = (BYTE)(R_OUT - R_MID - 4);
     }
 
-    t->tape_x = CX;                          /* linia startu na srodku prostej startowej */
+    t->tape_x = CX + TAPE_SHIFT;             /* linia startu na prostej startowej, za srodkiem */
     t->tape_y0 = CY + R_IN;
     t->tape_y1 = CY + R_OUT - 1;
     t->tape_s = track_progress(t->tape_x, t->tape_y0 + 4);
