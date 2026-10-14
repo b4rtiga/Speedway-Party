@@ -216,7 +216,7 @@ static int trailer(void)
     track_random_surface();
     track_set_wetness(start_wet[g_tour.start_condition]);
     tenter(GS_TABLE);  thold(FPS * 7 / 2, FALSE);             /* program zawodow */
-    ui_present_start(); tenter(GS_PRESENT);                   /* podprowadzajace wychodza na pola */
+    ui_present_start(); tenter(GS_PRESENT);                   /* podprowadzajace na polach */
     while (!ui_present_update()) tframe(FALSE);
 
     begin(0);                                                 /* bieg 1: start i jazda do mety */

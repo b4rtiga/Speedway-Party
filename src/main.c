@@ -227,7 +227,7 @@ static void update_state(void)
         if (state_timer > FPS / 2 && ui_confirm()) { ui_present_start(); enter(GS_PRESENT); }
         break;
 
-    case GS_PRESENT:                     /* podprowadzajace wychodza na pola; potem 2 s albo FIRE */
+    case GS_PRESENT:                     /* podprowadzajace na polach: 3 s albo FIRE */
         if (ui_present_update() || (state_timer > FPS / 4 && ui_confirm())) begin_heat();
         break;
 

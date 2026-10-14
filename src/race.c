@@ -75,7 +75,7 @@ void race_init_heat(void)
 void race_launch(Bike *b)
 {
     b->state = BIKE_RACING;
-    b->speed = FIXPCT(MAX_SPEED, 10 + b->launch_quality * 30 / 255);
+    b->speed = FIXPCT(MAX_SPEED, 4 + b->launch_quality * 12 / 255);    /* ruszenie spod tasmy: 4-16% */
     b->launch_timer = LAUNCH_FRAMES;
 }
 
@@ -136,7 +136,7 @@ static void update_bike(Bike *b)
     if (b->launch_timer) {
         /* bonus startowy: szybsze rozpedzanie, ale nie ponad predkosc maksymalna */
         if (b->speed < cap) {
-            b->speed += (MAX_SPEED >> 9) * b->launch_quality / 64;
+            b->speed += (MAX_SPEED >> 11) * b->launch_quality / 64;     /* do +20% przez 1 s */
             if (b->speed > cap) b->speed = cap;
         }
         b->launch_timer--;

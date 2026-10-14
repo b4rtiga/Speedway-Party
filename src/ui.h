@@ -11,8 +11,8 @@ void ui_render(void);              /* raz na klatke, rysuje do bufora "back" */
 
 BOOL ui_title_update(void);        /* TRUE = przejdz dalej */
 BOOL ui_setup_update(void);        /* TRUE = start turnieju */
-void ui_present_start(void);       /* prezentacja: podprowadzajace wychodza od poczatku */
-BOOL ui_present_update(void);      /* TRUE = wszystkie na polach i czas na nazwiska minal */
+void ui_present_start(void);       /* prezentacja od poczatku */
+BOOL ui_present_update(void);      /* TRUE = koniec prezentacji (3 s) */
 BOOL ui_editing(void);             /* edycja nazwiska (ESC nie wychodzi z gry) */
 BOOL ui_confirm(void);             /* FIRE/Return na ekranie tabeli, wyniku, podium */
 void ui_pick_update(void);         /* wybor pol w biegach nominowanych */

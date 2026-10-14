@@ -519,102 +519,92 @@ static void draw_table(UBYTE *b)
  * 6 bajtow szerokosci). Kopia z maska: przezroczyste piksele (kolor 0) zostawiaja tlo,
  * wiec dlonie nachodza na tablice. Kolory w palecie toru (180..191, 221..239).
  *
- * Postac i tablica maja kolor kasku zawodnika; podprowadzajaca wychodzi zza lewej krawedzi
- * i staje na polu, z ktorego startuje jej zawodnik. Kolejno od pola D do A - idaca nikogo
- * nie mija. Ruch co 8 pikseli (kopia bajtami), w kazdej klatce przerysowywana tylko idaca. */
+ * Postac i tablica maja kolor kasku zawodnika; kazda stoi na polu, z ktorego startuje jej
+ * zawodnik, i kolysze biodrami: wiersze w pasie bioder przesuniete w bok o -2..2 px
+ * (glowa, rece z tablica i stopy w miejscu), kazda w innej fazie. Przerysowywany tylko
+ * ten pas i tylko przy zmianie fazy. */
 #define PRES_Y      72                      /* gora postaci */
-#define PRES_TOP    (PRES_Y - 22)           /* gora tablicy */
-#define PRES_H      (GIRL_H + 22)
-#define PRES_START  (-64)                   /* x startowy (poza ekranem) */
-#define PRES_STEP   8                       /* pikseli na klatke */
-#define PRES_HOLD   (2 * FPS)               /* po ustawieniu: nazwiska jeszcze 2 s */
+#define PRES_TIME   (3 * FPS)               /* prezentacja: 3 s albo FIRE */
+#define SWAY_Y0     30                      /* pas bioder (wiersze postaci) */
+#define SWAY_Y1     88
+#define SWAY_MID    58
+#define SWAY_STEP   5                       /* klatek na faze */
 static UWORD present_t;                     /* klatki od wejscia na ekran prezentacji */
-static WORD  present_drawn[2][4];           /* x postaci narysowanej w buforze (0x7FFF = brak) */
+static UBYTE present_drawn[2][4];           /* faza narysowana w buforze (0xFF = brak) */
+static const BYTE sway_tab[8] = { 0, 1, 2, 1, 0, -1, -2, -1 };
 
 static WORD gate_x(UBYTE g) { return (WORD)(16 + g * 80); }
-
-/* x podprowadzajacej z pola g w chwili t (0x7FFF = jeszcze nie wyszla, pole puste) */
-static WORD present_x(UBYTE g, UWORD t)
-{
-    UBYTE hn = g_tour.current_heat, k;
-    UWORD start = 0;
-    if (g_tour.heat_table[hn][g] == 0xFF) return 0x7FFF;
-    for (k = 3; k > g; k--)                                  /* najpierw wychodza dalsze pola */
-        if (g_tour.heat_table[hn][k] != 0xFF)
-            start = (UWORD)(start + (gate_x(k) - PRES_START) / PRES_STEP);
-    if (t < start) return 0x7FFF;
-    {
-        LONG x = PRES_START + (LONG)(t - start) * PRES_STEP;
-        return (WORD)(x > gate_x(g) ? gate_x(g) : x);
-    }
-}
-
-static UWORD present_walk_frames(void)
-{
-    UBYTE g;
-    UWORD n = 0;
-    for (g = 0; g < 4; g++)
-        if (g_tour.heat_table[g_tour.current_heat][g] != 0xFF) n = (UWORD)(n + (gate_x(g) - PRES_START) / PRES_STEP);
-    return n;
-}
+static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t / SWAY_STEP + g * 3) & 7); }
 
 void ui_present_start(void)
 {
     UBYTE i, g;
     present_t = 0;
-    for (i = 0; i < 2; i++) for (g = 0; g < 4; g++) present_drawn[i][g] = 0x7FFF;
+    for (i = 0; i < 2; i++) for (g = 0; g < 4; g++) present_drawn[i][g] = 0xFF;
 }
 
-/* raz na klatke w GS_PRESENT; zwraca TRUE, gdy wszystkie staly i minal czas na nazwiska */
+/* raz na klatke w GS_PRESENT; zwraca TRUE po czasie prezentacji */
 BOOL ui_present_update(void)
 {
-    UWORD walk = present_walk_frames();
     if (present_t < 0xFFF0) present_t++;
-    if (present_t == walk) ui_invalidate();                  /* wszystkie na polach: nazwiska */
-    return (BOOL)(present_t >= walk + PRES_HOLD);
+    return (BOOL)(present_t >= PRES_TIME);
 }
 
-/* prostokat z obcieciem do ekranu (x moze byc ujemne) */
-static void rect_clip(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c)
+/* przesuniecie wiersza y postaci przy kolysaniu o amplitudzie amp (-2..2) */
+static WORD sway_dx(WORD y, BYTE amp)
 {
-    if (x < 0) { w += x; x = 0; }
-    if (x + w > SCREEN_W) w = (WORD)(SCREEN_W - x);
-    if (w > 0) rect_px(b, x, y, w, h, c);
+    WORD d = (WORD)(y < SWAY_MID ? SWAY_MID - y : y - SWAY_MID), span = y < SWAY_MID ? SWAY_MID - SWAY_Y0 : SWAY_Y1 - SWAY_MID;
+    if (y <= SWAY_Y0 || y >= SWAY_Y1) return 0;
+    return (WORD)((amp * (span - d) * 2 + (amp > 0 ? span : -span)) / (2 * span));
 }
 
-static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color)
+/* wiersze y0..y1-1 postaci (x0 podzielne przez 8), kazdy przesuniety o sway_dx */
+static void draw_girl_rows(UBYTE *b, WORD x0, WORD py, UBYTE color, WORD y0, WORD y1, BYTE amp)
 {
-    const UBYTE *src = girls_img + color * GIRL_SIZE;
-    WORD y, col0 = (WORD)(x0 >> 3);
+    const UBYTE *src = girls_img + color * GIRL_SIZE + (LONG)y0 * PLAY_DEPTH * GIRL_BYTES;
+    WORD y;
     UBYTE pl, k;
-    /* tablica nad glowa: kolor kasku zawodnika, ciemny kontur */
-    rect_clip(b, x0 - 6, y0 - 22, GIRL_W + 12, 24, U_SHADOW);
-    rect_clip(b, x0 - 4, y0 - 20, GIRL_W + 8, 20, (UBYTE)(U_HELMET + color));
-    if (!girls_img) return;
     hw_wait_blit();
-    for (y = 0; y < GIRL_H; y++, src += PLAY_DEPTH * GIRL_BYTES)
-        for (k = 0; k < GIRL_BYTES; k++) {
-            UBYTE mask = 0;
+    for (y = y0; y < y1; y++, src += PLAY_DEPTH * GIRL_BYTES) {
+        WORD dx = sway_dx(y, amp), xs = (WORD)(x0 + dx), col0 = (WORD)(xs >> 3);
+        UBYTE sh = (UBYTE)(xs & 7);
+        for (k = 0; k <= GIRL_BYTES; k++) {              /* przesuniecie bitowe: o 1 bajt szerzej */
+            UBYTE mask = 0, data[PLAY_DEPTH];
             UBYTE *d;
             if (col0 + k < 0 || col0 + k >= ROW_BYTES) continue;
-            d = b + (LONG)(y0 + y) * PLAY_STRIDE + col0 + k;
-            for (pl = 0; pl < PLAY_DEPTH; pl++) mask |= src[pl * GIRL_BYTES + k];
+            for (pl = 0; pl < PLAY_DEPTH; pl++) {
+                const UBYTE *r = src + pl * GIRL_BYTES;
+                UBYTE hi = k < GIRL_BYTES ? r[k] : 0, lo = k ? r[k - 1] : 0;
+                data[pl] = (UBYTE)(sh ? (hi >> sh) | (lo << (8 - sh)) : hi);
+                mask |= data[pl];
+            }
             if (!mask) continue;
+            d = b + (LONG)(py + y) * PLAY_STRIDE + col0 + k;
             for (pl = 0; pl < PLAY_DEPTH; pl++, d += ROW_BYTES)
-                *d = (UBYTE)((*d & ~mask) | src[pl * GIRL_BYTES + k]);
+                *d = (UBYTE)((*d & ~mask) | data[pl]);
         }
+    }
 }
 
-/* podprowadzajace w buforze bi: zmazanie starej pozycji i rysowanie nowej (tylko zmienione) */
+static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color, BYTE amp)
+{
+    /* tablica nad glowa: kolor kasku zawodnika, ciemny kontur */
+    rect_px(b, x0 - 6, y0 - 22, GIRL_W + 12, 24, U_SHADOW);
+    rect_px(b, x0 - 4, y0 - 20, GIRL_W + 8, 20, (UBYTE)(U_HELMET + color));
+    if (girls_img) draw_girl_rows(b, x0, y0, color, 0, GIRL_H, amp);
+}
+
+/* kolysanie: pas bioder przerysowany przy zmianie fazy (w kazdym buforze osobno) */
 static void present_girls(UBYTE *b, UBYTE bi)
 {
     UBYTE hn = g_tour.current_heat, g;
+    if (!girls_img) return;
     for (g = 0; g < 4; g++) {
-        WORD x = present_x(g, present_t), old = present_drawn[bi][g];
-        if (x == old) continue;
-        if (old != 0x7FFF) rect_clip(b, old - 6, PRES_TOP, GIRL_W + 12, PRES_H, 0);
-        if (x != 0x7FFF) draw_girl(b, x, PRES_Y, g_tour.heat_table[hn][g]);
-        present_drawn[bi][g] = x;
+        UBYTE ph = sway_phase(g);
+        if (g_tour.heat_table[hn][g] == 0xFF || present_drawn[bi][g] == ph) continue;
+        rect_px(b, gate_x(g) - 8, PRES_Y + SWAY_Y0, GIRL_W + 16, SWAY_Y1 - SWAY_Y0, 0);
+        draw_girl_rows(b, gate_x(g), PRES_Y, g_tour.heat_table[hn][g], SWAY_Y0, SWAY_Y1, sway_tab[ph]);
+        present_drawn[bi][g] = ph;
     }
 }
 
@@ -626,17 +616,17 @@ static void draw_present(UBYTE *b, UBYTE bi)
     else { p = text_cat(s, "BIEG "); text_uint(p, (ULONG)(hn + 1), 1); }
     text_draw_big_center(b, 8, s, U_RAINBOW, U_SHADOW);
     text_draw_center(b, 34, "PREZENTACJA ZAWODNIKÓW", U_GOLD, 0);
-    for (g = 0; g < 4; g++) present_drawn[bi][g] = 0x7FFF;  /* ekran wyczyszczony */
-    present_girls(b, bi);
-    if (present_t >= present_walk_frames())
-        for (g = 0; g < 4; g++) {
-            WORD cx = (WORD)(gate_x(g) + GIRL_W / 2);
-            if (g_tour.heat_table[hn][g] == 0xFF) continue;      /* puste pole (bieg dodatkowy) */
-            name_trunc(s, g_tour.riders[g_tour.heat_table[hn][g]].name, 9);
-            text_draw(b, (WORD)(cx - text_len(s) * 4), PRES_Y + GIRL_H + 8, s, U_WHITE, U_SHADOW);
-            s[0] = gate_letter[g]; s[1] = 0;
-            text_draw(b, cx - 4, PRES_Y + GIRL_H + 22, s, U_GREY, 0);
-        }
+    for (g = 0; g < 4; g++) {
+        WORD cx = (WORD)(gate_x(g) + GIRL_W / 2);
+        UBYTE r = g_tour.heat_table[hn][g];
+        if (r == 0xFF) continue;                         /* puste pole (bieg dodatkowy) */
+        draw_girl(b, gate_x(g), PRES_Y, r, sway_tab[sway_phase(g)]);
+        present_drawn[bi][g] = sway_phase(g);
+        name_trunc(s, g_tour.riders[r].name, 9);
+        text_draw(b, (WORD)(cx - text_len(s) * 4), PRES_Y + GIRL_H + 8, s, U_WHITE, U_SHADOW);
+        s[0] = gate_letter[g]; s[1] = 0;
+        text_draw(b, cx - 4, PRES_Y + GIRL_H + 22, s, U_GREY, 0);
+    }
     if (blink) text_draw_center(b, 238, "FIRE - POD TAŚMĘ!", U_RAINBOW, U_SHADOW);
 }
 
