@@ -225,7 +225,7 @@ static void draw_menu(UBYTE *b)
 static void draw_credits(UBYTE *b)
 {
     text_draw_big_center(b, 10, "SPEEDWAY PARTY", U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 62, "GRĘ STWORZYŁ b4rtiga", U_WHITE, U_SHADOW);
+    text_draw_center(b, 62, "AUTOR GRY: b4rtiga", U_WHITE, U_SHADOW);
     text_draw_center(b, 86, "PRZY POMOCY SZTUCZNEJ INTELIGENCJI:", U_GREY, 0);
     text_draw_center(b, 98, "CLAUDE (ANTHROPIC) ORAZ GPT-6 ASTRA", U_WHITE, U_SHADOW);
     text_draw_center(b, 122, "KOD ŹRÓDŁOWY (LICENCJA MIT):", U_GREY, 0);
