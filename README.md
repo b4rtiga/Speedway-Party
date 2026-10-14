@@ -206,7 +206,7 @@ Gotowa konfiguracja jest w [tools/winuae/SpeedwayParty-A1200.uae](tools/winuae/S
 
 Jeśli wolisz Workbench: podepnij `dist/` jako dodatkowy dysk i w Shellu wpisz `cd Speedway:` i `SpeedwayParty`.
 
-**ESC** (albo drugi przycisk joysticka) to pauza z pytaniem. W trakcie turnieju gra pyta, czy wrócić do menu głównego, a w menu, czy zakończyć grę. Drugie ESC oznacza „tak”, a FIRE wraca do gry.
+**ESC** (albo drugi przycisk joysticka) to pauza z pytaniem. W trakcie turnieju gra pyta, czy wrócić do menu głównego, w ustawieniach wraca od razu do ekranu wyboru, a na ekranie wyboru i planszy tytułowej pyta, czy zakończyć grę. Drugie ESC oznacza „tak”, a FIRE wraca do gry.
 
 Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
 
@@ -260,7 +260,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `sh tools/sim/batch.sh` | 5 turniejów, średnie punkty dla każdego poziomu AI (do strojenia) |
 | `python tools/sim/plot.py` | tory jazdy z symulacji na tle toru, zapis do `art/sim_lines.png` |
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szpryca, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
-| `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z prawdziwego nagrania |
+| `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z nagrania (obecnie `src/speedway_500cc_10000rpm_loop.wav`; `make assets` robi to sam) |
 | `python tools/mkdocs.py` | dokumentacja: `docs/DOKUMENTACJA.md` → `docs/SpeedwayParty-dokumentacja.pdf` (HTML do druku, PDF drukuje Edge albo Chrome w tle; wersja z gita) |
 | `python tools/mksocial.py` | miniaturka do podglądu linków na GitHubie, `art/social_preview.jpg` (1280×640, poniżej limitu 1 MB; wymaga ffmpeg) |
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` z prawdziwego kodu gry: menu, półtora okrążenia biegu i przejście do ilustracji tytułowej (wymaga ffmpeg) |
@@ -317,7 +317,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 | Narzędzia na PC | Python 3 + numpy: tor, motocykle, traktory, HUD, font, palety, konwersja ilustracji do palet AGA, dźwięki, dyskietka ADF i paczka zip; ffmpeg: dekodowanie PNG, trailer MP4, miniaturka JPG |
 | Sprawdzanie i testy | Clang z pakietu `ziglang`: kontrola typów kodu dla 68020 (atrapy NDK), symulator turnieju z tą samą logiką gry, zrzuty ekranu i trailer z prawdziwego kodu gry (emulacja buforów i duszków), testy gazety |
 | Grafika | pikselart toru, motocykli, traktorów i HUD generowany kodem; ilustracje (plansza tytułowa, podprowadzające, sędzia) przygotowane generatorem obrazów AI i przekonwertowane do palet gry narzędziami z repozytorium |
-| Dźwięk | próbki 8-bit (silnik, kibice, brzęczyk z taśmą, gwizdek) generowane w Pythonie; utwory menu jako gotowe miksy PCM 8-bit ~16 kHz |
+| Dźwięk | silnik z nagrania wygenerowanego przez AI (pętla 8 cykli zapłonu); kibice, brzęczyk z taśmą i gwizdek generowane w Pythonie; utwory menu jako gotowe miksy PCM 8-bit ~16 kHz |
 | Repozytorium i praca | git, GitHub; asystenci AI: Claude (Anthropic) i GPT-6 Astra |
 
 ---
@@ -332,7 +332,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 
 ### Znane ograniczenia
 - **Silniki słychać tylko dwa naraz** (lidera i drugiego zawodnika): Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty.
-- **Dźwięk silnika jest syntetyczny.** Prawdziwe nagranie można zamienić w pętlę dla Pauli narzędziem `tools/import_engine.py`, ale potrzebna jest licencja na nagranie.
+- **Dźwięk silnika** to pętla z nagrania 500 cm³ na 10 000 obr/min wygenerowanego przez AI (`src/speedway_500cc_10000rpm_loop.wav`, import: `tools/import_engine.py`). Wysokość tonu w grze zmienia Paula zależnie od obrotów.
 - **Mysz w porcie 0:** menu jej nie czyta, ale gracz 2 ustawiony na „JOY 0” z myszą zamiast joysticka będzie „jechał” ruchami myszy.
 - **Adapter 4 graczy na porcie równoległym** nie był testowany. Przypisanie bitów w `src/input.c` może wymagać poprawki.
 - **Remis punktowy poza podium** (o 4. miejsce) rozstrzygają zwycięstwa biegów. O podium zawsze rozstrzyga bieg dodatkowy.
@@ -342,7 +342,6 @@ tools/          generatory, sprawdzanie kodu, symulator
 ### Do zrobienia
 - tryb treningu: pojedynczy bieg albo jazda na czas
 - więcej torów i stadionów
-- prawdziwe nagranie silnika żużlowego (z licencją)
 - test na prawdziwym A1200 i z oryginalnym Kickstartem 3.1
 - ostatnie zgubione klatki w chwili startu spod taśmy
 - sprawdzenie zapisu rekordów toru (`records.dat`) na Amidze

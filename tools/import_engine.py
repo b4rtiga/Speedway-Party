@@ -11,7 +11,7 @@ Co robi:
   3. wycina 8 kolejnych cykli od przejscia przez zero i kazdy przeprobkowuje do
      48 probek (tyle zaklada audio.c), wiec petla jest bez szwu, a wysokosc tonu
      w grze dalej liczy sie z obrotow,
-  4. zapisuje data/engine.raw (8-bit ze znakiem) i podglad art/engine_real_sweep.wav.
+  4. zapisuje data/engine.raw (8-bit ze znakiem) i podglad build/preview/engine_real_sweep.wav.
 Obsluguje WAV 8/16/24/32-bit, mono i stereo (MP3 trzeba najpierw zamienic na WAV)."""
 import argparse
 import pathlib
@@ -115,7 +115,7 @@ def main():
     (ROOT / "data/engine.raw").write_bytes(loop.tobytes())
     sweep, r = genaudio.engine_sweep(loop)
     genaudio.write_wav("engine_real_sweep.wav", sweep, r)
-    print("zapisano data/engine.raw i art/engine_real_sweep.wav")
+    print("zapisano data/engine.raw i build/preview/engine_real_sweep.wav")
 
 
 if __name__ == "__main__":

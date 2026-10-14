@@ -25,7 +25,7 @@ Gra jest dostępna w dwóch postaciach (katalog `release/` w repozytorium):
 - **Z twardego dysku:** rozpakuj zip, w Shellu wejdź do katalogu `SpeedwayParty` i wpisz `SpeedwayParty`. Katalog `data/` musi leżeć obok programu.
 - **W emulatorze z katalogu:** podepnij rozpakowany katalog jako dysk startowy (rozdział 9).
 
-**ESC** (albo drugi przycisk joysticka) w dowolnym momencie otwiera pauzę z pytaniem: w turnieju – czy wrócić do menu, w menu – czy zakończyć grę. Drugie ESC oznacza „tak”, FIRE wraca do gry.
+**ESC** (albo drugi przycisk joysticka) w dowolnym momencie otwiera pauzę z pytaniem: w turnieju – czy wrócić do menu, na ekranie wyboru – czy zakończyć grę. W ustawieniach ESC wraca od razu do ekranu wyboru. Drugie ESC oznacza „tak”, FIRE wraca do gry.
 
 ## 2. Sterowanie
 
@@ -221,7 +221,7 @@ Na gołym A1200 program i dane siedzą w Chip RAM, który współdzieli z układ
 
 ### Dźwięk (Paula)
 
-Cztery kanały: dwa silniki (lider i drugi zawodnik; w menu – muzyka w podwójnym buforze), kibice, efekty (brzęczyk z trzaskiem taśmy, gwizdek).
+Cztery kanały: dwa silniki (lider i drugi zawodnik; w menu – muzyka w podwójnym buforze), kibice, efekty (brzęczyk z trzaskiem taśmy, gwizdek). Silnik to pętla 8 cykli zapłonu z nagrania (`data/engine.raw`); wysokość tonu zmienia się z obrotami przez okres odtwarzania Pauli.
 
 ### Moduły
 
@@ -283,6 +283,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png` |
 | `python tools/genreferee.py` | portret sędziego i malowana ręka z ilustracji `src/referee.png` |
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png` |
+| `python tools/import_engine.py plik.wav` | pętla silnika z nagrania (obecnie `src/speedway_500cc_10000rpm_loop.wav`) |
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry skompilowanego na PC (`art/screen_*.png`) |
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` |
 | `sh tools/sim/news_test.sh` | testy gazety (reguły nagłówków, podsumowanie, długie nazwiska) |
@@ -315,11 +316,11 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 - **Nie była jeszcze testowana na prawdziwym A1200** ani z oryginalnym Kickstartem 3.1.
 - Zajmuje ok. 1,2–1,4 MB Chip RAM, więc potrzebuje 2 MB Chip.
 - Słychać tylko dwa silniki naraz (Paula ma 4 kanały).
-- Dźwięk silnika jest syntetyczny.
+- Dźwięk silnika pochodzi z nagrania wygenerowanego przez AI (500 cm³, 10 000 obr/min), zapętlonego narzędziem `tools/import_engine.py`.
 - Adapter 4 graczy na porcie równoległym nie był testowany.
 - Tylko PAL.
 
-**Do zrobienia:** rekordy toru z tabelą TOP 5 i inicjałami, tryb treningu, więcej torów, prawdziwe nagranie silnika (z licencją), test na prawdziwym A1200.
+**Do zrobienia:** rekordy toru z tabelą TOP 5 i inicjałami, tryb treningu, więcej torów, test na prawdziwym A1200.
 
 ## 13. Jak aktualizować tę dokumentację
 

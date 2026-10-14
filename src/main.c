@@ -181,6 +181,11 @@ static BOOL handle_pause(void)
         }
         return TRUE;
     }
+    if (edge && g_tour.state == GS_SETUP) {          /* ESC w ustawieniach: powrot do ekranu wyboru */
+        ui_menu_enter(0);
+        enter(GS_MENU);
+        return TRUE;
+    }
     if (edge && (g_tour.state == GS_CREDITS || g_tour.state == GS_HELP)) {   /* ESC: powrot do wyboru */
         ui_menu_enter((UBYTE)(g_tour.state == GS_HELP ? 1 : 2));
         enter(GS_MENU);
@@ -188,7 +193,7 @@ static BOOL handle_pause(void)
     }
     if (edge) {
         g_paused = TRUE;
-        g_pause_quit = (BOOL)(g_tour.state == GS_SETUP || g_tour.state == GS_TITLE || g_tour.state == GS_MENU);
+        g_pause_quit = (BOOL)(g_tour.state == GS_TITLE || g_tour.state == GS_MENU);
         ui_invalidate();
         return TRUE;
     }

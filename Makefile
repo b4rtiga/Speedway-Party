@@ -64,6 +64,7 @@ assets:
 	python tools/gentitle.py
 	python tools/gengirls.py
 	python tools/genaudio.py
+	python tools/import_engine.py src/speedway_500cc_10000rpm_loop.wav
 	python tools/genfont.py
 
 # Kontrola skladni Clangiem i symulator logiki na PC (pip install ziglang)

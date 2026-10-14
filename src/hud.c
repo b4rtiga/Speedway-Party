@@ -343,11 +343,12 @@ static void draw_referee(void)
 #define RC_X0    224
 #define RC_LONGS ((SCREEN_W - RC_X0) / 32)              /* 3 dlugie slowa na plan */
 #define RC_ROWS  REF_H
-static ULONG ref_cache[2][RC_ROWS * HUD_DEPTH * RC_LONGS];
+#define RC_FLAGS (FLAG_NATIONAL + 1)
+static ULONG ref_cache[RC_FLAGS][2][RC_ROWS * HUD_DEPTH * RC_LONGS];   /* kazda flaga x faza machania */
 
-static void ref_cache_io(UBYTE wave, BOOL save)
+static void ref_cache_io(UBYTE flag, UBYTE wave, BOOL save)
 {
-    ULONG *c = ref_cache[wave & 1];
+    ULONG *c = ref_cache[flag < RC_FLAGS ? flag : 0][wave & 1];
     WORD y;
     UBYTE pl, k;
     for (y = 0; y < RC_ROWS; y++)
@@ -381,6 +382,15 @@ void hud_init(void)
 {
     have_referee = asset_load("PROGDIR:data/referee.bin", referee, sizeof(referee));
     have_arm = asset_load("PROGDIR:data/refarm.bin", ref_arm, sizeof(ref_arm));
+    {
+        UBYTE f, w;                                      /* wszystkie flagi x fazy: raz, przed gra */
+        for (f = 0; f < RC_FLAGS; f++)
+            for (w = 0; w < 2; w++) {
+                shown.flag = f; shown.wave = w;
+                draw_referee();
+                ref_cache_io(f, w, TRUE);
+            }
+    }
     hrect(0, 0, SCREEN_W, HUD_H, H_BG);
     enter_menu_mode();
 }
@@ -465,13 +475,11 @@ void hud_update(void)
     }
 #endif
     if (flag != shown.flag || wave != shown.wave) {
-        /* kazda faza machania nowej flagi rysowana raz (w swojej klatce) i zapamietana; kolejne
-         * machniecia to sama kopia z bufora (rysowanie piksel po pikselu co 16 klatek gubilo klatke) */
-        static UBYTE cached;                             /* bity: zapamietane fazy biezacej flagi */
-        if (flag != shown.flag) cached = 0;
+        /* rog sedziego z kazda flaga w obu fazach machania narysowany raz przy starcie (hud_init) -
+         * w biegu zmiana flagi i machniecie to sama kopia (rysowanie piksel po pikselu gubilo klatke) */
+        if (flag != FLAG_NONE && flag != shown.flag) set_flag_color(flag);
         shown.flag = flag; shown.wave = wave;
-        if (cached & (1 << wave)) ref_cache_io(wave, FALSE);
-        else { draw_referee(); ref_cache_io(wave, TRUE); cached |= (UBYTE)(1 << wave); }
+        ref_cache_io(flag, wave, FALSE);
         face_drawn = 0xFF;                               /* portret przerysowany - twarz od nowa */
 #ifdef SHOW_LAG
         shown_prof[3] = 999;                             /* rog sedziego zakryl 4. liczbe profilu */

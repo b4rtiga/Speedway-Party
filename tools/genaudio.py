@@ -1,6 +1,7 @@
 """genaudio.py - probki dzwiekowe dla Pauli (8-bit ze znakiem) + podglady WAV.
 
-  data/engine.raw   8 cykli zaplonu jednocylindrowego silnika (48 probek/cykl), petla
+  data/engine.raw   8 cykli zaplonu jednocylindrowego silnika (48 probek/cykl), petla - syntetyczna;
+                    gdy jest nagranie ENGINE_WAV, engine.raw robi z niego tools/import_engine.py
   data/crowd.raw    gwar kibicow, petla bez szwu, 11025 Hz
   data/buzzer.raw   start: brzeczyk + puszczenie tasmy (metaliczne "klak" i swist gumy), 0.7 s, 11025 Hz
   data/whistle.raw  gwizdek sedziego z "groszkiem" 0.8 s, 22050 Hz
@@ -14,6 +15,7 @@ import numpy as np
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PAULA_CLOCK = 3546895          # PAL
 ENGINE_CYCLE = 48              # probek na jeden zaplon - musi zgadzac sie z audio.c
+ENGINE_WAV = ROOT / "src/speedway_500cc_10000rpm_loop.wav"   # nagranie silnika (import_engine.py)
 rng = np.random.default_rng(500)
 
 
@@ -121,6 +123,9 @@ def main():
         "buzzer": (buzzer(), 11025),
         "whistle": (whistle(), 22050),
     }
+    if ENGINE_WAV.exists():                                # silnik z nagrania - nie nadpisujemy
+        del sounds["engine"]
+        print(f"data/engine.raw  z nagrania {ENGINE_WAV.name} (tools/import_engine.py)")
     for name, (s8, rate) in sounds.items():
         if s8.size % 2:                                    # Paula: dlugosc w slowach
             s8 = np.append(s8, np.int8(0))
@@ -128,8 +133,9 @@ def main():
         if rate:
             write_wav(f"{name}.wav", s8 if name != "crowd" else np.tile(s8, 3), rate)
         print(f"data/{name}.raw  {s8.size} B")
-    sweep, r = engine_sweep(sounds["engine"][0])
-    write_wav("engine_sweep.wav", sweep, r)
+    if "engine" in sounds:
+        sweep, r = engine_sweep(sounds["engine"][0])
+        write_wav("engine_sweep.wav", sweep, r)
 
 
 if __name__ == "__main__":
