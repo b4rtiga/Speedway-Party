@@ -421,13 +421,17 @@ void track_random_surface(void)
 }
 
 /* wywolywane z ui_render dla bufora "back" (po zdjeciu starej szprycy) */
-void track_flush_wear(UBYTE bi, UBYTE *buf)
+/* (kx, ky, kw, kh): prostokat z nakladka (np. wyniki biegu) - komorki pod nim czekaja, inaczej
+ * kopia z tla zamazalaby nakladke; po jej zdjeciu panel i tak wraca z aktualnego tla. kw = 0: brak. */
+void track_flush_wear(UBYTE bi, UBYTE *buf, WORD kx, WORD ky, WORD kw, WORD kh)
 {
     WORD gx, gy;
     if (!wear_dirty_n[bi]) return;
     for (gy = 0; gy < GRIP_H; gy++)
         for (gx = 0; gx < GRIP_W; gx++)
             if (wear_dirty[bi][gy][gx]) {
+                WORD x0 = (WORD)((gx * GRIP_CELL) & ~15), y0 = (WORD)(gy * GRIP_CELL);
+                if (kw && x0 < kx + kw && x0 + 16 > kx && y0 < ky + kh && y0 + GRIP_CELL > ky) continue;
                 wear_dirty[bi][gy][gx] = 0;
                 wear_dirty_n[bi]--;
                 blit_copy(buf, g_video.background, (WORD)((gx * GRIP_CELL) & ~15), (WORD)(gy * GRIP_CELL),

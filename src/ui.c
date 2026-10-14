@@ -1549,7 +1549,10 @@ void ui_render(void)
             drawn_serial[bi] = 0;
             panel_ov[bi] = OV_NONE;                       /* swiezy tor - panel pusty */
         }
-        track_flush_wear(bi, b);                          /* wyjezdzone sciezki */
+        if (panel_ov[bi] != OV_NONE)                      /* wyjezdzone sciezki - nie pod nakladka */
+            track_flush_wear(bi, b, PANEL_X, PANEL_Y, PANEL_W, PANEL_H);
+        else
+            track_flush_wear(bi, b, 0, 0, 0, 0);
         update_startwin(b, bi);                           /* przed nakladkami - nie tnie panelu */
         {
             /* nakladka zalezna od stanu gry (np. podpowiedz pod tasma) - zmiana = przerysowanie */

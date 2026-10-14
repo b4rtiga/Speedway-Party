@@ -317,7 +317,7 @@ void     track_wear(WORD x, WORD y);             /* motocykl ubija nawierzchnie 
 void     track_loosen(WORD x, WORD y);           /* szpryca spadla na tor - spulchnia */
 void     track_reset_wear(void);                 /* rowny tor (nowy turniej / zmiana toru) */
 void     track_random_surface(void);              /* losowe wyjezdzone sciezki na start turnieju */
-void     track_flush_wear(UBYTE bi, UBYTE *buf);  /* dokopiuj zmienione komorki do bufora */
+void     track_flush_wear(UBYTE bi, UBYTE *buf, WORD kx, WORD ky, WORD kw, WORD kh);  /* zmienione komorki do bufora (poza prostokatem) */
 void     track_forget_wear(UBYTE bi);             /* bufor dostal cale tlo */
 void     track_dry_step(void);
 UBYTE    track_pack_at(WORD x, WORD y);           /* ubicie nawierzchni 0..255 (wyjezdzona sciezka) */
