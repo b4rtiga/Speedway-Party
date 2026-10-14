@@ -1366,6 +1366,7 @@ static void draw_tape_ribbon(UBYTE *b, UBYTE bi, WORD t)
 }
 
 static UBYTE sw_clear;              /* klatki, przez ktore jeszcze czyscimy obszar okienka */
+static BYTE  cache_lamp = -1;       /* lampka w zapamietanym tle okienka (-1 = tla brak, 3 = awaria) */
 
 /* Tlo okienka rysowane w calosci przy pojawieniu sie i zmianie lampki (i zapamietane);
  * w klatkach odlotu tylko pas pod stara tasma wraca z pamieci i rysuje sie nowa tasma.
@@ -1383,12 +1384,32 @@ static void update_startwin(UBYTE *b, UBYTE bi)
         return;
     }
     if (st == old) return;
-    if (!sw_cache || old == SW_NONE || (old & 3) != (st & 3)) {
+    if (!sw_cache) {
         draw_startwin_static(b, (UBYTE)(st & 3));
-        if (sw_cache) startwin_to_cache(b);
         tape_rows[bi][0] = -1;
-    } else if (tape_rows[bi][0] >= 0) {
-        startwin_from_cache(b, tape_rows[bi][0], tape_rows[bi][1]);
+    } else {
+        /* Tlo okienka (piksel po pikselu - kilka klatek pracy) rysowane raz i trzymane w pamieci;
+         * zmiana lampki przemalowuje w pamieci tylko lampke, a bufory kopiuja okienko z pamieci.
+         * Dawniej pelne rysowanie w kazdym buforze przy czerwonym i przy zielonym gubilo klatki
+         * w chwili startu. */
+        UBYTE lamp = (UBYTE)(st & 3);
+        BOOL full = (BOOL)(old == SW_NONE || (old & 3) != lamp);
+        if (cache_lamp < 0 || (cache_lamp == 3) != (lamp == 3)) {
+            draw_startwin_static(b, lamp);
+            startwin_to_cache(b);
+            cache_lamp = (BYTE)lamp;
+            full = FALSE;
+            tape_rows[bi][0] = -1;
+        } else if (cache_lamp != (BYTE)lamp) {
+            draw_lamp(sw_cache - (LONG)SW_Y * PLAY_STRIDE, lamp);   /* pamiec w ukladzie ekranu od SW_Y */
+            cache_lamp = (BYTE)lamp;
+        }
+        if (full) {
+            startwin_from_cache(b, SW_Y, SW_Y + SW_H - 1);
+            tape_rows[bi][0] = -1;
+        } else if (tape_rows[bi][0] >= 0) {
+            startwin_from_cache(b, tape_rows[bi][0], tape_rows[bi][1]);
+        }
     }
     if ((st & 3) != 3) draw_tape_ribbon(b, bi, (WORD)(st >> 2));
     startwin_drawn[bi] = st;

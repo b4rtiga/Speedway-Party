@@ -438,19 +438,15 @@ void hud_update(void)
         hglyph_s(162, HUD_TOP + 9, (UBYTE)(v % 10), H_RED_ON, 2, H_BG);
     }
 #endif
-    if (flag != shown.flag) {
-        /* nowa flaga: obie fazy machania rysowane raz i zapamietane (rysowanie piksel po pikselu
-         * co 16 klatek gubilo klatke przy kazdym machnieciu) */
-        UBYTE w;
-        shown.flag = flag;
-        for (w = 0; w < 2; w++) { shown.wave = w; draw_referee(); ref_cache_io(w, TRUE); }
-        shown.wave = wave;
-        ref_cache_io(wave, FALSE);
+    if (flag != shown.flag || wave != shown.wave) {
+        /* kazda faza machania nowej flagi rysowana raz (w swojej klatce) i zapamietana; kolejne
+         * machniecia to sama kopia z bufora (rysowanie piksel po pikselu co 16 klatek gubilo klatke) */
+        static UBYTE cached;                             /* bity: zapamietane fazy biezacej flagi */
+        if (flag != shown.flag) cached = 0;
+        shown.flag = flag; shown.wave = wave;
+        if (cached & (1 << wave)) ref_cache_io(wave, FALSE);
+        else { draw_referee(); ref_cache_io(wave, TRUE); cached |= (UBYTE)(1 << wave); }
         face_drawn = 0xFF;                               /* portret przerysowany - twarz od nowa */
-    } else if (wave != shown.wave) {
-        shown.wave = wave;
-        ref_cache_io(wave, FALSE);                       /* machniecie: sama kopia z bufora */
-        face_drawn = 0xFF;
     }
     face_update();
 }

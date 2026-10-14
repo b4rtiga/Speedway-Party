@@ -284,7 +284,10 @@ void race_update(void)
 #endif
 
     if (h->race_frames % DRY_EVERY == 0) track_dry_step();
-    track_tick(2);                       /* wyjezdzone sciezki: 2 wiersze komorki na klatke (ok. 25 linii) */
+    /* W biegu tylko przyczepnosc (tania); ciemnienie wyjezdzonych sciezek gra dorysowuje miedzy
+     * biegami (wyniki, program) - na A1200 bez Fast RAM nawet 2 wiersze komorki na klatke to
+     * 120-170 linii wiazki (pomiar w WinUAE) i ruch gubil klatki. */
+    track_tick(0);
 #ifdef SHOW_LAG
     prof_add(0, p0, p1); prof_add(1, p1, p2); prof_add(2, p2, hw_vpos());
 #endif
