@@ -247,7 +247,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`, `tools/gengirls.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`); robocze podglądy (makiety, arkusze klatek, WAV) trafiają do `build/preview/` poza repo |
 | `make release` | buduje paczkę `release/SpeedwayParty.zip` i startową dyskietkę `release/SpeedwayParty.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
 | `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png`: kadr 320×256, własna paleta AGA i dithering (`data/title.bpl`, `data/title.pal`) |
-| `python tools/genreferee.py` | portret sędziego w HUD z ilustracji `src/referee.png`: 32×38, własne odcienie w wolnych kolorach palety HUD (używa go `tools/genart.py`; wymaga ffmpeg) |
+| `python tools/genreferee.py` | portret sędziego w HUD z ilustracji `src/referee.png`: 32×38, własne odcienie w wolnych kolorach palety HUD, oraz malowana ręka z pięścią w dwóch fazach machania flagą (`data/refarm.bin`; używa go `tools/genart.py`; wymaga ffmpeg) |
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png`: cztery postacie 48×96, wspólna paleta 31 kolorów dobrana z obrazu, kolory pól z UI, lekki dithering (`data/girls.bin`; wymaga ffmpeg) |
 | `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |
 | `make sim` | symulator: te same pliki logiki gry rozgrywają turniej botów bez grafiki |

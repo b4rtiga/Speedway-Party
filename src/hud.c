@@ -17,6 +17,13 @@ enum { H_BG = 0, H_WHITE = 1, H_HELMET = 2, H_RED_ON = 6, H_GREEN_ON = 7, H_RED_
 #define REF_X       272
 static UBYTE referee[REF_H * HUD_DEPTH * REF_W_BYTES];
 static BOOL  have_referee;
+/* uniesiona reka z piescia (tools/genreferee.py arm_image): 2 fazy machania, 0 = przezroczyste */
+#define ARM_X      248
+#define ARM_Y      14                    /* od HUD_TOP */
+#define ARM_H      24
+#define ARM_BYTES  4
+static UBYTE ref_arm[2][ARM_H * HUD_DEPTH * ARM_BYTES];
+static BOOL  have_arm;
 
 /* Flagi sedziego (regulamin zuzlowy):
  *   szachownica - koniec biegu (od mety zwyciezcy)   zolta     - niebezpieczenstwo na torze
@@ -295,11 +302,27 @@ static void draw_referee(void)
     set_flag_color(shown.flag);
     /* reka w gorze: rekaw w pasy od barku do lokcia, opalone przedramie, piesc na drzewcu */
     hrect(hx, hy - 19, 2, 25, H_POLE);                            /* drzewce */
-    arm_segment(264, HUD_TOP + 31, hx + 2, hy + 2, FALSE);        /* przedramie */
-    arm_segment(276, HUD_TOP + 31, 265, HUD_TOP + 32, TRUE);      /* ramie (rekaw) */
-    hrect(hx - 1, hy - 1, 4, 4, H_SKIN);                          /* piesc */
-    hrect(hx - 1, hy + 2, 4, 1, H_SKIN_D);
-    hplot(hx + 2, hy - 1, H_SKIN_D); hplot(hx + 2, hy, H_SKIN_D);
+    if (have_arm) {
+        /* malowana reka (jak portret) z maska: piksele 0 zostawiaja tlo i drzewce */
+        const UBYTE *src = ref_arm[shown.wave & 1];
+        for (y = 0; y < ARM_H; y++) {
+            UBYTE k;
+            for (k = 0; k < ARM_BYTES; k++) {
+                UBYTE m = 0, pl;
+                UBYTE *d = g_video.hud + (LONG)(HUD_TOP + ARM_Y + y) * HUD_STRIDE + ARM_X / 8 + k;
+                for (pl = 0; pl < HUD_DEPTH; pl++) m |= src[(y * HUD_DEPTH + pl) * ARM_BYTES + k];
+                if (!m) continue;
+                for (pl = 0; pl < HUD_DEPTH; pl++, d += ROW_BYTES)
+                    *d = (UBYTE)((*d & ~m) | src[(y * HUD_DEPTH + pl) * ARM_BYTES + k]);
+            }
+        }
+    } else {                                                      /* bez pliku: reka kreskami */
+        arm_segment(264, HUD_TOP + 31, hx + 2, hy + 2, FALSE);    /* przedramie */
+        arm_segment(276, HUD_TOP + 31, 265, HUD_TOP + 32, TRUE);  /* ramie (rekaw) */
+        hrect(hx - 1, hy - 1, 4, 4, H_SKIN);                      /* piesc */
+        hrect(hx - 1, hy + 2, 4, 1, H_SKIN_D);
+        hplot(hx + 2, hy - 1, H_SKIN_D); hplot(hx + 2, hy, H_SKIN_D);
+    }
     for (j = 0; j < 13; j++)
         for (i = 0; i < 20; i++) {
             /* falowanie: przesuniecie w pionie i cieniowanie zaleznie od kolumny */
@@ -357,6 +380,7 @@ static void force_redraw(void)
 void hud_init(void)
 {
     have_referee = asset_load("PROGDIR:data/referee.bin", referee, sizeof(referee));
+    have_arm = asset_load("PROGDIR:data/refarm.bin", ref_arm, sizeof(ref_arm));
     hrect(0, 0, SCREEN_W, HUD_H, H_BG);
     enter_menu_mode();
 }

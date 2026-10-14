@@ -6,6 +6,7 @@ Wyjscie (dla Amigi, ladowane z PROGDIR:data/ przed przejeciem sprzetu):
   data/bikes.spr    4 kaski x 32 kierunki x 3 uslizgi x 2 polowki duszka 64x32 (417792 B)
   data/hud.pal      32 x RGB palety HUD (96 B)
   data/referee.bin  portret sedziego 32x38, 5 bitplanow przeplatanych (760 B)
+  data/refarm.bin   reka sedziego z piescia, 2 fazy machania 32x24, 5 bitplanow (960 B)
 Podglady PNG w art/.
 
 Geometria toru MUSI byc zgodna z src/track.c (CX, CY, HALF_L, R_IN, R_OUT).
@@ -629,7 +630,7 @@ def vehicle_blob():
 # ============================ SEDZIA (HUD) ===============================
 
 # Portret z ilustracji src/referee.png (tools/genreferee.py): 32x38 w palecie HUD.
-from genreferee import image as referee_image, palette as referee_palette   # noqa: E402
+from genreferee import image as referee_image, palette as referee_palette, arm_image   # noqa: E402
 for i, c in referee_palette().items():
     hud_pal[i] = c
 
@@ -850,6 +851,7 @@ def main():
     # plansza tytulowa: tools/gentitle.py (ilustracja src/title.png, wlasna paleta)
     (ROOT / "data/hud.pal").write_bytes(bytes(hud_pal.astype(np.uint8).ravel()))
     (ROOT / "data/referee.bin").write_bytes(to_planar(referee_img(), 5))
+    (ROOT / "data/refarm.bin").write_bytes(to_planar(arm_image(0), 5) + to_planar(arm_image(1), 5))
 
     print("motocykle: renderowanie 96 klatek...")
     frames = bike_frames()
