@@ -3,7 +3,7 @@
  *   kanal 0 (L): silnik lidera          - petla 8 zaplonow, okres z obrotow
  *   kanal 1 (P): silnik drugiego        - jw.
  *   kanal 2 (P): gwar kibicow           - petla, glosnosc plynnie do celu
- *   kanal 3 (L): efekty jednorazowe     - brzeczyk, gwizdek
+ *   kanal 3 (L): efekty jednorazowe     - brzeczyk, gwizdek, okrzyk trybun na mecie
  *
  * Jednorazowy efekt na Pauli: start DMA laduje (latch) LC/LEN do licznikow,
  * wiec w nastepnej klatce wpisujemy do LC/LEN 2-slowowa cisze - po koncu
@@ -42,6 +42,7 @@
 #define PER_CROWD    322                  /* 11025 Hz */
 #define PER_BUZZER   322
 #define PER_WHISTLE  161                  /* 22050 Hz */
+#define PER_CHEER    322                  /* 11025 Hz */
 #define PER_MUSIC    222                  /* 3546895 / 222 = 15977 Hz (PAL) */
 #define MUSIC_VOL    48
 #define MUSIC_BUF    8192UL               /* bajtow na bufor DMA = 4096 slow w AUDxLEN */
@@ -50,10 +51,10 @@
 #define INTF_AUD1    0x0100
 
 typedef struct { BYTE *data; ULONG len; } Sample;
-enum { S_ENGINE = 0, S_CROWD, S_BUZZER, S_WHISTLE, S_COUNT };
+enum { S_ENGINE = 0, S_CROWD, S_BUZZER, S_WHISTLE, S_CHEER, S_COUNT };
 static const char *files[S_COUNT] = {
     "PROGDIR:data/engine.raw", "PROGDIR:data/crowd.raw",
-    "PROGDIR:data/buzzer.raw", "PROGDIR:data/whistle.raw"
+    "PROGDIR:data/buzzer.raw", "PROGDIR:data/whistle.raw", "PROGDIR:data/cheer.raw"
 };
 static Sample smp[S_COUNT];
 static Sample music;                      /* data/music.raw, Fast albo Chip RAM */
@@ -360,7 +361,10 @@ static void update_crowd(void)
                 last_leader = i;
             }
         if (h->finished_count != last_finished) {                       /* meta */
-            if (h->finished_count == 1) crowd_boost = 150;
+            if (h->finished_count == 1) {                               /* zwyciezca: okrzyk trybun */
+                crowd_boost = 150;
+                play_sfx(S_CHEER, PER_CHEER, 64);
+            }
             last_finished = h->finished_count;
         }
     } else {

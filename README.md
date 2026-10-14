@@ -290,7 +290,7 @@ src/
   tournament.c  tabela 15 biegów, punkty, biegi nominowane
   ui.c, text.c  ekrany tekstowe, font z polskimi literami
   hud.c         HUD: kolory kasków w kolejności, okrążenie, okrągłe światła, sędzia z flagą
-  audio.c       Paula: silniki, kibice, brzęczyk, gwizdek, muzyka w menu
+  audio.c       Paula: silniki, kibice, brzęczyk, gwizdek, okrzyk trybun na mecie, muzyka w menu
   input.c       joysticki, adapter LPT, klawiatura (CIA)
   assets.c      ładowanie data/ przed przejęciem sprzętu
   records.c     rekordy toru na dysku (halloffame.dat + .bak, import starego records.dat)
@@ -318,7 +318,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 | Narzędzia na PC | Python 3 + numpy: tor, motocykle, traktory, HUD, font, palety, konwersja ilustracji do palet AGA, dźwięki, dyskietka ADF i paczka zip; ffmpeg: dekodowanie PNG, trailer MP4, miniaturka JPG |
 | Sprawdzanie i testy | Clang z pakietu `ziglang`: kontrola typów kodu dla 68020 (atrapy NDK), symulator turnieju z tą samą logiką gry, zrzuty ekranu i trailer z prawdziwego kodu gry (emulacja buforów i duszków), testy gazety |
 | Grafika | pikselart toru, motocykli, traktorów i HUD generowany kodem; ilustracje (plansza tytułowa, podprowadzające, sędzia) przygotowane generatorem obrazów AI i przekonwertowane do palet gry narzędziami z repozytorium |
-| Dźwięk | silnik z nagrania wygenerowanego przez AI (pętla 8 cykli zapłonu); kibice, brzęczyk z taśmą i gwizdek generowane w Pythonie; utwory menu jako gotowe miksy PCM 8-bit ~16 kHz |
+| Dźwięk | silnik z nagrania wygenerowanego przez AI (pętla 8 cykli zapłonu); kibice, brzęczyk z taśmą, gwizdek i okrzyk trybun na mecie generowane w Pythonie (okrzyk można podmienić nagraniem `src/crowd_cheer.wav`); utwory menu jako gotowe miksy PCM 8-bit ~16 kHz |
 | Repozytorium i praca | git, GitHub; asystenci AI: Claude (Anthropic) i GPT-6 Astra |
 
 ---

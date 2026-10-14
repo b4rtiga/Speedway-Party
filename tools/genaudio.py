@@ -5,6 +5,8 @@
   data/crowd.raw    gwar kibicow, petla bez szwu, 11025 Hz
   data/buzzer.raw   start: brzeczyk + puszczenie tasmy (metaliczne "klak" i swist gumy), 0.7 s, 11025 Hz
   data/whistle.raw  gwizdek sedziego z "groszkiem" 0.8 s, 22050 Hz
+  data/cheer.raw    okrzyk trybun, gdy zwyciezca przecina mete, 2.6 s, 11025 Hz - syntetyczny;
+                    gdy jest nagranie CHEER_WAV, cheer.raw powstaje z niego (mono, 11025 Hz, do 3 s)
 Podglady: art/*.wav (engine_sweep.wav symuluje Paule: obroty od wolnych do maksymalnych).
 Uruchomienie: python tools/genaudio.py"""
 import pathlib
@@ -16,6 +18,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 PAULA_CLOCK = 3546895          # PAL
 ENGINE_CYCLE = 48              # probek na jeden zaplon - musi zgadzac sie z audio.c
 ENGINE_WAV = ROOT / "src/speedway_500cc_10000rpm_loop.wav"   # nagranie silnika (import_engine.py)
+CHEER_WAV = ROOT / "src/crowd_cheer.wav"                      # nagranie okrzyku trybun (opcjonalne)
+CHEER_MAX = 3.0                                               # s - dluzsze nagranie jest przyciete
 rng = np.random.default_rng(500)
 
 
@@ -100,6 +104,76 @@ def whistle(rate=22050, dur=0.8):
     return to_s8(x * env)
 
 
+def resonator(x, f, bw, rate):
+    """2-biegunowy filtr rezonansowy (formant samogloski)"""
+    r = np.exp(-np.pi * bw / rate)
+    a1, a2 = 2 * r * np.cos(2 * np.pi * f / rate), -r * r
+    y = np.zeros_like(x)
+    y1 = y2 = 0.0
+    for i, v in enumerate(x):
+        y0 = v + a1 * y1 + a2 * y2
+        y[i] = y0
+        y2, y1 = y1, y0
+    return y * (1 - r)
+
+
+def cheer(rate=11025, dur=2.6):
+    """okrzyk trybun: kilkadziesiat glosow "aaa!" (rozne wysokosci i wejscia) + oddech i oklaski"""
+    r = np.random.default_rng(2026)                      # osobne ziarno - inne probki bez zmian
+    n = int(rate * dur)
+    t = np.arange(n) / rate
+    src = np.zeros(n)
+    for _ in range(64):
+        f0 = r.uniform(140, 330)                         # meskie i kobiece glosy
+        on = r.uniform(0.0, 0.3)
+        rise = r.uniform(0.06, 0.18)
+        tail = r.uniform(0.9, 1.8)
+        glide = 1 + 0.12 * np.clip((t - on) / 0.25, 0, 1)   # krzyk idzie lekko w gore
+        vib = 1 + 0.015 * np.sin(2 * np.pi * r.uniform(4, 7) * t + r.uniform(0, 6))
+        phase = np.cumsum(f0 * glide * vib) / rate
+        saw = 2 * (phase % 1) - 1
+        env = np.clip((t - on) / rise, 0, 1) * np.exp(-np.maximum(0, t - on - 0.35) / tail)
+        src += saw * env * r.uniform(0.5, 1.0)
+    voices = resonator(src, 760, 140, rate) + 0.7 * resonator(src, 1250, 180, rate) + 0.25 * resonator(src, 2600, 300, rate)
+    noise = r.normal(0, 1, n)
+    breath = (lowpass(noise, 0.45) - lowpass(noise, 0.08)) * np.clip(t / 0.1, 0, 1) * np.exp(-t / 1.4)
+    claps = np.zeros(n)
+    for _ in range(140):                                 # oklaski od ok. 0.4 s
+        c0 = int(rate * r.uniform(0.4, dur - 0.1))
+        k = np.arange(min(220, n - c0))
+        claps[c0:c0 + k.size] += r.normal(0, 1, k.size) * np.exp(-k / 35) * r.uniform(0.3, 1.0)
+    claps = claps - lowpass(claps, 0.15)
+    x = voices / (np.max(np.abs(voices)) + 1e-9) + 0.35 * breath / (np.max(np.abs(breath)) + 1e-9)
+    x += 0.3 * claps / (np.max(np.abs(claps)) + 1e-9) * np.clip((t - 0.4) / 0.3, 0, 1)
+    x *= np.minimum(1, (dur - t) / 0.5)                  # wyciszenie na koncu
+    return to_s8(np.tanh(x * 1.4))
+
+
+def cheer_from_wav(path, rate=11025):
+    """nagranie okrzyku -> mono 8 bit, 11025 Hz, najwyzej CHEER_MAX s z wyciszeniem na koncu"""
+    with wave.open(str(path), "rb") as w:
+        ch, sw, sr, nf = w.getnchannels(), w.getsampwidth(), w.getframerate(), w.getnframes()
+        raw = w.readframes(nf)
+    if sw == 1:
+        x = np.frombuffer(raw, np.uint8).astype(float) - 128
+    elif sw == 2:
+        x = np.frombuffer(raw, "<i2").astype(float)
+    elif sw == 3:
+        b = np.frombuffer(raw, np.uint8).reshape(-1, 3).astype(np.int32)
+        x = ((b[:, 0] | (b[:, 1] << 8) | (b[:, 2] << 16)) << 8 >> 8).astype(float)
+    else:
+        x = np.frombuffer(raw, "<i4").astype(float)
+    x = x.reshape(-1, ch).mean(axis=1)
+    x = x[: int(sr * CHEER_MAX)]
+    alpha = min(1.0, 2 * np.pi * 5000 / sr)              # bez skladowych powyzej ~5 kHz przed zmiana czestotliwosci
+    x = lowpass(lowpass(x, alpha), alpha)
+    n = int(x.size * rate / sr)
+    x = np.interp(np.arange(n) * sr / rate, np.arange(x.size), x)
+    t = np.arange(n) / rate
+    x *= np.minimum(1, (t[-1] - t) / 0.4 + 1e-9)
+    return to_s8(x)
+
+
 def engine_sweep(sample, seconds=4.0, out_rate=22050):
     """Symulacja Pauli: probka w petli, okres zmienia sie z obrotami (jak w audio.c)."""
     out = np.zeros(int(out_rate * seconds))
@@ -122,7 +196,10 @@ def main():
         "crowd": (crowd(), 11025),
         "buzzer": (buzzer(), 11025),
         "whistle": (whistle(), 22050),
+        "cheer": (cheer_from_wav(CHEER_WAV) if CHEER_WAV.exists() else cheer(), 11025),
     }
+    if CHEER_WAV.exists():
+        print(f"data/cheer.raw   z nagrania {CHEER_WAV.name}")
     if ENGINE_WAV.exists():                                # silnik z nagrania - nie nadpisujemy
         del sounds["engine"]
         print(f"data/engine.raw  z nagrania {ENGINE_WAV.name} (tools/import_engine.py)")
