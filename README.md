@@ -24,6 +24,8 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 | ![Gazeta po zawodach](art/screen_23_gazeta.png) | | |
 
 
+**Dokumentacja:** [docs/DOKUMENTACJA.md](docs/DOKUMENTACJA.md) (źródło do edycji) i [docs/SpeedwayParty-dokumentacja.pdf](docs/SpeedwayParty-dokumentacja.pdf) (PDF, `python tools/mkdocs.py`).
+
 ## Pobierz i zagraj
 
 **[release/SpeedwayParty.zip](release/SpeedwayParty.zip)**: gotowa gra dla Amigi. W środku jest katalog `SpeedwayParty/`:
@@ -257,6 +259,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `python tools/sim/plot.py` | tory jazdy z symulacji na tle toru, zapis do `art/sim_lines.png` |
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szpryca, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
 | `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z prawdziwego nagrania |
+| `python tools/mkdocs.py` | dokumentacja: `docs/DOKUMENTACJA.md` → `docs/SpeedwayParty-dokumentacja.pdf` (HTML do druku, PDF drukuje Edge albo Chrome w tle; wersja z gita) |
 | `python tools/mksocial.py` | miniaturka do podglądu linków na GitHubie, `art/social_preview.jpg` (1280×640, poniżej limitu 1 MB; wymaga ffmpeg) |
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` z prawdziwego kodu gry: menu, półtora okrążenia biegu i przejście do ilustracji tytułowej (wymaga ffmpeg) |
 | `make dist EXTRA=-DAUTOPLAY` | wersja testowa bez klawiatury: sama przechodzi przez menu i rozgrywa turniej botów (do sprawdzania w emulatorze) |
@@ -295,6 +298,7 @@ src/
 build.cfg       ustawienia budowania (wybór muzyki)
 data/           gotowe dane binarne (generowane narzędziami)
 art/            podglądy PNG/WAV (nie trafiają na Amigę)
+docs/           dokumentacja: DOKUMENTACJA.md (źródło) i PDF
 tools/          generatory, sprawdzanie kodu, symulator
 ```
 
