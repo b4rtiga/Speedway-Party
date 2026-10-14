@@ -268,6 +268,7 @@ void race_update(void)
     update_positions();
 
     if (h->race_frames % DRY_EVERY == 0) track_dry_step();
+    track_tick(2);                       /* wyjezdzone sciezki: najwyzej 2 przemalowania na klatke */
 
     /* ostatni na mecie -> jeszcze 2 s jazdy wybiegu, dopiero potem plansza wynikow */
     if (end_wait) {

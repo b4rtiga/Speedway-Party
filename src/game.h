@@ -282,6 +282,8 @@ void     track_random_surface(void);              /* losowe wyjezdzone sciezki n
 void     track_flush_wear(UBYTE bi, UBYTE *buf);  /* dokopiuj zmienione komorki do bufora */
 void     track_forget_wear(UBYTE bi);             /* bufor dostal cale tlo */
 void     track_dry_step(void);
+void     track_tick(UWORD budget);       /* raz na klatke: kolejka przemalowan i przyczepnosci */
+void     track_tick_flush(void);
 angle8   atan2_8(LONG dy, LONG dx);
 #define TRACK_HALF_WIDTH (g_tour.track.half_width)   /* zalezy od wybranego toru */
 

@@ -253,11 +253,11 @@ static UWORD pack_at(WORD gx, WORD gy)
 
 /* Przemalowanie komorki: ubicie interpolowane miedzy srodkami sasiednich komorek
  * (bez widocznych kwadratow), przyciemnienie z ditheringiem, rzadkie ziarna koleiny. */
-static void cell_visual(WORD gx, WORD gy)
+static BOOL cell_visual(WORD gx, WORD gy)
 {
     UBYTE lvl = (UBYTE)(g_tour.track.pack[gy][gx] >> 6);
     WORD x, y;
-    if (!pristine || lvl == level_drawn[gy][gx]) return;
+    if (!pristine || lvl == level_drawn[gy][gx]) return FALSE;
     level_drawn[gy][gx] = lvl;
     for (y = gy * GRIP_CELL; y < (gy + 1) * GRIP_CELL; y++)
         for (x = gx * GRIP_CELL; x < (gx + 1) * GRIP_CELL; x++) {
@@ -279,6 +279,21 @@ static void cell_visual(WORD gx, WORD gy)
         }
     if (!wear_dirty[0][gy][gx]) { wear_dirty[0][gy][gx] = 1; wear_dirty_n[0]++; }
     if (!wear_dirty[1][gy][gx]) { wear_dirty[1][gy][gx] = 1; wear_dirty_n[1]++; }
+    return TRUE;
+}
+
+/* Przemalowanie komorki (piksel po pikselu, 8 planow) jest drogie - komorki czekaja w kolejce
+ * i track_tick() maluje kilka na klatke. Inaczej kilka zmian naraz (albo caly tor po losowaniu)
+ * zjadalo klatke albo kilka i ruch szarpal / muzyka sie przycinala. */
+static UBYTE vis_pending[GRIP_H][GRIP_W];
+static UWORD vis_n, vis_cursor;
+static UBYTE grip_rows_left, grip_row;     /* przeliczanie przyczepnosci po kawalku (schniecie) */
+
+static void mark_visual(WORD gx, WORD gy)
+{
+    if ((UBYTE)(g_tour.track.pack[gy][gx] >> 6) == level_drawn[gy][gx] || vis_pending[gy][gx]) return;
+    vis_pending[gy][gx] = 1;
+    vis_n++;
 }
 
 static void all_cells_visual(void)
@@ -286,7 +301,32 @@ static void all_cells_visual(void)
     WORD gx, gy;
     for (gy = 0; gy < GRIP_H; gy++)
         for (gx = 0; gx < GRIP_W; gx++)
-            if (g_tour.track.zone[gy][gx] != GRIP_WALL) cell_visual(gx, gy);
+            if (g_tour.track.zone[gy][gx] != GRIP_WALL) mark_visual(gx, gy);
+}
+
+/* raz na klatke: najwyzej budget przemalowanych komorek i 2 wiersze przyczepnosci */
+void track_tick(UWORD budget)
+{
+    UBYTE r;
+    for (r = 0; r < 2 && grip_rows_left; r++, grip_rows_left--) {
+        WORD gx;
+        for (gx = 0; gx < GRIP_W; gx++) cell_grip(gx, grip_row);
+        if (++grip_row >= GRIP_H) grip_row = 0;
+    }
+    while (vis_n && budget) {
+        WORD gy = (WORD)(vis_cursor / GRIP_W), gx = (WORD)(vis_cursor % GRIP_W);
+        if (++vis_cursor >= GRIP_W * GRIP_H) vis_cursor = 0;
+        if (!vis_pending[gy][gx]) continue;
+        vis_pending[gy][gx] = 0;
+        vis_n--;
+        if (cell_visual(gx, gy)) budget--;
+    }
+}
+
+/* wszystko od razu (przed biegiem, zrzuty) */
+void track_tick_flush(void)
+{
+    while (vis_n || grip_rows_left) track_tick(0xFFFF);
 }
 
 /* Inny tor na kazdy turniej: 1-2 wyjezdzone sciezki w losowym miejscu przekroju
@@ -378,7 +418,7 @@ void track_wear(WORD x, WORD y)
     UBYTE *pk;
     if (gx < 0 || gy < 0 || gx >= GRIP_W || gy >= GRIP_H) return;
     pk = &g_tour.track.pack[gy][gx];
-    if (*pk <= 255 - PACK_WEAR) { *pk += PACK_WEAR; cell_grip(gx, gy); cell_visual(gx, gy); }
+    if (*pk <= 255 - PACK_WEAR) { *pk += PACK_WEAR; cell_grip(gx, gy); mark_visual(gx, gy); }
 }
 
 void track_loosen(WORD x, WORD y)
@@ -387,7 +427,7 @@ void track_loosen(WORD x, WORD y)
     UBYTE *pk;
     if (gx < 0 || gy < 0 || gx >= GRIP_W || gy >= GRIP_H) return;
     pk = &g_tour.track.pack[gy][gx];
-    if (*pk >= PACK_LOOSEN) { *pk -= PACK_LOOSEN; cell_grip(gx, gy); cell_visual(gx, gy); }
+    if (*pk >= PACK_LOOSEN) { *pk -= PACK_LOOSEN; cell_grip(gx, gy); mark_visual(gx, gy); }
 }
 
 void track_reset_wear(void)
@@ -427,7 +467,7 @@ void track_dry_step(void)
     Track *t = &g_tour.track;
     if (t->wetness == 0) return;
     t->wetness = t->wetness > 12 ? t->wetness - 12 : 0;
-    rebuild_grip();
+    grip_rows_left = GRIP_H;                       /* przyczepnosc przeliczy track_tick po 2 wiersze */
     video_blend_track_palette(t->wetness);
 }
 

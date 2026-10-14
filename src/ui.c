@@ -190,6 +190,12 @@ static const char *level_names[3] = { "NOWICJUSZ", "PROFESJONALISTA", "MISTRZ" }
 /* znaki do wyboru joystickiem */
 static const UBYTE charset[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ\x80\x81\x82\x83\x84\x85\x86\x87\x88" "0123456789-.";
 
+void ui_setup_enter(void)
+{
+    setup_row = ROW_START;
+    editing = FALSE;
+}
+
 static WORD setup_row_y(UBYTE row) { return (WORD)(50 + row * 18); }
 
 static void draw_setup(UBYTE *b)

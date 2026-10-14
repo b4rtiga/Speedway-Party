@@ -105,7 +105,7 @@ static void shot(const char *name, BOOL sprites)
     fclose(f);
 }
 
-static void render(void) { ui_invalidate(); roost_erase(); ui_render(); roost_draw(); hud_update(); }
+static void render(void) { track_tick_flush(); ui_invalidate(); roost_erase(); ui_render(); roost_draw(); hud_update(); }
 
 static void bike_sprites(void)
 {
@@ -131,6 +131,7 @@ static void begin(UBYTE hn)
     g_tour.heat.number = (UBYTE)(hn + 1);
     g_tour.heat.restarts = 0;
     for (g = 0; g < 4; g++) g_tour.heat.gate_rider[g] = g_tour.heat_table[hn][g];
+    track_tick_flush();
     start_begin();
 }
 

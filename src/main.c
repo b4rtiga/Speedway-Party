@@ -51,6 +51,7 @@ static void prof_add(UBYTE i, UWORD a, UWORD b)
 #endif
 static UWORD state_timer;
 static UBYTE grading_start_wet;
+static BOOL  surface_pending;           /* losowanie nawierzchni czeka na ekran programu */
 static HeatPhase last_phase;
 
 /* ---------------------------- render --------------------------------- */
@@ -89,6 +90,7 @@ static void enter(GameState s)
     g_tour.state = s;
     state_timer = 0;
     if (s == GS_SETUP) {
+        ui_setup_enter();                /* kursor na START TURNIEJU */
         /* stan toru losowy przy kazdym wejsciu do ustawien (gracz moze go zmienic);
          * do ziarna dokladamy pozycje wiazki i licznik klatek - zalezne od chwili nacisniecia */
         g_rng ^= ((ULONG)g_frame << 16) ^ hw_vpos();
@@ -106,6 +108,7 @@ static void begin_heat(void)
     h->number = (UBYTE)(g_tour.current_heat + 1);
     h->restarts = 0;
     for (g = 0; g < 4; g++) h->gate_rider[g] = g_tour.heat_table[g_tour.current_heat][g];
+    track_tick_flush();                 /* reszta przemalowan toru przed startem */
     start_begin();
     g_lag = 0;                          /* diagnostyka: licz zgubione klatki od startu biegu */
     last_phase = h->phase;
@@ -191,6 +194,9 @@ static void update_state(void)
 {
     if (handle_pause()) return;          /* pauza: logika gry zatrzymana */
     state_timer++;
+    /* poza biegiem tor przemalowuje sie w tle (np. po losowaniu nawierzchni) */
+    if (g_tour.state == GS_TABLE || g_tour.state == GS_PRESENT || g_tour.state == GS_GATE_PICK ||
+        g_tour.state == GS_HEAT_RESULT || g_tour.state == GS_TRACK_GRADING) track_tick(3);
 
     switch (g_tour.state) {
     case GS_TITLE:                       /* plansza tytulowa: czeka na FIRE / Return */
@@ -212,15 +218,21 @@ static void update_state(void)
             g_tour.current_heat = 0;
             {
                 static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
-                track_reset_wear();
-                track_random_surface();     /* kazdy turniej na innym torze */
                 track_set_wetness(start_wet[g_tour.start_condition]);
             }
+            surface_pending = TRUE;         /* nowa nawierzchnia - na programie zawodow, po muzyce */
             enter(GS_TABLE);
         }
         break;
 
     case GS_TABLE:
+        if (surface_pending && state_timer >= 15) {
+            /* kazdy turniej na innym torze; liczone dopiero po wyciszeniu muzyki z menu
+             * (12 klatek) - dluzsza chwila liczenia nie przytnie dzwieku */
+            track_reset_wear();
+            track_random_surface();
+            surface_pending = FALSE;
+        }
 #ifdef AUTOPLAY
         if (state_timer > 3 * FPS) { ui_present_start(); enter(GS_PRESENT); break; }
 #endif
@@ -366,11 +378,14 @@ static int game_main(void)
         render_sprites();
         hud_update();
         audio_update();
+#ifdef SHOW_LAG
+        v3 = hw_vpos();
+#endif
         hw_wait_blit();                 /* bufor musi byc gotowy, zanim go pokazemy */
 #ifdef SHOW_LAG
-        /* profil: linie wiazki (313 na klatke PAL) zuzyte przez logike, rysowanie, reszte */
-        v3 = hw_vpos();
-        prof_add(0, v0, v1); prof_add(1, v1, v2); prof_add(2, v2, v3); prof_add(3, v0, v3);
+        /* profil (linie wiazki, 313 na klatke PAL): logika, rysowanie toru, duszki+HUD+dzwiek,
+         * czekanie na Blitter */
+        prof_add(0, v0, v1); prof_add(1, v1, v2); prof_add(2, v2, v3); prof_add(3, v3, hw_vpos());
 #endif
         video_swap();
     }
