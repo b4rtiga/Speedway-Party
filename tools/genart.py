@@ -628,59 +628,14 @@ def vehicle_blob():
 
 # ============================ SEDZIA (HUD) ===============================
 
-# Sedzia zuzlowy: czarna czapka z daszkiem, ciemne okulary, koszulka w czarno-biale
-# pionowe pasy z czarnym kolnierzem i rekawami, zolta naszywka na piersi.
-REFEREE_HEAD = [
-    "..........KKKKKKKKKKK...........",
-    "........KKkkkkkkkkkkkKK.........",
-    ".......KkkkkkkkYYYkkkkkK........",
-    "......KkkkkkkkkYYYkkkkkkK.......",
-    "......KkkkkkkkkkkkkkkkkkK.......",
-    ".....KKKKKKKKKKKKKKKKKKKKKKKK...",
-    "......KSSSSSSSSSSSSSSSSKKKKKK...",
-    "......KSSSSSSSSSSSSSSSSsK.......",
-    ".....KSSKKKKKKSSKKKKKKSSsK......",
-    ".....KSSKRRRRKKKKRRRRKSSsK......",
-    ".....KSSKRrrRKSSKRrrRKSSsK......",
-    ".....KSSSKKKKSSSSKKKKSSSsK......",
-    "....KsSSSSSSSSSsSSSSSSSSssK.....",
-    "....KsSSSSSSSSSssSSSSSSSssK.....",
-    ".....KSSSSSSSSSSSSSSSSSSsK......",
-    ".....KSSSSSSMMMMMMSSSSSSsK......",
-    "......KSSSSSSSSSSSSSSSSsK.......",
-    ".......KSSSSSSSSSSSSSSssK.......",
-    "........KKsSSSSSSSSSssKK........",
-    "..........KKsssssssKK...........",
-    "...........KSSSSSSSK............",
-]
-REF_MAP = {'.': 0, 'K': 14, 'k': 11, 'Y': 5, 'S': 10, 's': 17, 'R': 22, 'r': 23, 'M': 22,
-           'W': 19, 'B': 14, 'P': 5, 'p': 2}
+# Portret z ilustracji src/referee.png (tools/genreferee.py): 32x38 w palecie HUD.
+from genreferee import image as referee_image, palette as referee_palette   # noqa: E402
+for i, c in referee_palette().items():
+    hud_pal[i] = c
 
 
 def referee_img():
-    a = np.zeros((38, 32), dtype=np.int32)
-    for y, row in enumerate(REFEREE_HEAD):
-        row = (row + "." * 32)[:32]
-        for x, ch in enumerate(row):
-            a[y, x] = REF_MAP[ch]
-    # tulow: koszulka w pionowe pasy, czarne rekawy i kolnierz w szpic
-    for y in range(21, 38):
-        hw = min(15, 7 + (y - 21))                      # ramiona rozszerzaja sie w dol
-        x0, x1 = 15 - hw, 15 + hw
-        for x in range(max(0, x0), min(32, x1 + 1)):
-            if x in (x0, x1) or y == 37:
-                c = 14                                  # kontur
-            elif x - x0 <= 3 or x1 - x <= 3:
-                c = 14 if (x - x0) % 3 else 19          # rekawy: czarne z bialym lampasem
-            else:
-                c = 14 if (x % 3) == 0 else 19          # pasy
-            a[y, x] = c
-        v = max(0, 4 - (y - 21))                        # kolnierz w szpic
-        if v:
-            a[y, 15 - v:15 + v + 1] = 14
-    a[26:30, 7:11] = 5                                  # naszywka
-    a[27:29, 8:10] = 2
-    return a
+    return referee_image()
 
 
 
