@@ -98,19 +98,24 @@ void input_update(void)
     }
 }
 
-/* JOY 1 odpowiada tez na strzalki z klawiatury, chyba ze ktos gra na strzalkach osobno:
- * w emulatorze strzalki nie zawsze trafiaja do portu joysticka (zalezy od konfiguracji). */
-static BOOL arrows_free(void)
+/* JOY 1 i STRZALKI to w praktyce to samo: WinUAE zamienia strzalki na joystick w porcie 1
+ * (wtedy klawisze do gry nie docieraja), na Amidze strzalki to klawiatura. Kazde z tych
+ * ustawien czyta oba zrodla, chyba ze drugie wybral inny gracz. */
+static BOOL port_taken(InputPort p)
 {
     UBYTE i;
     for (i = 0; i < g_tour.num_humans && i < MAX_RIDERS; i++)
-        if (g_tour.riders[i].input == INPUT_KEYS_ARROWS) return FALSE;
-    return TRUE;
+        if (g_tour.riders[i].input == p) return TRUE;
+    return FALSE;
 }
+
+#define DIR_FIRE (BTN_LEFT | BTN_RIGHT | BTN_FIRE)
 
 UBYTE input_read(InputPort port)
 {
-    if (port == INPUT_JOY1 && arrows_free())
-        return (UBYTE)(port_state[INPUT_JOY1] | (port_state[INPUT_KEYS_ARROWS] & (BTN_LEFT | BTN_RIGHT | BTN_FIRE)));
+    if (port == INPUT_JOY1 && !port_taken(INPUT_KEYS_ARROWS))
+        return (UBYTE)(port_state[INPUT_JOY1] | (port_state[INPUT_KEYS_ARROWS] & DIR_FIRE));
+    if (port == INPUT_KEYS_ARROWS && !port_taken(INPUT_JOY1))
+        return (UBYTE)(port_state[INPUT_KEYS_ARROWS] | (port_state[INPUT_JOY1] & DIR_FIRE));
     return port < INPUT_NONE ? port_state[port] : 0;
 }
