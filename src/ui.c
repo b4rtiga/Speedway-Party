@@ -267,10 +267,10 @@ static const char *const help_text1[] = {
     "ESC - PAUZA.",
     0 };
 static const char *const help_text2[] = {
-    "KAŻDY TURNIEJ TO INNY TOR. NAJSZYBCIEJ",
-    "JEST NA CIEMNEJ, WYJEŻDŻONEJ ŚCIEŻCE:",
-    "RAZ PRZY KRAWĘŻNIKU, RAZ ŚRODKIEM, RAZ",
-    "SZEROKO POD BANDĄ - WYPATRZ JĄ.",
+    "NAJLEPSZA LINIA JAZDY JEST DYNAMICZNA:",
+    "NA KAŻDYCH ZAWODACH TOR UKŁADA SIĘ",
+    "INACZEJ. SZUKAJ JEJ OD PIERWSZEGO BIEGU.",
+    "",
     "NA PROSTEJ JEDŹ PROSTO: UŚLIZG HAMUJE.",
     "W ŁUKU PULSUJ PRZYCISKIEM, NIE TRZYMAJ.",
     "LUŹNE ODSYPISKO POD BANDĄ ZAKOPUJE",
@@ -289,7 +289,8 @@ BOOL ui_help_update(void)
     return ui_confirm();
 }
 
-/* Schemat owalu na stronie 3: banda, kraweznik, idealna linia i kierunek jazdy.
+/* Schemat owalu na stronie 3: banda, kraweznik i kierunek jazdy (najlepsza linia jest
+ * inna w kazdym turnieju - track_random_surface - wiec schemat jej nie rysuje).
  * s = 0..255 wokol owalu od srodka dolnej prostej, przeciwnie do wskazowek zegara;
  * r = odleglosc od osi owalu (promien luku). */
 #define HD_CX   160
@@ -315,19 +316,11 @@ static void help_oval_point(WORD s, WORD r, WORD *x, WORD *y)
 
 static void draw_help_oval(UBYTE *b)
 {
-    static const BYTE lane_r[3] = { 17, 24, 31 };                     /* przy krawezniku, srodkiem, szeroko */
-    static const UBYTE lane_c[3] = { U_GOLD, U_SILVER, U_BRONZE };
     WORD s, x, y;
-    UBYTE k;
     for (s = 0; s < 256; s++) {
         help_oval_point(s, 36, &x, &y); plot(b, x, y, U_WHITE);        /* banda */
         help_oval_point(s, 13, &x, &y); plot(b, x, y, U_RED);          /* kraweznik */
     }
-    for (k = 0; k < 3; k++)                                            /* mozliwe wyjezdzone sciezki */
-        for (s = 0; s < 256; s++) {
-            help_oval_point(s, lane_r[k], &x, &y);
-            plot(b, x, y, lane_c[k]);
-        }
     for (s = 0; s < 4; s++)                                            /* strzalka: jazda w prawo */
         rect_px(b, HD_CX - 4 + s * 2, HD_CY + 20 + s, 2, (WORD)(7 - 2 * s), U_GREEN);
 }
