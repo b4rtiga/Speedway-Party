@@ -275,8 +275,9 @@ static UWORD bike_rpm(const Bike *b)
     if (b->state == BIKE_EXCLUDED) return 0;
     if (b->state == BIKE_WHEELSPIN) return (UWORD)(13000 + (rng_next() & 1023));
     if (b->state == BIKE_AT_GATE) {
-        if (ph == HEAT_PRE) return 3500;
-        return (UWORD)(8000 + (rng_next() & 2047) + ((rng_next() & 31) == 0 ? 3000 : 0));  /* blipy gazu */
+        if (ph == HEAT_PRE) return 5000;
+        /* pod tasma gaz wysoko (prawie jak w biegu) z blipami gazu */
+        return (UWORD)(10500 + (rng_next() & 2047) + ((rng_next() & 31) == 0 ? 2500 : 0));
     }
     {
         /* 6000 + do 8000 z predkosci; uslizg = kolo sie slizga -> wyzsze obroty */
