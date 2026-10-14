@@ -102,13 +102,33 @@ static void draw_lap(void)
     hglyph(134, HUD_TOP + 9, LAPS_PER_HEAT, H_WHITE);
 }
 
+/* kolo (srodek cx,cy - miedzy pikselami, srednica 2r) liniami poziomymi */
+static void hdisc(WORD cx, WORD cy, WORD r, UBYTE c)
+{
+    WORD dy;
+    for (dy = 0; dy < r; dy++) {
+        WORD yc = (WORD)(2 * dy + 1 - 2 * r), w = 0;      /* 2 * odleglosc srodka wiersza od srodka */
+        while ((2 * w + 2) * (2 * w + 2) + yc * yc <= 4 * r * r) w++;
+        hrect(cx - w, cy - r + dy, 2 * w, 1, c);
+        hrect(cx - w, cy + r - 1 - dy, 2 * w, 1, c);
+    }
+}
+
+/* okragla lampa sygnalizatora: obwodka, klosz, odblask gdy swieci */
+static void hlamp(WORD cx, WORD cy, BOOL on, UBYTE c_on, UBYTE c_off)
+{
+    hdisc(cx, cy, 9, H_FRAME);
+    hdisc(cx, cy, 7, on ? c_on : c_off);
+    if (on) { hrect(cx - 4, cy - 4, 2, 2, H_WHITE); hplot(cx - 2, cy - 5, H_WHITE); }
+}
+
 static void draw_lights(void)
 {
 #ifdef SHOW_LAG
     return;                              /* diagnostyka: w miejscu swiatel profil */
 #endif
-    hrect(172, HUD_TOP + 8, 18, 18, shown.lights == 1 ? H_RED_ON : H_RED_OFF);
-    hrect(196, HUD_TOP + 8, 18, 18, shown.lights == 2 ? H_GREEN_ON : H_GREEN_OFF);
+    hlamp(181, HUD_TOP + 17, shown.lights == 1, H_RED_ON, H_RED_OFF);
+    hlamp(205, HUD_TOP + 17, shown.lights == 2, H_GREEN_ON, H_GREEN_OFF);
 }
 
 /* odcinek reki grubosci 3 px: najpierw cien przesuniety w prawo-dol, potem wierzch -
@@ -383,18 +403,18 @@ void hud_update(void)
     if (lights != shown.lights) { shown.lights = lights; draw_lights(); }
 #ifdef SHOW_LAG
     {
-        /* profil (linie wiazki): logika, rysowanie, sprite+HUD+dzwiek, razem */
+        /* profil (linie wiazki, pod swiatlami): logika, rysowanie toru, duszki+HUD+dzwiek, Blitter */
         extern UWORD g_prof[4];
         static UWORD shown_prof[4] = { 999, 999, 999, 999 };
         UBYTE k;
         for (k = 0; k < 4; k++)
             if (g_prof[k] != shown_prof[k]) {
                 UWORD v = (UWORD)(g_prof[k] % 1000);
-                WORD x = (WORD)(176 + k * 26);
+                WORD x = (WORD)(146 + k * 26);
                 shown_prof[k] = g_prof[k];
-                hglyph_s(x, HUD_TOP + 9, (UBYTE)(v / 100), H_WHITE, 2, H_BG);
-                hglyph_s(x + 8, HUD_TOP + 9, (UBYTE)(v / 10 % 10), H_WHITE, 2, H_BG);
-                hglyph_s(x + 16, HUD_TOP + 9, (UBYTE)(v % 10), H_WHITE, 2, H_BG);
+                hglyph_s(x, HUD_TOP + 30, (UBYTE)(v / 100), H_WHITE, 2, H_BG);
+                hglyph_s(x + 8, HUD_TOP + 30, (UBYTE)(v / 10 % 10), H_WHITE, 2, H_BG);
+                hglyph_s(x + 16, HUD_TOP + 30, (UBYTE)(v % 10), H_WHITE, 2, H_BG);
             }
     }
     /* diagnostyka: zgubione klatki w biegu (gra nie zdazyla w 1/50 s) - 3 cyfry obok okrazen */
