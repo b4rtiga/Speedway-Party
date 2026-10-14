@@ -163,9 +163,20 @@ static const char gate_letter[4] = { 'A', 'B', 'C', 'D' };
 
 /* Plansza tytulowa: ilustracja (zuzlowiec w uslizgu ze szpryca) + napisy na niej.
  * Pokazywana na starcie gry przez kilka sekund albo do FIRE. */
+#ifdef HOST_SIM
+const char *g_endcard[2];               /* trailer (tools/shots): ostatnia plansza - ilustracja i 2 linie */
+#endif
+
 static void draw_title(UBYTE *b)
 {
     if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
+#ifdef HOST_SIM
+    if (g_endcard[0]) {
+        text_draw_big_center(b, 14, g_endcard[0], U_GOLD, U_SHADOW);        /* na ciemnym niebie */
+        text_draw_big_center(b, 40, g_endcard[1], U_GOLD, U_SHADOW);
+        return;
+    }
+#endif
     text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
     text_draw_big_center(b, 38, "PARTY", U_GOLD, U_SHADOW);
     text_draw_center(b, 64, "AMIGA 1200", U_WHITE, U_SHADOW);
@@ -214,7 +225,6 @@ static void draw_menu(UBYTE *b)
 static void draw_credits(UBYTE *b)
 {
     text_draw_big_center(b, 10, "SPEEDWAY PARTY", U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 36, "TWÓRCY", U_GOLD, U_SHADOW);
     text_draw_center(b, 62, "GRĘ STWORZYŁ b4rtiga", U_WHITE, U_SHADOW);
     text_draw_center(b, 86, "PRZY POMOCY SZTUCZNEJ INTELIGENCJI:", U_GREY, 0);
     text_draw_center(b, 98, "CLAUDE (ANTHROPIC) ORAZ GPT-6 ASTRA", U_WHITE, U_SHADOW);

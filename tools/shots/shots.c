@@ -272,6 +272,29 @@ static int trailer(void)
     return 0;
 }
 
+/* Tryb "endcard": ostatnia plansza trailera - ilustracja tytulowa z napisem fontem gry
+ * (jedna klatka RGB 320x256 na stdout). Napis w 2 liniach: duzy font ma 16 px na znak. */
+static int endcard(void)
+{
+    extern const char *g_endcard[2];
+#ifdef _WIN32
+    _setmode(_fileno(stdout), _O_BINARY);
+#endif
+    host_init();
+    fixmath_init();
+    sprites_init();
+    tournament_defaults();
+    track_init();
+    ui_init();
+    hud_init();
+    g_endcard[0] = "Z ŻUŻLOWYM";                 /* napisy w kodzie gry sa w UTF-8 (text.c) */
+    g_endcard[1] = "POZDROWIENIEM!";
+    g_frame = 16;
+    tenter(GS_TITLE);
+    tframe(FALSE);
+    return 0;
+}
+
 static int screenshots(void)
 {
     static const char test_name[] = "MAREK \x83" "OPATA";   /* test polskiej litery Ł */
@@ -425,5 +448,6 @@ static int screenshots(void)
 int main(int argc, char **argv)
 {
     if (argc > 1 && !strcmp(argv[1], "trailer")) return trailer();
+    if (argc > 1 && !strcmp(argv[1], "endcard")) return endcard();
     return screenshots();
 }
