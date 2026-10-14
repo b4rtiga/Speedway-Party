@@ -131,8 +131,14 @@ static void update_bike(Bike *b)
     if (b->drift > 0) cap -= (cap / DRIFT_CAP_DIV) * b->drift;
     if (b->speed < cap)
         b->speed += (((cap - b->speed) >> ACCEL_SHIFT) >> 8) * grip;
+    else                                    /* powyzej limitu (np. po zjezdzie z "szerokiej") - wraca do niego */
+        b->speed -= (b->speed - cap) >> 4;
     if (b->launch_timer) {
-        b->speed += (MAX_SPEED >> 9) * b->launch_quality / 64;                   /* bonus startowy */
+        /* bonus startowy: szybsze rozpedzanie, ale nie ponad predkosc maksymalna */
+        if (b->speed < cap) {
+            b->speed += (MAX_SPEED >> 9) * b->launch_quality / 64;
+            if (b->speed > cap) b->speed = cap;
+        }
         b->launch_timer--;
     }
     b->speed -= (fix16)((b->speed >> 4) * (b->drift < 0 ? -b->drift : b->drift) / (DRAG_DIV >> 4));
@@ -191,7 +197,11 @@ static void update_bike(Bike *b)
     }
 
     b->skid_frame = (UBYTE)(b->drift > 18 ? 2 : (b->drift > 8 || b->drift < -6) ? 1 : 0);
-    b->sprite_frame = ANGLE_TO_FRAME(b->heading);
+    {
+        /* klatka kierunku z histereza: przy kacie na granicy dwoch klatek nie mruga miedzy nimi */
+        BYTE d = (BYTE)(angle8)(b->heading - (angle8)(b->sprite_frame * 8));
+        if (d > 5 || d < -5) b->sprite_frame = ANGLE_TO_FRAME(b->heading);
+    }
 }
 
 /* kontakt lokiec w lokiec: obaj -8%, krotki cooldown, rozsuniecie */

@@ -69,8 +69,11 @@ void   sprites_free(void);
 extern UWORD *g_blank_sprite;
 #define SPRITE_W     32          /* AGA: duszki 32 px (FMODE SPR32) - motocykl miesci sie w 32x32 */
 #define SPRITE_H     32
+#define SPRITE_HALF_WORDS ((SPRITE_H + 2) * 2 * (SPRITE_W / 16))   /* polowka pary attached */
 #define SKID_FRAMES  3           /* 0 = prosto, 1-2 = coraz mocniejszy uslizg */
 UWORD *sprite_frame_ptr(UBYTE gate, UBYTE frame, UBYTE skid, UBYTE half);
 void   sprite_set_pos(UWORD *spr, WORD x, WORD y, UWORD height, BOOL attached);
+void   sprite_set_pos_q(UWORD *spr, LONG xq, WORD y, UWORD height, BOOL attached);   /* x w 1/4 px */
+UWORD *sprite_bike_frame(UBYTE bike, UBYTE buf, UBYTE color, UBYTE frame, UBYTE skid);
 
 #endif

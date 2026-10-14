@@ -23,7 +23,14 @@
 #define NUM_FRAMES   (4 * SPRITE_DIRS * SKID_FRAMES)
 #define SPR_BYTES    ((ULONG)NUM_FRAMES * FRAME_WORDS * 2)
 
-static UWORD *spr_mem;
+/* Kopie klatek motocykli: osobno dla kazdego motocykla i kazdego bufora obrazu. Pozycja
+ * siedzi w naglowku danych duszka - zapis do klatki, ktora wlasnie wyswietla Agnus, dzialalby
+ * raz od tej, raz od nastepnej ramki (zaleznie od chwili zapisu) i ruch by szarpal. */
+#define BIKE_COPIES  (MAX_RIDERS * 2)
+#define COPY_BYTES   ((ULONG)BIKE_COPIES * FRAME_WORDS * 2)
+
+static UWORD *spr_mem, *bike_mem;
+static UWORD  bike_frame_id[BIKE_COPIES];    /* klatka w kopii (0xFFFF = brak) */
 UWORD *g_blank_sprite;
 
 /* kolory w obrebie duszka (0 = przezroczysty) -> paleta 240+n */
@@ -78,9 +85,11 @@ static void render_frame(UBYTE gate, UBYTE dir, UBYTE skid)
 BOOL sprites_init(void)
 {
     UBYTE g, d, s;
-    spr_mem = AllocMem(SPR_BYTES + HALF_WORDS * 2, MEMF_CHIP | MEMF_CLEAR);
+    spr_mem = AllocMem(SPR_BYTES + HALF_WORDS * 2 + COPY_BYTES, MEMF_CHIP | MEMF_CLEAR);
     if (!spr_mem) return FALSE;
     g_blank_sprite = spr_mem + SPR_BYTES / 2;    /* same zera = duszek wylaczony */
+    bike_mem = g_blank_sprite + HALF_WORDS;
+    for (g = 0; g < BIKE_COPIES; g++) bike_frame_id[g] = 0xFFFF;
 
     /* pikselart z tools/genart.py (dokladnie ten uklad pamieci); bez pliku - zastepcze klatki */
     if (asset_load("PROGDIR:data/bikes.spr", spr_mem, SPR_BYTES))
@@ -95,7 +104,35 @@ BOOL sprites_init(void)
 
 void sprites_free(void)
 {
-    if (spr_mem) FreeMem(spr_mem, SPR_BYTES + HALF_WORDS * 2);
+    if (spr_mem) FreeMem(spr_mem, SPR_BYTES + HALF_WORDS * 2 + COPY_BYTES);
+}
+
+/* klatka motocykla w jego kopii dla bufora buf (polowka parzysta; nieparzysta = +HALF_WORDS);
+ * dane obrazu kopiowane tylko przy zmianie klatki */
+UWORD *sprite_bike_frame(UBYTE bike, UBYTE buf, UBYTE color, UBYTE frame, UBYTE skid)
+{
+    UBYTE n = (UBYTE)(bike * 2 + buf);
+    UWORD id = (UWORD)(((color * SPRITE_DIRS) + frame) * SKID_FRAMES + skid);
+    UWORD *dst = bike_mem + (ULONG)n * FRAME_WORDS;
+    if (bike_frame_id[n] != id) {
+        const ULONG *s = (const ULONG *)sprite_frame_ptr(color, frame, skid, 0);
+        ULONG *d = (ULONG *)dst;
+        UWORD k;
+        for (k = 0; k < FRAME_WORDS / 2; k++) d[k] = s[k];
+        bike_frame_id[n] = id;
+    }
+    return dst;
+}
+
+/* jak sprite_set_pos, ale x w cwiartkach piksela (AGA: bity SH1/SH0 w CTL, 70/35 ns) */
+void sprite_set_pos_q(UWORD *spr, LONG xq, WORD y, UWORD height, BOOL attached)
+{
+    UWORD hq = (UWORD)(xq - (SPRITE_W / 2) * 4 + 0x80 * 4);
+    UWORD vs = (UWORD)(y - SPRITE_H / 2 + DISPLAY_VSTART);
+    UWORD ve = (UWORD)(vs + height);
+    spr[0] = (UWORD)(((vs & 0xFF) << 8) | ((hq >> 3) & 0xFF));
+    spr[W] = (UWORD)(((ve & 0xFF) << 8) | (attached ? 0x80 : 0) | (((hq >> 1) & 1) << 4) | ((hq & 1) << 3)
+                   | (((vs >> 8) & 1) << 2) | (((ve >> 8) & 1) << 1) | ((hq >> 2) & 1));
 }
 
 /* x,y = srodek motocykla w pikselach pola gry */

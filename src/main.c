@@ -71,11 +71,12 @@ static void render_sprites(void)
             video_set_sprite(b->hw_sprite + 1, g_blank_sprite);
             continue;
         }
-        /* kolor kasku = zawodnik (staly w turnieju), nie pole startowe */
-        even = sprite_frame_ptr(b->rider, b->sprite_frame, b->skid_frame, 0);
-        odd  = sprite_frame_ptr(b->rider, b->sprite_frame, b->skid_frame, 1);
-        sprite_set_pos(even, FIX2INT(b->x), FIX2INT(b->y), SPRITE_H, FALSE);
-        sprite_set_pos(odd,  FIX2INT(b->x), FIX2INT(b->y), SPRITE_H, TRUE);
+        /* kolor kasku = zawodnik (staly w turnieju), nie pole startowe; wlasna kopia klatki
+         * na bufor "back" - pozycja zmienia sie razem z obrazem, x z dokladnoscia 1/4 px */
+        even = sprite_bike_frame(i, g_video.back, b->rider, b->sprite_frame, b->skid_frame);
+        odd  = even + SPRITE_HALF_WORDS;
+        sprite_set_pos_q(even, (b->x + (1L << 13)) >> 14, FIX2INT(b->y + FIX_ONE / 2), SPRITE_H, FALSE);
+        sprite_set_pos_q(odd,  (b->x + (1L << 13)) >> 14, FIX2INT(b->y + FIX_ONE / 2), SPRITE_H, TRUE);
         video_set_sprite(b->hw_sprite, even);
         video_set_sprite(b->hw_sprite + 1, odd);
     }
