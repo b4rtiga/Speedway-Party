@@ -434,12 +434,25 @@ static int game_main(void)
         g_rng ^= (ULONG)ds.ds_Tick * 2654435761UL ^ (ULONG)ds.ds_Minute << 12 ^ (ULONG)ds.ds_Days;
         if (!g_rng) g_rng = 0x2026B4u;
     }
-    if (!video_init()) { rc = 20; goto out; }
-    /* z dyskietki wczytywanie trwa kilkadziesiat sekund: najpierw plansza tytulowa z napisem
-     * WCZYTYWANIE (system dziala dalej), potem reszta danych */
-    ui_init_title();
-    if (system_show_early()) ui_loading_screen();
-    if (!sprites_init() || !roost_init() || !tractors_init() || !audio_init()) { rc = 20; goto out; }
+    if (!video_init() || !sprites_init()) { rc = 20; goto out; }
+    {
+        /* obie listy Coppera z pustymi duszkami, zanim cokolwiek pokazemy - inaczej wskazniki
+         * duszkow (0) pokazywaly poczatek pamieci (smieci pod kursorem na planszy wczytywania) */
+        UBYTE i, k;
+        for (k = 0; k < 2; k++) {
+            for (i = 0; i < 8; i++) video_set_sprite(i, g_blank_sprite);
+            g_video.back ^= 1; g_video.front ^= 1;
+        }
+    }
+    /* z dyskietki wczytywanie trwa kilkadziesiat sekund: od razu plansza z napisem WCZYTYWANIE
+     * (system dziala dalej), po wczytaniu ilustracji - z ilustracja, potem reszta danych */
+    if (system_show_early()) {
+        ui_loading_screen();
+        ui_init_title();
+        ui_loading_screen();
+    } else
+        ui_init_title();
+    if (!roost_init() || !tractors_init() || !audio_init()) { rc = 20; goto out; }
 
     tournament_defaults();
     tournament_reset();
@@ -450,14 +463,6 @@ static int game_main(void)
     { extern ULONG g_chip_free; g_chip_free = AvailMem(MEMF_CHIP); }   /* po wczytaniu wszystkiego */
 #endif
     hud_init();
-    {
-        /* obie listy Coppera z pustymi duszkami; bez zapisu COP1LC - OS jeszcze dziala */
-        UBYTE i, k;
-        for (k = 0; k < 2; k++) {
-            for (i = 0; i < 8; i++) video_set_sprite(i, g_blank_sprite);
-            g_video.back ^= 1; g_video.front ^= 1;
-        }
-    }
 
     if (!system_takeover()) { rc = 20; goto out; }
     input_init();

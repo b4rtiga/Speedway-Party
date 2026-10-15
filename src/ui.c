@@ -111,11 +111,25 @@ static void update_line_colors(void);
 
 /* Plansza wczytywania: ilustracja i napisy jak na planszy tytulowej, zamiast NACISNIJ FIRE
  * stale WCZYTYWANIE. Rysowana procesorem (Blitter nalezy jeszcze do systemu) do bufora "back",
- * potem na ekran (video_swap, video_start). Wywolywac po system_show_early. */
+ * potem na ekran (video_swap, video_start). Wywolywac po system_show_early - najpierw przed
+ * wczytaniem ilustracji (sam teczowy napis na gradiencie: paleta ilustracji jeszcze nie
+ * wczytana, a teczowe napisy i tlo ustawia Copper liniami), potem drugi raz z ilustracja. */
 COLD void ui_loading_screen(void)
 {
     UBYTE *b = video_backbuffer();
-    if (title_img) {
+    rgb12_lerp_table();                          /* kolory teczy dla napisow (Copper, linie) */
+    if (!title_img) {
+        ULONG *d = (ULONG *)b, n;
+        for (n = 0; n < FULL_SIZE / 4; n++) d[n] = 0;      /* kolor 0 = gradient z Coppera */
+        text_draw_big_center(b, 100, "SPEEDWAY PARTY", U_RAINBOW, 0);
+        text_draw_center(b, 140, "WCZYTYWANIE...", U_RAINBOW, 0);
+        video_set_menu(TRUE);
+        update_line_colors();
+        video_swap();
+        video_start();
+        return;
+    }
+    {
         const ULONG *s = (const ULONG *)title_img;
         ULONG *d = (ULONG *)b, n;
         for (n = 0; n < FULL_SIZE / 4; n++) d[n] = s[n];
