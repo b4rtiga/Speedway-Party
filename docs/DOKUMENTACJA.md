@@ -243,7 +243,7 @@ Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; 
 | `main.c` | pętla 50 Hz, maszyna stanów turnieju |
 | `system.c` | przejęcie i oddanie sprzętu, przerwanie VBL |
 | `video.c` | listy Coppera, palety, podwójny bufor, HUD |
-| `sprites.c` | klatki i pozycje duszków motocykli |
+| `sprites.c` | klatki (jeden komplet, kolor kasku przy kopiowaniu) i pozycje duszków motocykli |
 | `blit.c` | operacje Blittera |
 | `start.c` | procedura startowa, taśma, refleks |
 | `race.c` | model jazdy: gaz, uślizg, banda, kontakt, okrążenia |
@@ -261,7 +261,7 @@ Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; 
 
 ### Dane (katalog data/)
 
-Wszystkie pliki generują narzędzia z `tools/` i są w repozytorium: tor (`track0.bpl`, `track0.pal`), plansza tytułowa (`title.bpl`, `title.pal`), motocykle (`bikes.spr`), traktory (`tractors.spr`), HUD (`hud.pal`, `referee.bin`, `refarm.bin`), podprowadzające (`girls.bin`), dźwięki (`engine.raw`, `crowd.raw`, `buzzer.raw`, `whistle.raw`) i muzyka (`music.raw`, kopiowana przy budowaniu).
+Wszystkie pliki generują narzędzia z `tools/` i są w repozytorium: tor (`track0.bpl`, `track0.pal`), plansza tytułowa (`title.bpl`, `title.pal`), motocykle (`bikes.spr`: jeden komplet klatek, kolor kasku nadaje gra), traktory (`tractors.spr`), HUD (`hud.pal`, `referee.bin`, `refarm.bin`), podprowadzające (`girls.bin`), dźwięki (`engine.raw`, `crowd.raw`, `buzzer.raw`, `whistle.raw`, `cheer.raw`) i muzyka (`music.raw`, kopiowana przy budowaniu).
 
 ## 9. Uruchomienie w WinUAE
 
@@ -300,6 +300,8 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry skompilowanego na PC (`art/screen_*.png`) |
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` |
 | `sh tools/sim/news_test.sh` | testy gazety (reguły nagłówków, podsumowanie, długie nazwiska) |
+| `sh tools/sim/records_test.sh` | testy tabel rekordów i pliku `halloffame.dat` |
+| `sh tools/sim/sprites_test.sh` | test klatek motocykli (kolor kasku nadany przy kopiowaniu = dawne 4 komplety) |
 | `sh tools/sim/batch.sh` | kilka turniejów botów – statystyki poziomów AI |
 | `python tools/mksocial.py` | miniaturka repozytorium na GitHubie |
 | `python tools/mkdocs.py` | ta dokumentacja w PDF |
@@ -327,7 +329,7 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 
 - Gra działa w WinUAE w 50 FPS; w całym biegu gubią się pojedyncze klatki (kilka przy odlocie taśmy i zmianie flagi).
 - **Nie była jeszcze testowana na prawdziwym A1200** ani z oryginalnym Kickstartem 3.1.
-- Zajmuje ok. 1,2–1,4 MB Chip RAM, więc potrzebuje 2 MB Chip.
+- Zajmuje ok. 1,05–1,25 MB Chip RAM, więc potrzebuje 2 MB Chip.
 - Słychać tylko dwa silniki naraz (Paula ma 4 kanały): dwóch najwyżej sklasyfikowanych, którzy jeszcze jadą.
 - Dźwięk silnika pochodzi z nagrania wygenerowanego przez AI (500 cm³, 10 000 obr/min), zapętlonego narzędziem `tools/import_engine.py`.
 - Adapter 4 graczy na porcie równoległym nie był testowany.

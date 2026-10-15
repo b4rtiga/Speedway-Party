@@ -257,6 +257,8 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |
 | `make sim` | symulator: te same pliki logiki gry rozgrywają turniej botów bez grafiki |
 | `sh tools/sim/news_test.sh` | test gazety: wybór nagłówka na scenariuszach, podsumowanie turnieju, zerowanie faktów, długie nazwiska |
+| `sh tools/sim/records_test.sh` | test tabel rekordów: TOP 5, remisy, imiona, plik `halloffame.dat` (także uszkodzony i starsza wersja) |
+| `sh tools/sim/sprites_test.sh` | test klatek motocykli: jeden komplet + kolor kasku nadany przy kopiowaniu = dawne 4 komplety z `v0.84`, bit w bit |
 | `sh tools/sim/batch.sh` | 5 turniejów, średnie punkty dla każdego poziomu AI (do strojenia) |
 | `python tools/sim/plot.py` | tory jazdy z symulacji na tle toru, zapis do `art/sim_lines.png` |
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szpryca, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
@@ -279,7 +281,7 @@ src/
   main.c        pętla 50 Hz, maszyna stanów turnieju
   system.c      przejęcie i oddanie sprzętu, własne przerwanie VBL
   video.c       Copper-listy AGA: 8 bitplanów, paleta 24-bit, kolory per linia, HUD, podwójny bufor
-  sprites.c     duszki 32 px (pary attached), klatki motocykli, kopia na motocykl i bufor, pozycja co 1/4 px
+  sprites.c     duszki 32 px (pary attached), klatki motocykli (1 komplet), kopia na motocykl i bufor z kolorem kasku, pozycja co 1/4 px
   blit.c        Blitter: wypełnianie, kopiowanie, kropki „cookie-cut” (szpryca)
   start.c       procedura startowa, taśma, refleks
   race.c        model jazdy: auto-gaz, uślizg, banda, kontakt, okrążenia
@@ -329,7 +331,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS): plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Menu i bieg chodzą w 50 FPS: według pomiaru w WinUAE w całym biegu (4 okrążenia) gubią się pojedyncze klatki (kilka w chwili odlotu taśmy i przy zmianie flagi). Pomiar daje wersja `make dist EXTRA=-DSHOW_LAG` (liczby w HUD).
 - **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
 - Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
-- Gra zajmuje ok. 1,2–1,4 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka: 208 KiB „Black Motor” albo 428 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Na Amidze z Fast RAM muzyka ląduje w Fast RAM.
+- Gra zajmuje ok. 1,05–1,25 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka: 208 KiB „Black Motor” albo 428 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Klatki motocykli to jeden komplet (51 KiB) – kolor kasku zawodnika gra nadaje przy kopiowaniu klatki. Na Amidze z Fast RAM muzyka i klatki motocykli lądują w Fast RAM.
 
 ### Znane ograniczenia
 - **Silniki słychać tylko dwa naraz:** Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty. Grają dwaj najwyżej sklasyfikowani zawodnicy, którzy jeszcze jadą; ci za metą dopiero wtedy, gdy na torze zostało mniej niż dwóch.

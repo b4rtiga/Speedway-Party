@@ -73,9 +73,9 @@ extern UWORD *g_blank_sprite;
 #define SPRITE_H     32
 #define SPRITE_HALF_WORDS ((SPRITE_H + 2) * 2 * (SPRITE_W / 16))   /* polowka pary attached */
 #define SKID_FRAMES  3           /* 0 = prosto, 1-2 = coraz mocniejszy uslizg */
-UWORD *sprite_frame_ptr(UBYTE gate, UBYTE frame, UBYTE skid, UBYTE half);
 void   sprite_set_pos(UWORD *spr, WORD x, WORD y, UWORD height, BOOL attached);
 void   sprite_set_pos_q(UWORD *spr, LONG xq, WORD y, UWORD height, BOOL attached);   /* x w 1/4 px */
+/* kopia klatki motocykla dla bufora buf z kaskiem w kolorze color (zawodnik 0-3); polowka nieparzysta = +SPRITE_HALF_WORDS */
 UWORD *sprite_bike_frame(UBYTE bike, UBYTE buf, UBYTE color, UBYTE frame, UBYTE skid);
 
 #endif

@@ -117,8 +117,8 @@ static void bike_sprites(void)
         Bike *b = &g_tour.bikes[i];
         UWORD *ev, *od;
         if (b->state == BIKE_EXCLUDED) continue;
-        ev = sprite_frame_ptr(b->gate, b->sprite_frame, b->skid_frame, 0);
-        od = sprite_frame_ptr(b->gate, b->sprite_frame, b->skid_frame, 1);
+        ev = sprite_bike_frame(i, g_video.back, b->rider, b->sprite_frame, b->skid_frame);   /* jak main.c */
+        od = ev + SPRITE_HALF_WORDS;
         sprite_set_pos(ev, FIX2INT(b->x), FIX2INT(b->y), SPRITE_H, FALSE);
         sprite_set_pos(od, FIX2INT(b->x), FIX2INT(b->y), SPRITE_H, TRUE);
         video_set_sprite(b->hw_sprite, ev);

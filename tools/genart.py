@@ -3,7 +3,8 @@
 Wyjscie (dla Amigi, ladowane z PROGDIR:data/ przed przejeciem sprzetu):
   data/track.pal    256 x RGB sucho + 256 x RGB mokro (1536 B)
   data/track.bpl    tlo 320x208, 8 bitplanow przeplatanych (66560 B)
-  data/bikes.spr    4 kaski x 32 kierunki x 3 uslizgi x 2 polowki duszka 64x32 (417792 B)
+  data/bikes.spr    32 kierunki x 3 uslizgi x 2 polowki duszka 32x32 (52224 B); kask w kolorze HR,
+                    kolor zawodnika nadaje gra przy kopiowaniu klatki (sprites.c)
   data/hud.pal      32 x RGB palety HUD (96 B)
   data/referee.bin  portret sedziego 32x38, 5 bitplanow przeplatanych (760 B)
   data/refarm.bin   reka sedziego z piescia, 2 fazy machania 32x24, 5 bitplanow (960 B)
@@ -774,10 +775,11 @@ def to_planar(a, depth):
     return bytes(out)
 
 
-def sprite_blob(frames):
+def sprite_blob(frames, gates=1):
+    """klatki duszkow; w grze jeden komplet (kask HR = 10), reszte kolorow robi sprites.c"""
     out = bytearray()
     wb = SPR_W // 8
-    for gate in range(4):
+    for gate in range(gates):
         for d in range(DIRS):
             for k in range(SKIDS):
                 f = frames[(d, k)].copy()
@@ -859,7 +861,7 @@ def main():
     print("motocykle: renderowanie 96 klatek...")
     frames = bike_frames()
     blob = sprite_blob(frames)
-    assert len(blob) == 4 * DIRS * SKIDS * 2 * (SPR_H + 2) * (SPR_W // 4), len(blob)
+    assert len(blob) == DIRS * SKIDS * 2 * (SPR_H + 2) * (SPR_W // 4), len(blob)
     (ROOT / "data/bikes.spr").write_bytes(blob)
 
     vblob, vframes = vehicle_blob()
