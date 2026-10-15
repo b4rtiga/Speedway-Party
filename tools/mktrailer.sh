@@ -7,18 +7,22 @@
 # odtwarzacze pokazuja ja jako miniaturke). Silniki: rejestry Pauli z prawdziwej logiki
 # audio.c zapisywane co klatke, dzwiek z data/engine.raw sklada tools/trailer_audio.py.
 # Wymaga: pip install ziglang, ffmpeg w PATH.
+# LANG_EN=1 sh tools/mktrailer.sh - wersja angielska: art/en/trailer.mp4 (napisy gry po angielsku,
+# na koncu SEE YOU AT THE TAPE!) i miniaturka art/en/trailer_thumb.png (klatka z biegu jest bez napisow).
 cd "$(dirname "$0")/.." || exit 1
+if [ -n "$LANG_EN" ]; then O=tools/shots/out-en; EXE=./tools/shots/shots_en.exe; MP4=art/en/trailer.mp4
+else O=tools/shots/out; EXE=./tools/shots/shots.exe; MP4=art/trailer.mp4; fi
 sh tools/shots/run.sh >/dev/null || exit 1
-TMP=tools/shots/out/trailer.mkv
-REGS=tools/shots/out/trailer_audio.bin   # okres i glosnosc kanalow silnikow co klatke
-ENG=tools/shots/out/trailer_engines.wav
-TITLE=tools/shots/out/endcard.png    # ostatnia plansza: ilustracja z napisem fontem gry (tryb endcard)
+TMP=$O/trailer.mkv
+REGS=$O/trailer_audio.bin            # okres i glosnosc kanalow silnikow co klatke
+ENG=$O/trailer_engines.wav
+TITLE=$O/endcard.png                 # ostatnia plansza: ilustracja z napisem fontem gry (tryb endcard)
 XF=1.2                               # dlugosc przejscia (s)
 HOLD=5                               # ilustracja po przejsciu (s)
 
-./tools/shots/shots.exe endcard \
+$EXE endcard \
   | ffmpeg -v error -y -f rawvideo -pix_fmt rgb24 -s 320x256 -i - "$TITLE" || exit 1
-TRAILER_LAPS=1 TRAILER_AUDIO="$REGS" ./tools/shots/shots.exe trailer \
+TRAILER_LAPS=1 TRAILER_AUDIO="$REGS" $EXE trailer \
   | ffmpeg -v error -y -f rawvideo -pix_fmt rgb24 -s 320x256 -r 50 -i - -c:v libx264rgb -crf 0 -preset veryfast "$TMP" || exit 1
 python tools/trailer_audio.py "$REGS" "$ENG" >/dev/null || exit 1
 # chwila, od ktorej slychac silniki (pierwsza klatka z glosnoscia kanalu 0) - wtedy muzyka ciszej
@@ -41,6 +45,7 @@ ffmpeg -v error -y -i "$TMP" -loop 1 -t "$(python -c "print($HOLD+$XF)")" -i "$T
 [3:a]aresample=48000,apad[e];\
 [m][e]amix=inputs=2:duration=first:normalize=0,afade=t=out:st=$AO:d=2.5[a]" \
   -map "[v]" -map "[a]" -t "$TOTAL" \
-  -c:v libx264 -pix_fmt yuv420p -profile:v high -preset slow -crf 20 -tune animation -r 50 -c:a aac -b:a 160k -ac 2 -movflags +faststart art/trailer.mp4 || exit 1
+  -c:v libx264 -pix_fmt yuv420p -profile:v high -preset slow -crf 20 -tune animation -r 50 -c:a aac -b:a 160k -ac 2 -movflags +faststart "$MP4" || exit 1
 rm -f "$TMP" "$REGS" "$ENG" "$TITLE"
-echo "art/trailer.mp4 ($TOTAL s)"
+[ -n "$LANG_EN" ] && cp art/trailer_thumb.png art/en/trailer_thumb.png
+echo "$MP4 ($TOTAL s)"

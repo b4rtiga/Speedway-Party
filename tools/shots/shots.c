@@ -291,8 +291,13 @@ static int endcard(void)
     track_init();
     ui_init();
     hud_init();
+#ifdef LANG_EN
+    g_endcard[0] = "SEE YOU";                    /* wersja angielska trailera */
+    g_endcard[1] = "AT THE TAPE!";
+#else
     g_endcard[0] = "Z ŻUŻLOWYM";                 /* napisy w kodzie gry sa w UTF-8 (text.c) */
     g_endcard[1] = "POZDROWIENIEM!";
+#endif
     g_frame = 16;
     tenter(GS_TITLE);
     tframe(FALSE);
