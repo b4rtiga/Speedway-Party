@@ -156,6 +156,9 @@ UBYTE records_check_heat(void)
     return result;
 }
 
-/* czy zawodnik ma wpisac imie (zakwalifikowal sie do TOP 5 w ostatnim biegu) */
+/* miejsca czekajace na imie (przerwany turniej) dostaja imie domyslne z nazwiska */
+void records_resolve_pending(void) { hof_resolve_pending(); }
+
+/* czy zawodnik ma wpisac imie (zakwalifikowal sie w turnieju do TOP 5) */
 BOOL records_needs_name(UBYTE rider) { return hof_pending(rider); }
 void records_set_name(UBYTE rider, const char *nm) { hof_set_name(rider, nm); dirty = TRUE; }

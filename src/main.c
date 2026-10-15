@@ -179,7 +179,9 @@ static void after_result(void)
     }
 }
 
-/* Gracze, ktorzy wjechali do TOP 5 rekordow toru, po kolei wpisuja imie. */
+/* Po turnieju (po gazecie) gracze, ktorzy w nim wjechali do TOP 5 rekordow toru, po kolei
+ * wpisuja imie - raz, do wszystkich swoich miejsc. Miedzy biegami gra nie przerywa (dawniej
+ * wpis po kazdym biegu meczyl, zwlaszcza przy pustych tabelach). */
 static UBYTE entry_from;
 static void next_name_entry(void)
 {
@@ -191,7 +193,7 @@ static void next_name_entry(void)
             enter(GS_NAME_ENTRY);
             return;
         }
-    after_result();
+    enter(GS_SETUP);                             /* nastepny turniej */
 }
 
 static void name_entry_done(void)
@@ -322,6 +324,7 @@ static void update_state(void)
 #else
         if (ui_setup_update()) {
 #endif
+            records_resolve_pending();           /* przerwany turniej: jego miejsca z imieniem z nazwiska */
             tournament_reset();
             g_tour.current_heat = 0;
             {
@@ -356,10 +359,8 @@ static void update_state(void)
         break;
 
     case GS_HEAT_RESULT:
-        if (state_timer >= RESULT_FRAMES || (state_timer > RESULT_MIN && ui_confirm())) {
-            entry_from = 0;
-            next_name_entry();
-        }
+        if (state_timer >= RESULT_FRAMES || (state_timer > RESULT_MIN && ui_confirm()))
+            after_result();                      /* imiona do rekordow dopiero po turnieju */
         break;
 
     case GS_TRACK_GRADING:
@@ -389,7 +390,7 @@ static void update_state(void)
         break;
 
     case GS_NEWS:                        /* gazeta: czeka na swiezy FIRE / Return */
-        if (state_timer > FPS / 2 && ui_confirm()) enter(GS_SETUP);
+        if (state_timer > FPS / 2 && ui_confirm()) { entry_from = 0; next_name_entry(); }
         break;
 
     default:

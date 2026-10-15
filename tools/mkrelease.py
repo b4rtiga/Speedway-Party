@@ -34,7 +34,7 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
   na niej uslizg mniej hamuje
 - plansza tytulowa czeka na FIRE / Return, potem JEDZIEMY!, INSTRUKCJA
   (zasady, start, linia jazdy), REKORDY (TOP 5 biegow i okrazen graczy) albo CREDITS
-- gracz w TOP 5 wpisuje imie (7 znakow): GORA/DOL znak, LEWO/PRAWO pozycja,
+- gracz w TOP 5 wpisuje imie raz, po turnieju (7 znakow): GORA/DOL znak, LEWO/PRAWO pozycja,
   mozna tez pisac z klawiatury, FIRE zapisz
 - rekordy zapisuja sie do halloffame.dat przy wyjsciu z gry (ESC na ekranie
   wyboru i ESC jeszcze raz); reset Amigi w trakcie gry traci wyniki z sesji
