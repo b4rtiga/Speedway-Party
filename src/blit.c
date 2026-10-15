@@ -50,6 +50,14 @@ void blit_clear(UBYTE *buf)
     start(USE_D | 0x00, 0, buf, 0, 0, FULL_H * PLAY_DEPTH, ROW_BYTES / 2);
 }
 
+void blit_plot(UBYTE *buf, WORD x, WORD y, UBYTE c)
+{
+    UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
+    UBYTE bit = (UBYTE)(0x80 >> (x & 7)), pl;
+    for (pl = 0; pl < PLAY_DEPTH; pl++, p += ROW_BYTES, c >>= 1)
+        if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
+}
+
 void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE color)
 {
     UBYTE pl;

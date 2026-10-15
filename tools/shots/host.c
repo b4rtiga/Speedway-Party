@@ -90,6 +90,13 @@ BOOL blit_init(void) { return TRUE; }
 void blit_free(void) {}
 void blit_wait(void) {}
 void blit_clear(UBYTE *buf) { memset(buf, 0, FULL_SIZE); }
+void blit_plot(UBYTE *buf, WORD x, WORD y, UBYTE c)          /* jak blit.c (procesor) */
+{
+    UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
+    UBYTE bit = (UBYTE)(0x80 >> (x & 7)), pl;
+    for (pl = 0; pl < PLAY_DEPTH; pl++, p += ROW_BYTES, c >>= 1)
+        if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
+}
 void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE c)
 {
     WORD i, j;

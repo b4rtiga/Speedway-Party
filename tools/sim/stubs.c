@@ -22,6 +22,13 @@ void blit_wait(void) {}
 void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color) { (void)buf; (void)x; (void)y; (void)big; (void)color; }
 void blit_restore(UBYTE *d, const UBYTE *s, WORD x, WORD y, BOOL big) { (void)d; (void)s; (void)x; (void)y; (void)big; }
 void blit_dots_begin(void) {}
+void blit_plot(UBYTE *buf, WORD x, WORD y, UBYTE c)          /* jak blit.c (tlo toru w track_render) */
+{
+    UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
+    UBYTE bit = (UBYTE)(0x80 >> (x & 7)), pl;
+    for (pl = 0; pl < PLAY_DEPTH; pl++, p += ROW_BYTES, c >>= 1)
+        if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
+}
 void blit_restores_begin(void) {}
 void blit_copy(UBYTE *d, const UBYTE *s, WORD x, WORD y, WORD w, WORD h) { (void)d; (void)s; (void)x; (void)y; (void)w; (void)h; }
 void sfx_buzzer(void) {}
