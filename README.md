@@ -32,15 +32,34 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 |---|---|
 | `SpeedwayParty` | **skompilowany program dla Amigi** (plik wykonywalny AmigaOS, bez rozszerzenia) - to go uruchamiasz |
 | `data/` | grafika, dźwięk i muzyka; musi leżeć obok programu |
+| `SpeedwayParty.info` | ikona – na Workbenchu grę uruchamia podwójne kliknięcie |
 | `s/startup-sequence` | uruchamia grę od razu po starcie Amigi, gdy katalog jest dyskiem startowym |
-| `CZYTAJ.TXT` | krótka instrukcja |
+| `CZYTAJ.TXT` (+ ikona) | krótka instrukcja |
 
-**[release/SpeedwayParty.adf](release/SpeedwayParty.adf)**: ta sama gra jako startowa dyskietka (880 KB, FastFileSystem). Wkładasz ją do stacji (albo do Gotka czy emulatora) i gra rusza sama. Dyskietka wymaga Kickstartu 2.0 lub nowszego.
+Obok katalogu leży ikona szuflady `SpeedwayParty.info`, więc po rozpakowaniu na dysk Amigi katalog gry ma ikonę na Workbenchu.
+
+**[release/SpeedwayParty.adf](release/SpeedwayParty.adf)**: ta sama gra jako startowa dyskietka (880 KB, FastFileSystem). Wkładasz ją do stacji (albo do Gotka czy emulatora) i gra rusza sama. Włożona do działającego Workbencha ma własną ikonę dysku, a na niej ikonę gry i instrukcję. Dyskietka wymaga Kickstartu 2.0 lub nowszego.
 
 Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 3.x. Fast RAM nie jest potrzebny.
-- **Na Amidze:** rozpakuj, w Shellu wejdź do katalogu `SpeedwayParty` i uruchom `SpeedwayParty`.
+- **Na Amidze:** rozpakuj na dysk i kliknij dwa razy ikonę gry w szufladzie `SpeedwayParty` – albo w Shellu wejdź do katalogu `SpeedwayParty` i uruchom `SpeedwayParty`.
 - **Z dyskietki:** włóż `SpeedwayParty.adf` do DF0: (w WinUAE: *Floppy drives → DF0:*) i uruchom Amigę.
 - **W emulatorze z katalogu:** rozpakuj i podepnij katalog `SpeedwayParty` jako dysk startowy (szczegóły niżej w sekcji *Uruchomienie w WinUAE*).
+
+### Na jakich Amigach działa
+
+| Komputer / konfiguracja | Działa? | Uwagi |
+|---|---|---|
+| **Amiga 1200, 2 MB Chip RAM, bez Fast RAM** (goła) – z dyskietki | **tak** – sprawdzone w WinUAE (68020 cycle-exact, AGA) | 50 klatek na sekundę; wczytywanie z dyskietki kilkadziesiąt sekund, potem plansza „WCZYTYWANIE…” |
+| Amiga 1200 z dyskiem twardym / kartą CF – z zipa | **tak** – sprawdzone w WinUAE (katalog jako dysk) | start z Shella albo podwójnym kliknięciem ikony (ikony niesprawdzone na prawdziwym Workbenchu) |
+| Amiga 1200 z kartą turbo (68030/040/060) i Fast RAM | powinna – **niesprawdzone** | muzyka i klatki motocykli trafiają do Fast RAM; gra synchronizuje się z wygaszaniem pionowym, więc nie przyspiesza |
+| Amiga 4000 (AGA, 68030/040) | powinna – **niesprawdzone** | |
+| Vampire V4 (SAGA), MiSTer/Minimig AGA | możliwe – **niesprawdzone** | sprzęt zgodny z AGA |
+| Amiga 500/600/2000/3000, CDTV (chipset OCS/ECS) | **nie** | gra wymaga AGA (256 kolorów, duszki 32 px) |
+| Amiga CD32 | **nie** | brak wersji na CD |
+| Kickstart 3.0 / 3.1 / 3.2 | **tak** – testy na zamienniku AROS (zgodnym z 3.1) | gra wymaga graphics.library v39 (Kickstart 3.0+); każda Amiga z AGA go ma |
+| Instalacja WHDLoad | **jeszcze nie** | w przygotowaniu (`make whdload`), nie została przetestowana z oryginalnym Kickstartem |
+| WinUAE / FS-UAE | **tak** (WinUAE sprawdzony) | konfiguracja w `tools/winuae/` |
+| EmulatorJS / PUAE w przeglądarce | **tak** | joystick w porcie 0 wymaga ustawienia portu jako joystick w emulatorze |
 
 ## Spis treści
 1. [Mechanika gry](#mechanika-gry)
@@ -251,6 +270,8 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 |---|---|
 | `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`, `tools/gengirls.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`); robocze podglądy (makiety, arkusze klatek, WAV) trafiają do `build/preview/` poza repo |
 | `make release` | buduje paczkę `release/SpeedwayParty.zip` i startową dyskietkę `release/SpeedwayParty.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
+| `python tools/mkicons.py preview` | ikony Workbencha (`tools/mkicons.py`: gra, szuflada, dysk, instrukcja; klasyczny format OS 2.x/3.x, 4 kolory) – podgląd w `build/preview/icon_*.png`; ikony do paczek dokłada `make dist` / `make release` |
+| `make whdload` | wersja WHDLoad (w przygotowaniu, nie wchodzi do wydania): gra z `-DWHDLOAD` bez systemu (`src/whd.c`, `src/whdstart.s`) i slave `tools/whdload/slave.s` w katalogu `dist-whd/`; czeka na test z oryginalnym Kickstartem 3.1 |
 | `sh tools/sim/pack_test.sh` | test rozpakowywania: pliki spakowane przez `tools/pack.py` wczytane przez `asset_load` z gry = dane z `data/`, uszkodzone odrzucone |
 | `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png`: kadr 320×256, własna paleta AGA i dithering (`data/title.bpl`, `data/title.pal`) |
 | `python tools/genreferee.py` | portret sędziego w HUD z ilustracji `src/referee.png`: 32×38, własne odcienie w wolnych kolorach palety HUD, oraz malowana ręka z pięścią w dwóch fazach machania flagą (`data/refarm.bin`; używa go `tools/genart.py`; wymaga ffmpeg) |

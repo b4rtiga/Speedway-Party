@@ -402,11 +402,17 @@ static void update_state(void)
  * tylko 4 KB, a przepelnienie stosu po cichu nadpisuje dane gry (losowe usterki).
  * StackSwap (exec, Kickstart 2.0+): zmienne main musza byc statyczne - po zamianie
  * stosu lokalne adresowane wzgledem SP przestaja byc dostepne. */
+static int game_main(void) __attribute__((noinline));
+#ifndef WHDLOAD
 #define GAME_STACK 32768UL
 static struct StackSwapStruct game_stack;
 static int game_rc;
-static int game_main(void) __attribute__((noinline));
+#endif
 
+#ifdef WHDLOAD
+/* WHDLoad: stos 64 KB na koncu BaseMem (whd.c), powrot do systemu robi whdstart.s */
+int main(void) { return game_main(); }
+#else
 int main(void)
 {
     APTR mem = AllocMem(GAME_STACK, MEMF_ANY);
@@ -420,6 +426,7 @@ int main(void)
     FreeMem(game_stack.stk_Lower, GAME_STACK);
     return game_rc;
 }
+#endif
 
 static int game_main(void)
 {
@@ -429,9 +436,13 @@ static int game_main(void)
     {
         /* ziarno z zegara systemowego (jesli komputer ma zegar z bateria); dalej mieszane
          * w enter() pozycja wiazki przy wejsciu do ustawien */
+#ifdef WHDLOAD
+        g_rng ^= (ULONG)hw_vpos() * 2654435761UL;      /* pod WHDLoad bez zegara systemu */
+#else
         struct DateStamp ds;
         DateStamp(&ds);
         g_rng ^= (ULONG)ds.ds_Tick * 2654435761UL ^ (ULONG)ds.ds_Minute << 12 ^ (ULONG)ds.ds_Days;
+#endif
         if (!g_rng) g_rng = 0x2026B4u;
     }
     if (!video_init() || !sprites_init()) { rc = 20; goto out; }

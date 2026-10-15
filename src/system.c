@@ -18,8 +18,10 @@
 #include "hw.h"
 #include "system.h"
 
-struct GfxBase *GfxBase;
 volatile ULONG g_frame;
+
+#ifndef WHDLOAD
+struct GfxBase *GfxBase;
 
 static struct View *old_view;
 static UWORD old_dmacon, old_intena;
@@ -36,6 +38,8 @@ static APTR get_vbr(void)
         return (APTR)Supervisor((ULONG (*)())getvbr_code);
     return 0;
 }
+
+#endif
 
 /* GCC m68k: atrybut bez argumentu (zapis rejestrow + RTE). Clang (tools/check.sh)
  * tylko sprawdza skladnie, wiec tam atrybut pomijamy. */
@@ -55,6 +59,30 @@ static void ISR_ATTR level3_isr(void)
     REG16(R_INTREQ) = INTF_VERTB | INTF_COPER;
 }
 
+#ifdef WHDLOAD
+/* WHDLoad: system jest juz wylaczony, przerwania i DMA naleza do gry; wektor poziomu 3 pod $6C
+ * (WHDLoad przekierowuje wektory na tablice od adresu 0, takze gdy przenosi VBR). */
+BOOL system_show_early(void) { return TRUE; }
+void system_hide_early(void) { }
+
+BOOL system_takeover(void)
+{
+    REG16(R_INTENA) = INTF_ALL;
+    REG16(R_INTREQ) = INTF_ALL;
+    REG16(R_INTREQ) = INTF_ALL;
+    REG16(R_DMACON) = DMAF_ALL;
+    *(volatile APTR *)0x6C = (APTR)level3_isr;
+    REG16(R_INTENA) = INTF_SETCLR | INTF_INTEN | INTF_VERTB;
+    return TRUE;
+}
+
+void system_restore(void)
+{
+    REG16(R_INTENA) = INTF_ALL;
+    REG16(R_DMACON) = DMAF_ALL;
+    hw_wait_blit();
+}
+#else
 static BOOL open_gfx(void)
 {
     if (!GfxBase)
@@ -151,6 +179,7 @@ void system_restore(void)
     GfxBase = 0;
     shown_early = taken = FALSE;
 }
+#endif
 
 ULONG g_lag;                    /* zgubione klatki (diagnostyka, make EXTRA=-DSHOW_LAG) */
 

@@ -54,6 +54,8 @@ dist: SpeedwayParty $(DATA)
 	rm -f dist/data/music.raw
 	cp $(DATA) dist/data/
 	python3 tools/pack.py $(addprefix dist/data/,$(PACKED)) >/dev/null
+	python3 tools/mkicons.py tool dist >/dev/null
+	python3 tools/mkicons.py disk dist >/dev/null
 	echo SpeedwayParty > dist/s/startup-sequence
 
 # Paczka do pobrania: release/SpeedwayParty.zip (plik gry + dane + instrukcja)
@@ -61,6 +63,37 @@ dist: SpeedwayParty $(DATA)
 release: dist
 	python3 tools/mkrelease.py
 	python3 tools/mkadf.py dist release/SpeedwayParty.adf SpeedwayParty
+
+# Wersja WHDLoad (NIEWYDANA, nieprzetestowana: WHDLoad nie dziala pod AROS-em z naszej konfiguracji
+# WinUAE - test wymaga oryginalnego Kickstartu 3.1): ten sam kod z -DWHDLOAD (pliki i pamiec przez WHDLoad, bez systemu - src/whd.c,
+# naglowki zastepcze src/whd/proto), start src/whdstart.s, slave tools/whdload/slave.s.
+# Wynik: katalog dist-whd/ (slave + data/ z programem gry), paczke robi tools/mkrelease.py.
+WHD_DIR = build/whd
+WHD_OBJ = $(patsubst src/%.c,$(WHD_DIR)/%.o,$(SRC)) $(WHD_DIR)/whd.o
+VASM    = vasmm68k_mot -quiet -m68020
+
+$(WHD_DIR)/%.o: src/%.c src/*.h src/whd/proto/*.h
+	@mkdir -p $(WHD_DIR)
+	$(CC) $(CFLAGS) -DWHDLOAD -Isrc/whd -c $< -o $@
+
+$(WHD_DIR)/whdstart.o: src/whdstart.s
+	@mkdir -p $(WHD_DIR)
+	$(VASM) -Fhunk -o $@ $<
+
+$(WHD_DIR)/SpeedwayParty: $(WHD_DIR)/whdstart.o $(WHD_OBJ)
+	$(CC) -m68020 -nostartfiles -nostdlib -s -o $@ $^ -lgcc
+
+$(WHD_DIR)/SpeedwayParty.slave: tools/whdload/slave.s
+	@mkdir -p $(WHD_DIR)
+	$(VASM) -Fhunkexe -nosym -o $@ $<
+
+whdload: dist $(WHD_DIR)/SpeedwayParty $(WHD_DIR)/SpeedwayParty.slave
+	rm -rf dist-whd
+	mkdir -p dist-whd/data
+	cp $(WHD_DIR)/SpeedwayParty.slave dist-whd/
+	cp $(WHD_DIR)/SpeedwayParty dist-whd/data/
+	cp dist/data/* dist-whd/data/
+	python3 tools/mkicons.py whdload dist-whd >/dev/null
 
 # Grafika i dzwiek (Python 3 + numpy) - wynik jest juz w repozytorium, to tylko regeneracja
 assets:
@@ -80,6 +113,6 @@ sim:
 
 clean:
 	rm -f $(OBJ) SpeedwayParty
-	rm -rf dist data/music.raw .music-*
+	rm -rf dist dist-whd $(WHD_DIR) data/music.raw .music-*
 
-.PHONY: clean dist release assets check sim
+.PHONY: clean dist release whdload assets check sim

@@ -17,13 +17,29 @@ Gra jest dostępna w dwóch postaciach (katalog `release/` w repozytorium):
 | Plik | Co to jest |
 |---|---|
 | `SpeedwayParty.adf` | startowa dyskietka 880 KB (FastFileSystem). Wkładasz ją do stacji DF0: (albo do Gotka czy emulatora) i gra rusza sama. |
-| `SpeedwayParty.zip` | katalog `SpeedwayParty/`: program `SpeedwayParty`, dane `data/`, `s/startup-sequence` i krótka instrukcja `CZYTAJ.TXT`. |
+| `SpeedwayParty.zip` | katalog `SpeedwayParty/` z ikoną szuflady: program `SpeedwayParty` z ikoną, dane `data/`, `s/startup-sequence` i krótka instrukcja `CZYTAJ.TXT` z ikoną. |
 
 **Uruchomienie:**
 
 - **Z dyskietki:** włóż `SpeedwayParty.adf` do DF0: i włącz Amigę (w WinUAE: *Floppy drives → DF0:*).
-- **Z twardego dysku:** rozpakuj zip, w Shellu wejdź do katalogu `SpeedwayParty` i wpisz `SpeedwayParty`. Katalog `data/` musi leżeć obok programu.
+- **Z twardego dysku:** rozpakuj zip na dysk Amigi i na Workbenchu kliknij dwa razy ikonę gry w szufladzie `SpeedwayParty` – albo w Shellu wejdź do katalogu `SpeedwayParty` i wpisz `SpeedwayParty`. Katalog `data/` musi leżeć obok programu.
 - **W emulatorze z katalogu:** podepnij rozpakowany katalog jako dysk startowy (rozdział 9).
+
+**Na jakich Amigach działa:**
+
+| Komputer / konfiguracja | Działa? | Uwagi |
+|---|---|---|
+| **Amiga 1200, 2 MB Chip RAM, bez Fast RAM** (goła) – z dyskietki | **tak** – sprawdzone w WinUAE (68020 cycle-exact, AGA) | 50 klatek na sekundę; wczytywanie z dyskietki kilkadziesiąt sekund, potem plansza „WCZYTYWANIE…” |
+| Amiga 1200 z dyskiem twardym / kartą CF – z zipa | **tak** – sprawdzone w WinUAE (katalog jako dysk) | start z Shella albo podwójnym kliknięciem ikony (ikony niesprawdzone na prawdziwym Workbenchu) |
+| Amiga 1200 z kartą turbo (68030/040/060) i Fast RAM | powinna – **niesprawdzone** | muzyka i klatki motocykli trafiają do Fast RAM; gra synchronizuje się z wygaszaniem pionowym, więc nie przyspiesza |
+| Amiga 4000 (AGA, 68030/040) | powinna – **niesprawdzone** | |
+| Vampire V4 (SAGA), MiSTer/Minimig AGA | możliwe – **niesprawdzone** | sprzęt zgodny z AGA |
+| Amiga 500/600/2000/3000, CDTV (chipset OCS/ECS) | **nie** | gra wymaga AGA (256 kolorów, duszki 32 px) |
+| Amiga CD32 | **nie** | brak wersji na CD |
+| Kickstart 3.0 / 3.1 / 3.2 | **tak** – testy na zamienniku AROS (zgodnym z 3.1) | gra wymaga graphics.library v39 (Kickstart 3.0+); każda Amiga z AGA go ma |
+| Instalacja WHDLoad | **jeszcze nie** | w przygotowaniu (`make whdload`), nie została przetestowana z oryginalnym Kickstartem |
+| WinUAE / FS-UAE | **tak** (WinUAE sprawdzony) | konfiguracja w `tools/winuae/` |
+| EmulatorJS / PUAE w przeglądarce | **tak** | joystick w porcie 0 wymaga ustawienia portu jako joystick w emulatorze |
 
 **ESC** (albo drugi przycisk joysticka) w dowolnym momencie otwiera pauzę z pytaniem: w turnieju – czy wrócić do menu, na ekranie wyboru – czy zakończyć grę. W ustawieniach ESC wraca od razu do ekranu wyboru. Drugie ESC oznacza „tak”, FIRE wraca do gry.
 
@@ -179,6 +195,8 @@ NDK 3.9 i libnix są w toolchainie. Sprawdzenie: `m68k-amigaos-gcc --version`.
 |---|---|
 | `make dist` | katalog `dist/`: program, `data/`, `s/startup-sequence` – do podpięcia w emulatorze. Motocykle, traktory, tło toru i podprowadzające są tam spakowane (`tools/pack.py`, prosty LZ: 171 → 72 KB); gra rozpakowuje je przy wczytywaniu. W `data/` w repozytorium leżą niespakowane. |
 | `make release` | `release/SpeedwayParty.zip` i startowa dyskietka `release/SpeedwayParty.adf` |
+| `python tools/mkicons.py preview` | ikony Workbencha (gra, szuflada, dysk, instrukcja) – podgląd PNG |
+| `make whdload` | wersja WHDLoad w przygotowaniu (`dist-whd/`), jeszcze nieprzetestowana i niewydana |
 | `make check` | kontrola składni i typów całego kodu Clangiem dla 68020 |
 | `make sim` | symulator turnieju botów z tą samą logiką gry |
 

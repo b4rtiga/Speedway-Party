@@ -15,6 +15,9 @@
 #include <dos/dosextens.h>
 #include <proto/dos.h>
 #include <proto/exec.h>
+#ifdef WHDLOAD
+#include "whd.h"
+#endif
 
 #include "game.h"
 #include "hof.h"
@@ -80,6 +83,17 @@ COLD void records_load(void)
     if (import_old()) dirty = TRUE;               /* przy wyjsciu powstanie halloffame.dat */
 }
 
+#ifdef WHDLOAD
+COLD void records_save(void)
+{
+    /* WHDLoad: zapis przez WHDLoad (katalog data/ albo SavePath) - bez pliku tymczasowego */
+    UWORD len;
+    if (!dirty) return;
+    hof_resolve_pending();
+    len = hof_serialize(filebuf);
+    if (whd_save_file(HOF_DAT, filebuf, len)) dirty = FALSE;
+}
+#else
 COLD void records_save(void)
 {
     struct Process *pr;
@@ -110,6 +124,7 @@ COLD void records_save(void)
     pr->pr_WindowPtr = old_win;
     if (ok) dirty = FALSE;
 }
+#endif
 
 /* widok najlepszego wyniku dla dotychczasowych ekranow (tabela, wyniki biegu) */
 TrackRecord *records_for(UBYTE track)

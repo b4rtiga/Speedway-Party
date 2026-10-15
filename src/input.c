@@ -1,6 +1,9 @@
 /* input.c - joysticki (porty 0/1), adapter 4 graczy (port rownolegly), klawiatura (CIA-A). */
 #include "game.h"
 #include "hw.h"
+#ifdef WHDLOAD
+#include "whd.h"
+#endif
 
 #define CIAA_ICR (*(volatile UBYTE *)0xBFED01)
 #define CIAA_SDR (*(volatile UBYTE *)0xBFEC01)
@@ -59,6 +62,9 @@ static void poll_keyboard(void)
     { extern ULONG g_kb_bytes; extern UBYTE g_kb_last; g_kb_bytes++; g_kb_last = c; }
 #endif
     keys[c & 0x7F] = (UBYTE)!(c & 0x80);
+#ifdef WHDLOAD
+    if (c == WHD_QUITKEY) g_tour.state = GS_QUIT;   /* F10: wyjscie z zapisem rekordow */
+#endif
     if (!(c & 0x80) && (UBYTE)((keyq_head + 1) & 7) != keyq_tail) {
         keyq[keyq_head] = (UBYTE)(c & 0x7F);
         keyq_head = (UBYTE)((keyq_head + 1) & 7);
