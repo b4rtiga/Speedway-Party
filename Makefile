@@ -23,6 +23,17 @@ SpeedwayParty: $(OBJ)
 src/%.o: src/%.c src/*.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Wersja angielska: ten sam kod z -DLANG_EN (napisy T("pl", "en") w src/game.h), obiekty w build/en/
+EN_DIR = build/en
+EN_OBJ = $(patsubst src/%.c,$(EN_DIR)/%.o,$(SRC))
+
+$(EN_DIR)/%.o: src/%.c src/*.h
+	@mkdir -p $(EN_DIR)
+	$(CC) $(CFLAGS) -DLANG_EN -c $< -o $@
+
+$(EN_DIR)/SpeedwayParty: $(EN_OBJ)
+	$(CC) $(LDFLAGS) -o $@ $(EN_OBJ)
+
 DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/girls.bin data/hud.pal data/referee.bin data/refarm.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw data/cheer.raw
 
 # Pliki pakowane na dyskietce (tools/pack.py, rozpakowuje assets.c) - w data/ zostaja niespakowane
@@ -58,11 +69,21 @@ dist: SpeedwayParty $(DATA)
 	python3 tools/mkicons.py disk dist >/dev/null
 	echo SpeedwayParty > dist/s/startup-sequence
 
-# Paczka do pobrania: release/SpeedwayParty.zip (plik gry + dane + instrukcja)
-# i startowa dyskietka release/SpeedwayParty.adf (FFS, Kickstart 2.0+)
-release: dist
+# To samo po angielsku (te same dane z dist/, inny program gry)
+dist-en: dist $(EN_DIR)/SpeedwayParty
+	rm -rf dist-en
+	mkdir -p dist-en/s
+	cp -r dist/data dist-en/
+	cp $(EN_DIR)/SpeedwayParty dist/SpeedwayParty.info dist/Disk.info dist-en/
+	echo SpeedwayParty > dist-en/s/startup-sequence
+
+# Paczki do pobrania (tools/mkrelease.py): release/SpeedwayParty.zip - obie wersje na dysk twardy
+# (SpeedwayParty_PL i SpeedwayParty_EN z ikonami, wspolne data/) - oraz startowe dyskietki
+# release/SpeedwayParty_PL.adf i release/SpeedwayParty_EN.adf (FFS, Kickstart 2.0+)
+release: dist dist-en
 	python3 tools/mkrelease.py
-	python3 tools/mkadf.py dist release/SpeedwayParty.adf SpeedwayParty
+	python3 tools/mkadf.py dist release/SpeedwayParty_PL.adf SpeedwayParty
+	python3 tools/mkadf.py dist-en release/SpeedwayParty_EN.adf SpeedwayParty
 
 # Wersja WHDLoad (NIEWYDANA, nieprzetestowana: WHDLoad nie dziala pod AROS-em z naszej konfiguracji
 # WinUAE - test wymaga oryginalnego Kickstartu 3.1): ten sam kod z -DWHDLOAD (pliki i pamiec przez WHDLoad, bez systemu - src/whd.c,
@@ -113,6 +134,6 @@ sim:
 
 clean:
 	rm -f $(OBJ) SpeedwayParty
-	rm -rf dist dist-whd $(WHD_DIR) data/music.raw .music-*
+	rm -rf dist dist-en dist-whd $(WHD_DIR) $(EN_DIR) data/music.raw .music-*
 
-.PHONY: clean dist release whdload assets check sim
+.PHONY: clean dist dist-en release whdload assets check sim

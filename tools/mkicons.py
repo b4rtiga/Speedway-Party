@@ -217,6 +217,7 @@ ICONS = {
     "disk":    ("Disk.info", lambda: make_icon(disk_image(), WBDISK, default_tool="SYS:System/DiskCopy",
                                                drawer_box=(60, 40, 360, 110))),
     "readme":  ("CZYTAJ.TXT.info", lambda: make_icon(text_image(), WBPROJECT, default_tool="SYS:Utilities/MultiView")),
+    "readme_en": ("README.TXT.info", lambda: make_icon(text_image(), WBPROJECT, default_tool="SYS:Utilities/MultiView")),
     "whdload": ("SpeedwayParty.info", lambda: make_icon(oval_image(), WBPROJECT, default_tool="WHDLoad",
                                                         tooltypes=["SLAVE=SpeedwayParty.slave", "PRELOAD"])),
 }

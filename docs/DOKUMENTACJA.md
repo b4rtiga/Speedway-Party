@@ -12,17 +12,18 @@ Zręcznościowa gra żużlowa na Amigę 1200 (AGA). Turniej 15 biegów dla 1–4
 
 **Wymagania:** Amiga 1200 lub inna z chipsetem AGA, procesor 68020, 2 MB Chip RAM, Kickstart 3.x (dyskietka startuje już od Kickstartu 2.0). Fast RAM nie jest potrzebny. Obraz tylko w PAL (50 Hz).
 
-Gra jest dostępna w dwóch postaciach (katalog `release/` w repozytorium):
+Gra ma dwie wersje językowe – polską i angielską – i jest dostępna w trzech plikach (katalog `release/` w repozytorium):
 
 | Plik | Co to jest |
 |---|---|
-| `SpeedwayParty.adf` | startowa dyskietka 880 KB (FastFileSystem). Wkładasz ją do stacji DF0: (albo do Gotka czy emulatora) i gra rusza sama. |
-| `SpeedwayParty.zip` | katalog `SpeedwayParty/` z ikoną szuflady: program `SpeedwayParty` z ikoną, dane `data/`, `s/startup-sequence` i krótka instrukcja `CZYTAJ.TXT` z ikoną. |
+| `SpeedwayParty_PL.adf` | startowa dyskietka 880 KB (FastFileSystem) z wersją polską. Wkładasz ją do stacji DF0: (albo do Gotka czy emulatora) i gra rusza sama. |
+| `SpeedwayParty_EN.adf` | to samo po angielsku. |
+| `SpeedwayParty.zip` | obie wersje na dysk twardy: katalog `SpeedwayParty/` z ikoną szuflady, programy `SpeedwayParty_PL` i `SpeedwayParty_EN` z ikonami, wspólne dane `data/`, `s/startup-sequence` i krótka instrukcja `CZYTAJ.TXT` / `README.TXT` z ikonami. |
 
 **Uruchomienie:**
 
-- **Z dyskietki:** włóż `SpeedwayParty.adf` do DF0: i włącz Amigę (w WinUAE: *Floppy drives → DF0:*).
-- **Z twardego dysku:** rozpakuj zip na dysk Amigi i na Workbenchu kliknij dwa razy ikonę gry w szufladzie `SpeedwayParty` – albo w Shellu wejdź do katalogu `SpeedwayParty` i wpisz `SpeedwayParty`. Katalog `data/` musi leżeć obok programu.
+- **Z dyskietki:** włóż `SpeedwayParty_PL.adf` (albo `SpeedwayParty_EN.adf`) do DF0: i włącz Amigę (w WinUAE: *Floppy drives → DF0:*).
+- **Z twardego dysku:** rozpakuj zip na dysk Amigi i na Workbenchu kliknij dwa razy ikonę `SpeedwayParty_PL` (albo `SpeedwayParty_EN`) w szufladzie `SpeedwayParty` – albo w Shellu wejdź do katalogu `SpeedwayParty` i wpisz `SpeedwayParty_PL`. Katalog `data/` musi leżeć obok programu. Obie wersje mają wspólne rekordy.
 - **W emulatorze z katalogu:** podepnij rozpakowany katalog jako dysk startowy (rozdział 9).
 
 Gra powinna ruszyć na:
@@ -185,7 +186,8 @@ NDK 3.9 i libnix są w toolchainie. Sprawdzenie: `m68k-amigaos-gcc --version`.
 | Polecenie (w WSL, w katalogu projektu) | Wynik |
 |---|---|
 | `make dist` | katalog `dist/`: program, `data/`, `s/startup-sequence` – do podpięcia w emulatorze. Motocykle, traktory, tło toru i podprowadzające są tam spakowane (`tools/pack.py`, prosty LZ: 171 → 72 KB); gra rozpakowuje je przy wczytywaniu. W `data/` w repozytorium leżą niespakowane. |
-| `make release` | `release/SpeedwayParty.zip` i startowa dyskietka `release/SpeedwayParty.adf` |
+| `make dist-en` | katalog `dist-en/` z wersją angielską (`-DLANG_EN`; napisy w kodzie jako `T("po polsku", "in English")`) |
+| `make release` | `release/SpeedwayParty.zip` (obie wersje) i startowe dyskietki `release/SpeedwayParty_PL.adf`, `release/SpeedwayParty_EN.adf` |
 | `python tools/mkicons.py preview` | ikony Workbencha (gra, szuflada, dysk, instrukcja) – podgląd PNG |
 | `make whdload` | wersja WHDLoad w przygotowaniu (`dist-whd/`), jeszcze nieprzetestowana i niewydana |
 | `make check` | kontrola składni i typów całego kodu Clangiem dla 68020 |

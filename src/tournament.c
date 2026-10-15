@@ -13,10 +13,10 @@ static const UBYTE fixed_table[FIXED_HEATS][4] = {
     {1,3,0,2}
 };
 
-/* nazwa domyslna wiersza: "GRACZ n" dla czlowieka, "CPU n" dla bota (n = numer wiersza) */
+/* nazwa domyslna wiersza: "GRACZ n" (EN: "PLAYER n") dla czlowieka, "CPU n" dla bota (n = numer wiersza) */
 static void default_name(char *dst, UBYTE i, BOOL human)
 {
-    char *p = text_cat(dst, human ? "GRACZ " : "CPU ");
+    char *p = text_cat(dst, human ? T("GRACZ ", "PLAYER ") : "CPU ");
     text_uint(p, (ULONG)(i + 1), 1);
 }
 

@@ -10,6 +10,8 @@
 /tools/sim/trace.csv
 /tools/sim/wear.csv
 /tools/shots/out/
+/tools/shots/out-en/
+/tools/shots/shots_en.exe
 
 # Python
 __pycache__/
@@ -32,3 +34,4 @@ Thumbs.db
 /resources/
 /tools/sim/out/
 /dist-whd/
+/dist-en/

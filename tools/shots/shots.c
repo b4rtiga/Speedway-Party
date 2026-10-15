@@ -100,7 +100,11 @@ static void shot(const char *name, BOOL sprites)
     char path[128];
     FILE *f;
     compose(sprites);
+#ifdef LANG_EN
+    snprintf(path, sizeof(path), "tools/shots/out-en/%s.ppm", name);   /* wersja angielska */
+#else
     snprintf(path, sizeof(path), "tools/shots/out/%s.ppm", name);
+#endif
     f = fopen(path, "wb");
     fprintf(f, "P6\n320 256\n255\n");
     fwrite(rgb, 1, sizeof(rgb), f);

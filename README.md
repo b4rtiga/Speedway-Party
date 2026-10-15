@@ -26,23 +26,26 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
 ## Pobierz i zagraj
 
-**[release/SpeedwayParty.zip](release/SpeedwayParty.zip)**: gotowa gra dla Amigi. W środku jest katalog `SpeedwayParty/`:
+Gra jest w dwóch wersjach językowych: **polskiej** i **angielskiej** (*English version*).
+
+**[release/SpeedwayParty_PL.adf](release/SpeedwayParty_PL.adf)** i **[release/SpeedwayParty_EN.adf](release/SpeedwayParty_EN.adf)**: startowe dyskietki (880 KB, FastFileSystem) – po polsku i po angielsku. Wkładasz dyskietkę do stacji (albo do Gotka czy emulatora) i gra rusza sama. Włożona do działającego Workbencha ma własną ikonę dysku, a na niej ikonę gry i instrukcję (`CZYTAJ.TXT` albo `README.TXT`). Dyskietka wymaga Kickstartu 2.0 lub nowszego.
+
+**[release/SpeedwayParty.zip](release/SpeedwayParty.zip)**: obie wersje na dysk twardy lub kartę CF. W środku jest katalog `SpeedwayParty/`:
 
 | Plik | Co to jest |
 |---|---|
-| `SpeedwayParty` | **skompilowany program dla Amigi** (plik wykonywalny AmigaOS, bez rozszerzenia) - to go uruchamiasz |
-| `data/` | grafika, dźwięk i muzyka; musi leżeć obok programu |
-| `SpeedwayParty.info` | ikona – na Workbenchu grę uruchamia podwójne kliknięcie |
-| `s/startup-sequence` | uruchamia grę od razu po starcie Amigi, gdy katalog jest dyskiem startowym |
-| `CZYTAJ.TXT` (+ ikona) | krótka instrukcja |
+| `SpeedwayParty_PL` | **skompilowany program dla Amigi** (plik wykonywalny AmigaOS, bez rozszerzenia) – wersja polska |
+| `SpeedwayParty_EN` | ten sam program po angielsku |
+| `SpeedwayParty_PL.info`, `SpeedwayParty_EN.info` | dwie ikony – na Workbenchu wersję uruchamia podwójne kliknięcie |
+| `data/` | grafika, dźwięk i muzyka (wspólne dla obu wersji); musi leżeć obok programu |
+| `s/startup-sequence` | uruchamia grę (po polsku) od razu po starcie Amigi, gdy katalog jest dyskiem startowym |
+| `CZYTAJ.TXT`, `README.TXT` (+ ikony) | krótka instrukcja po polsku i po angielsku |
 
-Obok katalogu leży ikona szuflady `SpeedwayParty.info`, więc po rozpakowaniu na dysk Amigi katalog gry ma ikonę na Workbenchu.
-
-**[release/SpeedwayParty.adf](release/SpeedwayParty.adf)**: ta sama gra jako startowa dyskietka (880 KB, FastFileSystem). Wkładasz ją do stacji (albo do Gotka czy emulatora) i gra rusza sama. Włożona do działającego Workbencha ma własną ikonę dysku, a na niej ikonę gry i instrukcję. Dyskietka wymaga Kickstartu 2.0 lub nowszego.
+Obok katalogu leży ikona szuflady `SpeedwayParty.info`, więc po rozpakowaniu na dysk Amigi katalog gry ma ikonę na Workbenchu. Obie wersje zapisują rekordy do tego samego pliku `halloffame.dat`.
 
 Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 3.x. Fast RAM nie jest potrzebny.
-- **Na Amidze:** rozpakuj na dysk i kliknij dwa razy ikonę gry w szufladzie `SpeedwayParty` – albo w Shellu wejdź do katalogu `SpeedwayParty` i uruchom `SpeedwayParty`.
-- **Z dyskietki:** włóż `SpeedwayParty.adf` do DF0: (w WinUAE: *Floppy drives → DF0:*) i uruchom Amigę.
+- **Na Amidze:** rozpakuj na dysk i kliknij dwa razy ikonę `SpeedwayParty_PL` (albo `SpeedwayParty_EN`) w szufladzie `SpeedwayParty` – albo w Shellu wejdź do katalogu `SpeedwayParty` i uruchom `SpeedwayParty_PL`.
+- **Z dyskietki:** włóż `SpeedwayParty_PL.adf` (albo `SpeedwayParty_EN.adf`) do DF0: (w WinUAE: *Floppy drives → DF0:*) i uruchom Amigę.
 - **W emulatorze z katalogu:** rozpakuj i podepnij katalog `SpeedwayParty` jako dysk startowy (szczegóły niżej w sekcji *Uruchomienie w WinUAE*).
 
 ### Na jakich Amigach działa
@@ -262,7 +265,8 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | Polecenie | Co robi |
 |---|---|
 | `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`, `tools/gengirls.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`); robocze podglądy (makiety, arkusze klatek, WAV) trafiają do `build/preview/` poza repo |
-| `make release` | buduje paczkę `release/SpeedwayParty.zip` i startową dyskietkę `release/SpeedwayParty.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
+| `make dist-en` | katalog `dist-en/` z wersją angielską (program z `-DLANG_EN`, obiekty w `build/en/`; napisy obu wersji stoją obok siebie w kodzie jako `T("po polsku", "in English")`) |
+| `make release` | buduje paczkę `release/SpeedwayParty.zip` (obie wersje językowe) i startowe dyskietki `release/SpeedwayParty_PL.adf` i `release/SpeedwayParty_EN.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
 | `python tools/mkicons.py preview` | ikony Workbencha (`tools/mkicons.py`: gra, szuflada, dysk, instrukcja; klasyczny format OS 2.x/3.x, 4 kolory) – podgląd w `build/preview/icon_*.png`; ikony do paczek dokłada `make dist` / `make release` |
 | `make whdload` | wersja WHDLoad (w przygotowaniu, nie wchodzi do wydania): gra z `-DWHDLOAD` bez systemu (`src/whd.c`, `src/whdstart.s`) i slave `tools/whdload/slave.s` w katalogu `dist-whd/`; czeka na test z oryginalnym Kickstartem 3.1 |
 | `sh tools/sim/pack_test.sh` | test rozpakowywania: pliki spakowane przez `tools/pack.py` wczytane przez `asset_load` z gry = dane z `data/`, uszkodzone odrzucone |

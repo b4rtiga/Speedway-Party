@@ -5,6 +5,14 @@
 #include <exec/types.h>
 #include "fixmath.h"
 
+/* Napisy w dwoch jezykach obok siebie: T("po polsku", "in English"). Jezyk wybiera kompilacja:
+ * domyslnie polski, -DLANG_EN angielski (make: SpeedwayParty_PL i SpeedwayParty_EN). */
+#ifdef LANG_EN
+#define T(pl, en) en
+#else
+#define T(pl, en) pl
+#endif
+
 /* Rzadko wykonywany kod (inicjalizacja, ekrany menu, ustawienia, tabele, instrukcja, gazeta,
  * nakladki z wynikami): GCC kompiluje go na rozmiar i nie wkleja w goraca petle - kod biegu
  * zostaje optymalizowany na szybkosc. */

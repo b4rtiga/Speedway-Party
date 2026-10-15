@@ -1,6 +1,6 @@
 """mkadf.py - startowa dyskietka ADF (Amiga DD, 880 KB, FastFileSystem) z katalogu gry.
 
-    python3 tools/mkadf.py dist release/SpeedwayParty.adf [ETYKIETA]
+    python3 tools/mkadf.py dist release/SpeedwayParty_PL.adf [ETYKIETA]
 
 Kopiuje cale drzewo katalogu (np. dist/: SpeedwayParty, data/, s/startup-sequence)
 na obraz 1760 blokow po 512 B. Blok startowy "DOS\\1" ze standardowym kodem
