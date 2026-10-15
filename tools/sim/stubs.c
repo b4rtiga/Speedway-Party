@@ -22,6 +22,7 @@ void blit_wait(void) {}
 void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color) { (void)buf; (void)x; (void)y; (void)big; (void)color; }
 void blit_restore(UBYTE *d, const UBYTE *s, WORD x, WORD y, BOOL big) { (void)d; (void)s; (void)x; (void)y; (void)big; }
 void blit_dots_begin(void) {}
+BOOL ui_panel_covers(WORD x, WORD y, WORD w, WORD h) { (void)x; (void)y; (void)w; (void)h; return FALSE; }   /* symulator nie rysuje */
 void blit_plot(UBYTE *buf, WORD x, WORD y, UBYTE c)          /* jak blit.c (tlo toru w track_render) */
 {
     UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);

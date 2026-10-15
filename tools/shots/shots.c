@@ -116,7 +116,7 @@ static void bike_sprites(void)
     for (i = 0; i < MAX_RIDERS; i++) {
         Bike *b = &g_tour.bikes[i];
         UWORD *ev, *od;
-        if (b->state == BIKE_EXCLUDED) continue;
+        if (b->state == BIKE_EXCLUDED || ui_panel_covers((WORD)(FIX2INT(b->x) - 10), (WORD)(FIX2INT(b->y) - 10), 20, 20)) continue;   /* jak main.c */
         ev = sprite_bike_frame(i, g_video.back, b->rider, b->sprite_frame, b->skid_frame);   /* jak main.c */
         od = ev + SPRITE_HALF_WORDS;
         sprite_set_pos(ev, FIX2INT(b->x), FIX2INT(b->y), SPRITE_H, FALSE);
@@ -341,6 +341,32 @@ static int screenshots(void)
     while (g_tour.heat.phase != HEAT_RACING) step();
     for (i = 0; i < 330; i++) step();
     bike_sprites(); render(); shot("13_sciezki", TRUE);
+    {
+        /* pauza w biegu (ESC): kilka klatek jak w petli gry - zmazanie szprycy, nakladka,
+         * rysowanie szprycy, zamiana buforow; panel pauzy nie moze miec dziur ani drobin */
+        UBYTE k, b = 0;
+        WORD n;
+        /* motocykl w lewym luku przy krawedzi panelu nakladek (x 48), ze szpryca */
+        for (n = 0; n < 3000 && g_tour.heat.phase == HEAT_RACING; n++) {
+            for (b = 0; b < MAX_RIDERS; b++) {
+                const Bike *bk = &g_tour.bikes[b];
+                WORD x = FIX2INT(bk->x), y = FIX2INT(bk->y);
+                if (x > 44 && x < 62 && y > 50 && y < 120 && bk->drift > 12) break;
+            }
+            if (b < MAX_RIDERS) break;
+            step();
+            roost_erase(); ui_render(); roost_draw();
+            g_video.front = g_video.back; g_video.back ^= 1;
+        }
+        for (k = 0; k < 6; k++) {
+            if (k == 2) { g_paused = TRUE; ui_invalidate(); }
+            roost_erase(); ui_render(); roost_draw();
+            if (k < 5) { g_video.front = g_video.back; g_video.back ^= 1; }
+        }
+        bike_sprites(); shot("26_pauza", TRUE);
+        g_paused = FALSE;
+        ui_invalidate();
+    }
     while (g_tour.heat.phase != HEAT_FINISHED) step();
     tournament_award_points();
     if (tournament_watering_after(4)) track_apply_watering();

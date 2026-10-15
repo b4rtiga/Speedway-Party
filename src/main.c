@@ -67,7 +67,8 @@ static void render_sprites(void)
     for (i = 0; i < MAX_RIDERS; i++) {
         Bike *b = &g_tour.bikes[i];
         UWORD *even, *odd;
-        if (b->state == BIKE_EXCLUDED) {
+        if (b->state == BIKE_EXCLUDED ||       /* duszek nad panelem nakladki (np. pauza) - schowany */
+            ui_panel_covers((WORD)(FIX2INT(b->x) - 10), (WORD)(FIX2INT(b->y) - 10), 20, 20)) {
             video_set_sprite(b->hw_sprite, g_blank_sprite);
             video_set_sprite(b->hw_sprite + 1, g_blank_sprite);
             continue;

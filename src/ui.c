@@ -63,6 +63,7 @@ static UBYTE *sw_cache;             /* tlo okienka startu bez tasmy (wiersze oki
 /* ------------------------------------------------------------------ */
 
 void ui_invalidate(void) { serial++; if (!serial) serial = 1; }
+
 BOOL ui_editing(void)    { return editing; }
 
 static void rgb12_lerp_table(void)
@@ -1366,6 +1367,23 @@ static COLD void draw_grading(UBYTE *b)
     blit_fill(b, 112, GRADE_Y + 36, 96, 6, U_PANEL);
     if (w) blit_fill(b, 112, GRADE_Y + 36, w, 6, U_GREEN);
     text_draw_center(b, GRADE_Y + 48, "UWAGA: ŚLISKO!", U_GREY, 0);
+}
+
+/* Czy prostokat (x, y, w, h) zachodzi na panel nakladki narysowany w buforze "back" (pauza,
+ * czekamy na start, tasma, wynik, przerwa na tor). Drobin szprycy, ktore by na niego zachodzily,
+ * roost.c nie rysuje (zmazanie kopia tla wycinaloby dziury w panelu), a motocykle (duszki
+ * sprzetowe sa zawsze nad obrazem) chowa main.c. Prostokaty jak w draw_hold, draw_pause itd. */
+BOOL ui_panel_covers(WORD x, WORD y, WORD w, WORD h)
+{
+    WORD px = PANEL_X, py = PANEL_Y, pw = PANEL_W, ph = PANEL_H;
+    switch (panel_ov[g_video.back]) {
+    case OV_NONE:     return FALSE;
+    case OV_HOLD:     py = PANEL_Y + 10; ph = 76; break;
+    case OV_PAUSE:    py = PANEL_Y + 10; ph = 92; break;
+    case OV_GRADING:  px = GRADE_X; py = GRADE_Y; pw = GRADE_W; ph = GRADE_H; break;
+    default:          break;                               /* tasma, wynik: caly panel */
+    }
+    return (BOOL)(x < px + pw && x + w > px && y < py + ph && y + h > py);
 }
 
 /* ========================== RENDER ================================ */
