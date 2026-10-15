@@ -25,6 +25,9 @@ src/%.o: src/%.c src/*.h
 
 DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/girls.bin data/hud.pal data/referee.bin data/refarm.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw data/cheer.raw
 
+# Pliki pakowane na dyskietce (tools/pack.py, rozpakowuje assets.c) - w data/ zostaja niespakowane
+PACKED = bikes.spr tractors.spr track0.bpl girls.bin
+
 # Muzyka w menu: miks z src/music/$(MUSIC)/ kopiowany jako data/music.raw (MUSIC=BRAK - bez muzyki).
 # Plik jest odtwarzany przy kazdej zmianie build.cfg albo wybranego utworu.
 MUSIC_RAW = $(wildcard src/music/$(MUSIC)/*_s8.raw)
@@ -50,6 +53,7 @@ dist: SpeedwayParty $(DATA)
 	cp SpeedwayParty dist/
 	rm -f dist/data/music.raw
 	cp $(DATA) dist/data/
+	python3 tools/pack.py $(addprefix dist/data/,$(PACKED)) >/dev/null
 	echo SpeedwayParty > dist/s/startup-sequence
 
 # Paczka do pobrania: release/SpeedwayParty.zip (plik gry + dane + instrukcja)

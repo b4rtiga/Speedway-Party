@@ -251,6 +251,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 |---|---|
 | `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`, `tools/gengirls.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`); robocze podglądy (makiety, arkusze klatek, WAV) trafiają do `build/preview/` poza repo |
 | `make release` | buduje paczkę `release/SpeedwayParty.zip` i startową dyskietkę `release/SpeedwayParty.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
+| `sh tools/sim/pack_test.sh` | test rozpakowywania: pliki spakowane przez `tools/pack.py` wczytane przez `asset_load` z gry = dane z `data/`, uszkodzone odrzucone |
 | `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png`: kadr 320×256, własna paleta AGA i dithering (`data/title.bpl`, `data/title.pal`) |
 | `python tools/genreferee.py` | portret sędziego w HUD z ilustracji `src/referee.png`: 32×38, własne odcienie w wolnych kolorach palety HUD, oraz malowana ręka z pięścią w dwóch fazach machania flagą (`data/refarm.bin`; używa go `tools/genart.py`; wymaga ffmpeg) |
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png`: cztery postacie 48×96, wspólna paleta 31 kolorów dobrana z obrazu, kolory pól z UI, lekki dithering (`data/girls.bin`; wymaga ffmpeg) |
@@ -294,7 +295,7 @@ src/
   hud.c         HUD: kolory kasków w kolejności, okrążenie, okrągłe światła, sędzia z flagą
   audio.c       Paula: silniki, kibice, brzęczyk, gwizdek, okrzyk trybun na ostatniej prostej, muzyka w menu
   input.c       joysticki, adapter LPT, klawiatura (CIA)
-  assets.c      ładowanie data/ przed przejęciem sprzętu
+  assets.c      ładowanie data/ przed przejęciem sprzętu, rozpakowywanie plików spakowanych na dyskietce (tools/pack.py)
   records.c     rekordy toru na dysku (halloffame.dat + .bak, import starego records.dat)
   hof.c         tabele TOP 5 biegów i okrążeń, imiona graczy, format pliku (test: tools/sim/records_test.sh)
   newspaper.c   gazeta po zawodach: migawka turnieju, wybór nagłówka i faktów

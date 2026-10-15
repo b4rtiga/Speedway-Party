@@ -177,7 +177,7 @@ NDK 3.9 i libnix są w toolchainie. Sprawdzenie: `m68k-amigaos-gcc --version`.
 
 | Polecenie (w WSL, w katalogu projektu) | Wynik |
 |---|---|
-| `make dist` | katalog `dist/`: program, `data/`, `s/startup-sequence` – do podpięcia w emulatorze |
+| `make dist` | katalog `dist/`: program, `data/`, `s/startup-sequence` – do podpięcia w emulatorze. Motocykle, traktory, tło toru i podprowadzające są tam spakowane (`tools/pack.py`, prosty LZ: 171 → 72 KB); gra rozpakowuje je przy wczytywaniu. W `data/` w repozytorium leżą niespakowane. |
 | `make release` | `release/SpeedwayParty.zip` i startowa dyskietka `release/SpeedwayParty.adf` |
 | `make check` | kontrola składni i typów całego kodu Clangiem dla 68020 |
 | `make sim` | symulator turnieju botów z tą samą logiką gry |
@@ -257,7 +257,7 @@ Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; 
 | `hud.c` | pasek na dole ekranu, sędzia |
 | `audio.c` | Paula: silniki, kibice, efekty, muzyka |
 | `input.c` | joysticki, klawiatura, adapter LPT |
-| `assets.c`, `records.c`, `hof.c` | wczytywanie danych; rekordy toru TOP 5 (`halloffame.dat`: zapis, kopia, import starego `records.dat`; logika tabel w `hof.c`) |
+| `assets.c`, `records.c`, `hof.c` | wczytywanie danych (i rozpakowywanie plików z `tools/pack.py`); rekordy toru TOP 5 (`halloffame.dat`: zapis, kopia, import starego `records.dat`; logika tabel w `hof.c`) |
 
 ### Dane (katalog data/)
 
@@ -302,6 +302,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `sh tools/sim/news_test.sh` | testy gazety (reguły nagłówków, podsumowanie, długie nazwiska) |
 | `sh tools/sim/records_test.sh` | testy tabel rekordów i pliku `halloffame.dat` |
 | `sh tools/sim/sprites_test.sh` | test klatek motocykli (kolor kasku nadany przy kopiowaniu = dawne 4 komplety) |
+| `sh tools/sim/pack_test.sh` | test rozpakowywania danych spakowanych na dyskietce |
 | `sh tools/sim/batch.sh` | kilka turniejów botów – statystyki poziomów AI |
 | `python tools/mksocial.py` | miniaturka repozytorium na GitHubie |
 | `python tools/mkdocs.py` | ta dokumentacja w PDF |
