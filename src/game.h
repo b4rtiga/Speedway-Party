@@ -177,6 +177,7 @@ typedef struct Heat {
     UBYTE     number;               /* 1..15 */
     UBYTE     gate_rider[4];        /* gate -> indeks zawodnika */
     UBYTE     finish_order[4];      /* indeks zawodnika w kolejnosci mety */
+    UBYTE     order[MAX_RIDERS];    /* indeks motocykla na miejscu 0..3 (race.c; wykluczeni na koncu) */
     UBYTE     finished_count;
     HeatPhase phase;
     UWORD     phase_timer;          /* klatki w biezacej fazie */
@@ -296,6 +297,8 @@ void start_update(void);   /* wywolywane co klatke w fazach przed HEAT_RACING */
 /* race.c */
 void race_init_heat(void);
 void race_update(void);
+LONG race_leader_distance(void);                 /* dystans najdalej jadacego */
+LONG race_straight_entry(UBYTE lap);             /* wjazd na prosta startowa konczaca okrazenie lap */
 void race_launch(Bike *b);
 
 /* track.c */

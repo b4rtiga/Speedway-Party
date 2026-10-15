@@ -4,6 +4,16 @@
 #define BLIT_H
 
 #include <exec/types.h>
+#include "video.h"                         /* PLAY_STRIDE, ROW_BYTES, PLAY_DEPTH */
+
+/* piksel w kolorze c (8 planow przeplatanych) procesorem - ui.c i track.c */
+static inline void blit_plot(UBYTE *buf, WORD x, WORD y, UBYTE c)
+{
+    UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
+    UBYTE bit = (UBYTE)(0x80 >> (x & 7)), pl;
+    for (pl = 0; pl < PLAY_DEPTH; pl++, p += ROW_BYTES, c >>= 1)
+        if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
+}
 
 void blit_clear(UBYTE *buf);                                         /* caly bufor (FULL_H) -> kolor 0 */
 void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE color);

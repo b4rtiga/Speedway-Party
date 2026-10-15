@@ -158,44 +158,23 @@ static void arm_segment(WORD x0, WORD y0, WORD x1, WORD y1, BOOL sleeve)
 
 #define ABSW(v) ((v) < 0 ? -(v) : (v))
 
-/* najdalej jadacy zawodnik (dystans liczony od tasmy: okrazenia * dlugosc + pozycja) */
-static LONG leader_distance(void)
-{
-    LONG lead = 0;
-    UBYTE i;
-    for (i = 0; i < MAX_RIDERS; i++) {
-        const Bike *b = &g_tour.bikes[i];
-        if (b->state == BIKE_EXCLUDED || b->empty) continue;
-        if (b->race_distance > lead) lead = b->race_distance;
-    }
-    return lead;
-}
-
-/* dystans, na ktorym lider jadacy okrazenie (lap - 1) wjezdza na prosta startowa (wyjscie z ostatniego luku) */
-static LONG straight_entry(UBYTE lap)
-{
-    const Track *t = &g_tour.track;
-    return (LONG)(lap - 1) * t->lap_length + (t->lap_length - t->tape_s);
-}
-
 /* "Kosa" (zolta flaga z czarnym krzyzem, ostatnie okrazenie): sedzia macha nia od chwili,
  * gdy prowadzacy na 3. okrazeniu wjezdza na prosta startowa (wyjscie z ostatniego luku),
  * do 2 s po tym, jak ostatni jadacy zawodnik przetnie linie konczaca 3. okrazenie. */
 static BOOL kosa_shown(void)
 {
-    const Track *t = &g_tour.track;
     const Heat *h = &g_tour.heat;
     static UWORD all_in_frame;          /* klatka, w ktorej ostatni zaczal 4. okrazenie */
-    LONG lead = 0, entry = (LONG)(LAPS_PER_HEAT - 1) * t->lap_length + (t->lap_length - t->tape_s);
     BOOL all_in = TRUE;
     UBYTE i;
+    if (race_leader_distance() < race_straight_entry(LAPS_PER_HEAT)) {   /* lider jeszcze przed prosta */
+        all_in_frame = 0;
+        return FALSE;
+    }
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
-        if (b->state == BIKE_EXCLUDED || b->empty) continue;
-        if (b->race_distance > lead) lead = b->race_distance;
-        if (b->lap < LAPS_PER_HEAT) all_in = FALSE;
+        if (b->state != BIKE_EXCLUDED && !b->empty && b->lap < LAPS_PER_HEAT) all_in = FALSE;
     }
-    if (lead < entry) { all_in_frame = 0; return FALSE; }      /* lider jeszcze przed prosta */
     if (!all_in) { all_in_frame = 0; return TRUE; }
     if (!all_in_frame) all_in_frame = (UWORD)(h->race_frames ? h->race_frames : 1);
     return (BOOL)(h->race_frames - all_in_frame < 2 * FPS);
@@ -411,13 +390,12 @@ void hud_update(void)
     {
         /* kolejnosc po pozycjach, bez wykluczonych i pustych pol - kwadraty od lewej bez dziur */
         UBYTE pos, n = 0;
-        for (pos = 0; pos < MAX_RIDERS; pos++)
-            for (i = 0; i < MAX_RIDERS; i++) {
-                Bike *b = &g_tour.bikes[i];
-                if (b->position != pos || b->state == BIKE_EXCLUDED || b->empty) continue;
-                if (n == 0) lap = b->lap;
-                order[n++] = (UBYTE)(b->rider | (b->rider << 4));  /* kolor kasku = zawodnik */
-            }
+        for (pos = 0; pos < MAX_RIDERS; pos++) {
+            const Bike *b = &g_tour.bikes[h->order[pos]];
+            if (b->state == BIKE_EXCLUDED || b->empty) continue;
+            if (n == 0) lap = b->lap;
+            order[n++] = (UBYTE)(b->rider | (b->rider << 4));      /* kolor kasku = zawodnik */
+        }
     }
     if (lap < 1) lap = 1;
     if (lap > LAPS_PER_HEAT) lap = LAPS_PER_HEAT;
@@ -431,7 +409,7 @@ void hud_update(void)
         BOOL excl = h->false_starter < MAX_RIDERS && g_tour.bikes[h->false_starter].state == BIKE_EXCLUDED;
         flag = (excl && h->phase_timer > 75) ? FLAG_BLACK : FLAG_RED;
     } else if (h->finished_count ||
-               ((h->phase == HEAT_RACING || h->phase == HEAT_FINISHED) && leader_distance() >= straight_entry(LAPS_PER_HEAT + 1))) {
+               ((h->phase == HEAT_RACING || h->phase == HEAT_FINISHED) && race_leader_distance() >= race_straight_entry(LAPS_PER_HEAT + 1))) {
         flag = FLAG_CHECKERED;                       /* od wjazdu lidera na ostatnia prosta do konca biegu */
     } else if (h->danger_timer) {
         flag = FLAG_YELLOW;

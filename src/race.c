@@ -74,8 +74,31 @@ void race_init_heat(void)
         b->lap_start = 0;
         b->best_lap = 0;
         b->position = g;
+        h->order[g] = g;
         b->state = (b->empty || g_tour.riders[r].warnings >= 2) ? BIKE_EXCLUDED : BIKE_AT_GATE;
     }
+}
+
+/* dystans prowadzacego: najdalej jadacy, bez wykluczonych i pustych pol
+ * (dystans liczony od tasmy: okrazenia * dlugosc + pozycja) */
+LONG race_leader_distance(void)
+{
+    LONG lead = 0;
+    UBYTE i;
+    for (i = 0; i < MAX_RIDERS; i++) {
+        const Bike *b = &g_tour.bikes[i];
+        if (b->state == BIKE_EXCLUDED || b->empty) continue;
+        if (b->race_distance > lead) lead = b->race_distance;
+    }
+    return lead;
+}
+
+/* dystans, na ktorym zawodnik jadacy okrazenie (lap - 1) wjezdza na prosta startowa (wyjscie
+ * z ostatniego luku): LAPS_PER_HEAT - poczatek "kosy", LAPS_PER_HEAT + 1 - ostatnia prosta */
+LONG race_straight_entry(UBYTE lap)
+{
+    const Track *t = &g_tour.track;
+    return (LONG)lap * t->lap_length - t->tape_s;
 }
 
 void race_launch(Bike *b)
@@ -257,7 +280,10 @@ static void update_positions(void)
             else swap = a->state != BIKE_FINISHED && b->state != BIKE_EXCLUDED && b->race_distance > a->race_distance;
             if (swap) { UBYTE t = order[j]; order[j] = order[j - 1]; order[j - 1] = t; }
         }
-    for (i = 0; i < n; i++) g_tour.bikes[order[i]].position = i;
+    for (i = 0; i < n; i++) {
+        g_tour.bikes[order[i]].position = i;
+        g_tour.heat.order[i] = order[i];
+    }
 }
 
 void race_update(void)

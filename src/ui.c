@@ -381,7 +381,6 @@ static void draw_name_entry(UBYTE *b)
  * z idealna linia. Tresc zgodna z mechanika (race.c, start.c, track.c, tournament.c). */
 #define HELP_PAGES 3
 static UBYTE help_page;
-static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c);
 static void rect_px(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c);
 
 static const char *const help_title[HELP_PAGES] = { "ZASADY TURNIEJU", "START I STEROWANIE", "LINIA JAZDY" };
@@ -471,8 +470,8 @@ static void draw_help_oval(UBYTE *b)
 {
     WORD s, x, y;
     for (s = 0; s < 256; s++) {
-        help_oval_point(s, 36, &x, &y); plot(b, x, y, U_WHITE);        /* banda */
-        help_oval_point(s, 13, &x, &y); plot(b, x, y, U_RED);          /* kraweznik */
+        help_oval_point(s, 36, &x, &y); blit_plot(b, x, y, U_WHITE);        /* banda */
+        help_oval_point(s, 13, &x, &y); blit_plot(b, x, y, U_RED);          /* kraweznik */
     }
     for (s = 0; s < 4; s++)                                            /* strzalka: jazda w prawo */
         rect_px(b, HD_CX - 4 + s * 2, HD_CY + 20 + s, 2, (WORD)(7 - 2 * s), U_GREEN);
@@ -799,7 +798,6 @@ static const UWORD tiny_digit[10] = {
     0x7B6F, 0x2C97, 0x73E7, 0x73CF, 0x5BC9, 0x79CF, 0x79EF, 0x7249, 0x7BEF, 0x7BCF
 };
 
-static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c);
 
 /* prostokat z dokladnoscia do piksela (blit_fill dziala tylko na pelnych slowach 16 px) */
 static void rect_px(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c)
@@ -830,7 +828,7 @@ static void tiny_number(UBYTE *b, WORD x, WORD y, UBYTE v, UBYTE c)
     x -= (WORD)(n * 4 - 1) / 2;                          /* x = srodek liczby */
     for (i = 0; i < n; i++, x += 4)
         for (k = 0; k < 15; k++)
-            if (tiny_digit[d[i]] & (0x4000 >> k)) plot(b, (WORD)(x + k % 3), (WORD)(y + k / 3), c);
+            if (tiny_digit[d[i]] & (0x4000 >> k)) blit_plot(b, (WORD)(x + k % 3), (WORD)(y + k / 3), c);
 }
 
 /* Tabela turnieju: wiersz = zawodnik (kolejnosc wg punktow), kolumna = bieg,
@@ -1338,14 +1336,6 @@ static void draw_grading(UBYTE *b)
 
 /* ========================== RENDER ================================ */
 
-static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c)
-{
-    UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
-    UBYTE bit = (UBYTE)(0x80 >> (x & 7)), pl;
-    for (pl = 0; pl < PLAY_DEPTH; pl++, p += ROW_BYTES, c >>= 1)
-        if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
-}
-
 static UBYTE tape_style(void)
 {
     if (g_tour.state != GS_HEAT || g_tour.heat.emergency) return TAPE_GONE;   /* awaria: start z flagi */
@@ -1374,23 +1364,23 @@ static void render_tape(UBYTE *buf)
             for (bx = bx0; bx <= bx1; bx++) buf[o + bx] = g_video.background[o + bx];
         switch (style) {
         case 0:                                         /* napieta: 3 px bieli + cien */
-            plot(buf, x - 1, y, 1); plot(buf, x, y, 1); plot(buf, x + 1, y, 1);
-            plot(buf, x + 2, y, U_SHADOW);
+            blit_plot(buf, x - 1, y, 1); blit_plot(buf, x, y, 1); blit_plot(buf, x + 1, y, 1);
+            blit_plot(buf, x + 2, y, U_SHADOW);
             break;
         case 1: case 2: {                               /* zrywa sie: rozmyta, drgajaca */
             WORD j = (WORD)(((y >> 1) + style) & 1 ? 1 : -1);
-            plot(buf, x - 1 + j, y, 1); plot(buf, x + j, y, 1); plot(buf, x + 1 + j, y, 1);
-            plot(buf, x + 2 + j, y, U_SHADOW);
+            blit_plot(buf, x - 1 + j, y, 1); blit_plot(buf, x + j, y, 1); blit_plot(buf, x + 1 + j, y, 1);
+            blit_plot(buf, x + 2 + j, y, U_SHADOW);
             break;
         }
         case 3: case 4:                                 /* gruba przerywana, odlatuje */
-            if (((y + style) & 3) < 2) { plot(buf, x - 2, y, 1); plot(buf, x - 1, y, 1); plot(buf, x, y, 1); }
+            if (((y + style) & 3) < 2) { blit_plot(buf, x - 2, y, 1); blit_plot(buf, x - 1, y, 1); blit_plot(buf, x, y, 1); }
             break;
         case 5: case 6:                                 /* strzepy */
-            if (((y + style) & 7) < 2) { plot(buf, x - 3, y, 1); plot(buf, x - 2, y, 1); }
+            if (((y + style) & 7) < 2) { blit_plot(buf, x - 3, y, 1); blit_plot(buf, x - 2, y, 1); }
             break;
         case 7:                                         /* ostatnie punkty */
-            if ((y & 7) == 0) plot(buf, x - 3, y, 1);
+            if ((y & 7) == 0) blit_plot(buf, x - 3, y, 1);
             break;
         default: break;
         }
@@ -1465,19 +1455,19 @@ static void draw_startwin_static(UBYTE *b, UBYTE lamp)
     hw_wait_blit();
     for (y = SW_Y + 4; y < SW_Y + 24; y += 3)                /* kibice */
         for (x = SW_X + 3; x < SW_X + SW_W - 3; x += 2)
-            plot(b, x, y, startwin_px(x, y, lamp));
+            blit_plot(b, x, y, startwin_px(x, y, lamp));
     for (y = SW_Y + 24; y < SW_Y + SW_H - 2; y++)            /* faktura nawierzchni */
         for (x = SW_X + 2; x < SW_X + SW_W - 2; x++)
-            if (((x * 37 + y * 91) & 7) == 0) plot(b, x, y, startwin_px(x, y, lamp));
+            if (((x * 37 + y * 91) & 7) == 0) blit_plot(b, x, y, startwin_px(x, y, lamp));
     for (y = SW_Y + 6; y < SW_Y + SW_H - 4; y++)             /* slupki maszyny */
         for (x = 0; x < 3; x++) {
             UBYTE c = ((y >> 2) & 1) ? U_RED : U_WHITE;
-            plot(b, SW_X + 8 + x, y, c);
-            plot(b, SW_X + SW_W - 11 + x, y, c);
+            blit_plot(b, SW_X + 8 + x, y, c);
+            blit_plot(b, SW_X + SW_W - 11 + x, y, c);
         }
     for (x = SW_X + 8; x < SW_X + SW_W - 8; x++) {           /* poprzeczka */
-        plot(b, x, SW_Y + 6, U_GREY);
-        plot(b, x, SW_Y + 7, U_GREY);
+        blit_plot(b, x, SW_Y + 6, U_GREY);
+        blit_plot(b, x, SW_Y + 7, U_GREY);
     }
     draw_lamp(b, lamp);
 }
@@ -1486,7 +1476,7 @@ static void draw_lamp(UBYTE *b, UBYTE lamp)
 {
     WORD x, y;
     for (y = SW_Y + 8; y < SW_Y + 13; y++)
-        for (x = SW_LAMP_X; x < SW_LAMP_X + 8; x++) plot(b, x, y, startwin_px(x, y, lamp));
+        for (x = SW_LAMP_X; x < SW_LAMP_X + 8; x++) blit_plot(b, x, y, startwin_px(x, y, lamp));
 }
 
 /* wiersze y0..y1 obszaru okienka z zapamietanego tla do bufora - procesorem (bez Blittera) */

@@ -302,13 +302,11 @@ static void pick_engines(UBYTE out[2])
         UBYTE pass;
         for (pass = 0; pass < 2 && n < 2; pass++)
             for (i = 0; i < MAX_RIDERS && n < 2; i++) {
-                UBYTE k;
-                for (k = 0; k < MAX_RIDERS && n < 2; k++) {
-                    const Bike *b = &g_tour.bikes[k];
-                    if (b->position != i || b->state == BIKE_EXCLUDED || b->empty) continue;
-                    if ((b->state == BIKE_FINISHED) != (pass == 1)) continue;
-                    out[n++] = k;
-                }
+                UBYTE k = g_tour.heat.order[i];
+                const Bike *b = &g_tour.bikes[k];
+                if (b->state == BIKE_EXCLUDED || b->empty) continue;
+                if ((b->state == BIKE_FINISHED) != (pass == 1)) continue;
+                out[n++] = k;
             }
     }
 }
@@ -366,13 +364,7 @@ static void update_crowd(void)
             /* prowadzacy wjezdza na ostatnia prosta (wyjscie z ostatniego luku w ostatnim
              * okrazeniu; meta = (LAPS + 1) okrazen dystansu, prosta zaczyna sie tape_s przed nia):
              * okrzyk trybun, ok. 0.6 s przed meta */
-            const Track *t = &g_tour.track;
-            LONG lead = 0, entry = (LONG)(LAPS_PER_HEAT + 1) * t->lap_length - t->tape_s;
-            for (i = 0; i < MAX_RIDERS; i++) {
-                const Bike *b = &g_tour.bikes[i];
-                if (!b->empty && b->state != BIKE_EXCLUDED && b->race_distance > lead) lead = b->race_distance;
-            }
-            if (lead >= entry) {
+            if (race_leader_distance() >= race_straight_entry(LAPS_PER_HEAT + 1)) {
                 cheered = TRUE;
                 crowd_boost = 150;
                 play_sfx(S_CHEER, PER_CHEER, 64);

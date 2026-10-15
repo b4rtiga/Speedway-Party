@@ -241,7 +241,6 @@ static UBYTE  level_drawn[GRIP_H][GRIP_W];
 static UBYTE  wear_dirty[2][GRIP_H][GRIP_W];
 static UWORD  wear_dirty_n[2];             /* ile komorek czeka - 0 = nic do roboty */
 
-static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c);
 
 static UWORD pack_at(WORD gx, WORD gy)
 {
@@ -600,14 +599,6 @@ static void load_hud_palette(void)
     }
 }
 
-static void plot(UBYTE *buf, WORD x, WORD y, UBYTE c)
-{
-    UBYTE *p = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
-    UBYTE bit = (UBYTE)(0x80 >> (x & 7)), pl;
-    for (pl = 0; pl < PLAY_DEPTH; pl++, p += ROW_BYTES, c >>= 1)
-        if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
-}
-
 void track_render(UBYTE *dst)
 {
     WORD x, y;
@@ -623,7 +614,7 @@ void track_render(UBYTE *dst)
             }
             else if (r < R_OUT + 3) c = (UBYTE)(C_WALL + ((track_progress(x, y) >> 4) & 3));       /* banda */
             else                    c = (UBYTE)(C_GRASS + 4 + (n & 3));
-            plot(dst, x, y, c);
+            blit_plot(dst, x, y, c);
         }
 }
 
