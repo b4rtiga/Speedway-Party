@@ -46,7 +46,7 @@ Każdy gracz ma tylko dwa przyciski: **LEWO** i **PRAWO**. Gaz jest automatyczny
 
 ### Plansza tytułowa i wybór
 
-Plansza tytułowa czeka na FIRE. Potem wybierasz:
+Przy starcie z dyskietki wczytywanie trwa kilkadziesiąt sekund, więc gra najpierw pokazuje planszę tytułową z napisem „WCZYTYWANIE…”, a resztę danych doczytuje w tle (system działa jeszcze normalnie, gra przejmuje sprzęt dopiero po wczytaniu). Plansza tytułowa czeka na FIRE. Potem wybierasz:
 
 - **JEDZIEMY!** – przejście do ustawień turnieju,
 - **INSTRUKCJA** – trzy strony: zasady turnieju i flagi, start i sterowanie, linia jazdy ze schematem toru (LEWO/PRAWO zmienia stronę),

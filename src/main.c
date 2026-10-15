@@ -432,7 +432,12 @@ static int game_main(void)
         g_rng ^= (ULONG)ds.ds_Tick * 2654435761UL ^ (ULONG)ds.ds_Minute << 12 ^ (ULONG)ds.ds_Days;
         if (!g_rng) g_rng = 0x2026B4u;
     }
-    if (!video_init() || !sprites_init() || !roost_init() || !tractors_init() || !audio_init()) { rc = 20; goto out; }
+    if (!video_init()) { rc = 20; goto out; }
+    /* z dyskietki wczytywanie trwa kilkadziesiat sekund: najpierw plansza tytulowa z napisem
+     * WCZYTYWANIE (system dziala dalej), potem reszta danych */
+    ui_init_title();
+    if (system_show_early()) ui_loading_screen();
+    if (!sprites_init() || !roost_init() || !tractors_init() || !audio_init()) { rc = 20; goto out; }
 
     tournament_defaults();
     tournament_reset();
@@ -529,6 +534,7 @@ static int game_main(void)
     system_restore();
     records_save();                     /* dysk dostepny dopiero po oddaniu systemu */
 out:
+    system_hide_early();                /* blad przy wczytywaniu: z powrotem ekran systemu */
     audio_free();
     ui_free();
     tractors_free();

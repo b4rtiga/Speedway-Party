@@ -4,6 +4,8 @@
 
 #include <exec/types.h>
 
+void ui_init_title(void);          /* przed reszta danych: ilustracja tytulowa i jej paleta */
+void ui_loading_screen(void);      /* po system_show_early: plansza z napisem WCZYTYWANIE */
 void ui_init(void);                /* przed przejeciem sprzetu: laduje plansze tytulowa */
 void ui_free(void);
 void ui_invalidate(void);          /* tresc ekranu sie zmienila -> przerysuj oba bufory */

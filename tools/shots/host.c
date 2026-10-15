@@ -66,6 +66,8 @@ void video_set_lines(const UWORD *bg, const UWORD *fg)
 void video_set_menu(BOOL menu) { g_video.menu = (UBYTE)(menu ? 1 : 0); }
 void video_set_sprite(UBYTE n, const UWORD *data) { cap_spr[n] = data; }
 UBYTE *video_backbuffer(void) { return g_video.play[g_video.back]; }
+void video_swap(void) {}                     /* ui_loading_screen (tylko na Amidze); zrzuty zamieniaja bufory same */
+void video_start(void) {}
 
 BPTR Open(CONST_STRPTR name, LONG mode) { (void)name; (void)mode; return 0; }   /* records.c: bez zapisu */
 LONG Read(BPTR f, APTR b, LONG n) { (void)f; (void)b; (void)n; return -1; }

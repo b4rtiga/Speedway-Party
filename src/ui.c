@@ -79,20 +79,19 @@ static void rgb12_lerp_table(void)
     }
 }
 
-COLD void ui_init(void)
+/* Plansza tytulowa (ilustracja i jej paleta) - wczytywana jako pierwsza, zeby pokazac ja
+ * z napisem WCZYTYWANIE, zanim dojdzie reszta danych z dyskietki. */
+static BOOL title_loaded;
+COLD void ui_init_title(void)
 {
+    if (title_loaded) return;
+    title_loaded = TRUE;
     rgb12_lerp_table();
     /* ilustracja z tools/genart.py; bez pliku plansza ma sam gradient i napisy */
     title_img = AllocMem(FULL_SIZE, MEMF_CHIP);
     if (title_img && !asset_load("PROGDIR:data/title.bpl", title_img, FULL_SIZE)) {
         FreeMem(title_img, FULL_SIZE);
         title_img = 0;
-    }
-    sw_cache = AllocMem((ULONG)SW_H * PLAY_STRIDE, MEMF_ANY);   /* bez pamieci: pelne przerysowanie */
-    girls_img = AllocMem(4 * GIRL_SIZE, MEMF_ANY);
-    if (girls_img && !asset_load("PROGDIR:data/girls.bin", girls_img, 4 * GIRL_SIZE)) {
-        FreeMem(girls_img, 4 * GIRL_SIZE);
-        girls_img = 0;                  /* bez pliku: same tablice */
     }
     if (title_img) {
         /* ilustracja ma wlasna palete (kolory napisow menu bez zmian) - dla list Coppera menu;
@@ -107,6 +106,42 @@ COLD void ui_init(void)
     }
 }
 
+static void update_line_colors(void);
+
+/* Plansza wczytywania: ilustracja i napisy jak na planszy tytulowej, zamiast NACISNIJ FIRE
+ * stale WCZYTYWANIE. Rysowana procesorem (Blitter nalezy jeszcze do systemu) do bufora "back",
+ * potem na ekran (video_swap, video_start). Wywolywac po system_show_early. */
+COLD void ui_loading_screen(void)
+{
+    UBYTE *b = video_backbuffer();
+    if (title_img) {
+        const ULONG *s = (const ULONG *)title_img;
+        ULONG *d = (ULONG *)b, n;
+        for (n = 0; n < FULL_SIZE / 4; n++) d[n] = s[n];
+    }
+    text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
+    text_draw_big_center(b, 38, "PARTY", U_GOLD, U_SHADOW);
+    text_draw_center(b, 64, "AMIGA 1200", U_WHITE, U_SHADOW);
+    text_draw_center(b, 206, "WCZYTYWANIE...", U_WHITE, U_SHADOW);
+    text_draw_center(b, 224, "TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", U_WHITE, U_SHADOW);
+    text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GREY, 0);
+    video_set_menu(TRUE);
+    update_line_colors();                        /* gradient tla i teczowe napisy (lista "back") */
+    video_swap();
+    video_start();
+}
+
+COLD void ui_init(void)
+{
+    ui_init_title();
+    sw_cache = AllocMem((ULONG)SW_H * PLAY_STRIDE, MEMF_ANY);   /* bez pamieci: pelne przerysowanie */
+    girls_img = AllocMem(4 * GIRL_SIZE, MEMF_ANY);
+    if (girls_img && !asset_load("PROGDIR:data/girls.bin", girls_img, 4 * GIRL_SIZE)) {
+        FreeMem(girls_img, 4 * GIRL_SIZE);
+        girls_img = 0;                  /* bez pliku: same tablice */
+    }
+}
+
 COLD void ui_free(void)
 {
     if (title_img) FreeMem(title_img, FULL_SIZE);
@@ -114,7 +149,6 @@ COLD void ui_free(void)
     if (girls_img) FreeMem(girls_img, 4 * GIRL_SIZE);
 }
 
-static UBYTE *back(void) { return video_backbuffer(); }
 
 /* pionowa kreska 2 px (CPU, bo Blitter tu rysuje tylko pelne slowa) */
 static void vline2(UBYTE *buf, WORD x, WORD y, WORD h, UBYTE color)
@@ -1700,7 +1734,7 @@ static void draw_blink_line(UBYTE *b)
 
 void ui_render(void)
 {
-    UBYTE *b = back();
+    UBYTE *b = video_backbuffer();
     UBYTE bi = g_video.back;
     UBYTE new_blink = (UBYTE)((g_frame >> 4) & 1);
 

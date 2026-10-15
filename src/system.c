@@ -6,7 +6,10 @@
  *   3. Forbid                       -> brak przelaczania taskow
  *   4. zapis DMACON/INTENA, wylaczenie wszystkiego
  *   5. wlasny wektor poziomu 3 (VBR+$6C; 68020 ma VBR, wiec odczytujemy go przez Supervisor)
- * Przywracanie w odwrotnej kolejnosci. */
+ * Przywracanie w odwrotnej kolejnosci.
+ *
+ * Wczesniej (system_show_early) samo LoadView(NULL): plansza wczytywania z listy Coppera gry,
+ * a system dziala dalej i DOS doczytuje dane z dyskietki. */
 #include <exec/execbase.h>
 #include <graphics/gfxbase.h>
 #include <proto/exec.h>
@@ -22,6 +25,7 @@ static struct View *old_view;
 static UWORD old_dmacon, old_intena;
 static APTR  old_level3;
 static volatile APTR *vbr;
+static BOOL  shown_early, taken;          /* lista Coppera gry na ekranie / sprzet przejety */
 
 /* movec vbr,d0 ; rte - wykonywane w trybie nadzorcy */
 static const UWORD getvbr_code[] __attribute__((aligned(4))) = { 0x4E7A, 0x0801, 0x4E73 };
@@ -51,13 +55,54 @@ static void ISR_ATTR level3_isr(void)
     REG16(R_INTREQ) = INTF_VERTB | INTF_COPER;
 }
 
+static BOOL open_gfx(void)
+{
+    if (!GfxBase)
+        GfxBase = (struct GfxBase *)OpenLibrary((CONST_STRPTR)"graphics.library", 39);
+    return (BOOL)(GfxBase != 0);              /* wymagany Kickstart 3.0+ (AGA) */
+}
+
+/* AGA: rejestry, ktorych OS nie zawsze ustawia sam, i lista Coppera systemu */
+static void reset_display(void)
+{
+    REG16(R_FMODE)   = 0;
+    REG16(R_BPLCON3) = 0x0C00;
+    REG16(R_BPLCON4) = 0x0011;
+    REG32(R_COP1LC) = (ULONG)GfxBase->copinit;
+    REG16(R_COPJMP1) = 0;
+}
+
+/* Plansza wczytywania: graphics przestaje sterowac Copperem (LoadView(NULL)), liste gry
+ * wpisuje potem video_start. Przerwania, DMA stacji dyskietek i przelaczanie taskow dzialaja
+ * dalej, wiec DOS doczytuje pozostale dane. */
+BOOL system_show_early(void)
+{
+    if (!open_gfx()) return FALSE;
+    old_view = GfxBase->ActiView;
+    LoadView(0);
+    WaitTOF();
+    WaitTOF();
+    shown_early = TRUE;
+    return TRUE;
+}
+
+/* blad przy wczytywaniu (sprzet nieprzejety): z powrotem ekran systemu */
+void system_hide_early(void)
+{
+    if (!shown_early || taken) return;
+    reset_display();
+    LoadView(old_view);
+    WaitTOF();
+    WaitTOF();
+    CloseLibrary((struct Library *)GfxBase);
+    GfxBase = 0;
+    shown_early = FALSE;
+}
+
 BOOL system_takeover(void)
 {
-    GfxBase = (struct GfxBase *)OpenLibrary((CONST_STRPTR)"graphics.library", 39);
-    if (!GfxBase)
-        return FALSE;           /* wymagany Kickstart 3.0+ (AGA) */
-
-    old_view = GfxBase->ActiView;
+    if (!open_gfx()) return FALSE;
+    if (!shown_early) old_view = GfxBase->ActiView;    /* przy planszy wczytywania juz zapamietany */
     LoadView(0);
     WaitTOF();
     WaitTOF();
@@ -79,6 +124,7 @@ BOOL system_takeover(void)
     vbr[0x6C / 4] = (APTR)level3_isr;
 
     REG16(R_INTENA) = INTF_SETCLR | INTF_INTEN | INTF_VERTB;
+    taken = TRUE;
     return TRUE;
 }
 
@@ -91,13 +137,7 @@ void system_restore(void)
 
     vbr[0x6C / 4] = old_level3;
 
-    /* reset rejestrow AGA, ktorych OS nie zawsze ustawia sam */
-    REG16(R_FMODE)   = 0;
-    REG16(R_BPLCON3) = 0x0C00;
-    REG16(R_BPLCON4) = 0x0011;
-
-    REG32(R_COP1LC) = (ULONG)GfxBase->copinit;
-    REG16(R_COPJMP1) = 0;
+    reset_display();
 
     REG16(R_DMACON) = DMAF_SETCLR | (old_dmacon & DMAF_ALL);
     REG16(R_INTENA) = INTF_SETCLR | (old_intena & INTF_ALL);
@@ -108,6 +148,8 @@ void system_restore(void)
     WaitTOF();
     WaitTOF();
     CloseLibrary((struct Library *)GfxBase);
+    GfxBase = 0;
+    shown_early = taken = FALSE;
 }
 
 ULONG g_lag;                    /* zgubione klatki (diagnostyka, make EXTRA=-DSHOW_LAG) */
