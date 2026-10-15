@@ -20,8 +20,9 @@ README_TXT = """SPEEDWAY PARTY - gra zuzlowa na Amige 1200 (AGA)
 
 Wymagania: Amiga 1200 (lub zgodna z chipsetem AGA), 68020, 2 MB Chip RAM,
 Kickstart 3.0/3.1/3.2. Fast RAM nie jest potrzebny (jesli jest - gra z niego
-korzysta). Dziala tez w WinUAE/FS-UAE. Nie dziala na Amigach bez AGA
-(A500/A600/A2000/A3000) ani na CD32. Wersja WHDLoad - w przygotowaniu.
+korzysta). Gra powinna ruszyc na Amidze 1200 (takze bez Fast RAM), A1200 z karta
+turbo, Amidze 4000 i innych komputerach z AGA oraz w emulatorach (WinUAE, FS-UAE,
+EmulatorJS) w konfiguracji A1200.
 
 URUCHOMIENIE
 - z Workbencha: skopiuj katalog SpeedwayParty (z ikona SpeedwayParty.info) na dysk

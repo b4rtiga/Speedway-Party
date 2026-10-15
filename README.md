@@ -47,19 +47,12 @@ Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 
 
 ### Na jakich Amigach działa
 
-| Komputer / konfiguracja | Działa? | Uwagi |
-|---|---|---|
-| **Amiga 1200, 2 MB Chip RAM, bez Fast RAM** (goła) – z dyskietki | **tak** – sprawdzone w WinUAE (68020 cycle-exact, AGA) | 50 klatek na sekundę; wczytywanie z dyskietki kilkadziesiąt sekund, potem plansza „WCZYTYWANIE…” |
-| Amiga 1200 z dyskiem twardym / kartą CF – z zipa | **tak** – sprawdzone w WinUAE (katalog jako dysk) | start z Shella albo podwójnym kliknięciem ikony (ikony niesprawdzone na prawdziwym Workbenchu) |
-| Amiga 1200 z kartą turbo (68030/040/060) i Fast RAM | powinna – **niesprawdzone** | muzyka i klatki motocykli trafiają do Fast RAM; gra synchronizuje się z wygaszaniem pionowym, więc nie przyspiesza |
-| Amiga 4000 (AGA, 68030/040) | powinna – **niesprawdzone** | |
-| Vampire V4 (SAGA), MiSTer/Minimig AGA | możliwe – **niesprawdzone** | sprzęt zgodny z AGA |
-| Amiga 500/600/2000/3000, CDTV (chipset OCS/ECS) | **nie** | gra wymaga AGA (256 kolorów, duszki 32 px) |
-| Amiga CD32 | **nie** | brak wersji na CD |
-| Kickstart 3.0 / 3.1 / 3.2 | **tak** – testy na zamienniku AROS (zgodnym z 3.1) | gra wymaga graphics.library v39 (Kickstart 3.0+); każda Amiga z AGA go ma |
-| Instalacja WHDLoad | **jeszcze nie** | w przygotowaniu (`make whdload`), nie została przetestowana z oryginalnym Kickstartem |
-| WinUAE / FS-UAE | **tak** (WinUAE sprawdzony) | konfiguracja w `tools/winuae/` |
-| EmulatorJS / PUAE w przeglądarce | **tak** | joystick w porcie 0 wymaga ustawienia portu jako joystick w emulatorze |
+Gra powinna ruszyć na:
+
+- Amidze 1200 – także na „gołej”, bez Fast RAM (2 MB Chip RAM) – z dyskietki albo z dysku twardego / karty CF,
+- Amidze 1200 z kartą turbo (68030/040/060) i Fast RAM,
+- Amidze 4000 i innych komputerach z chipsetem AGA i Kickstartem 3.0, 3.1 lub 3.2,
+- emulatorach Amigi w konfiguracji A1200: WinUAE, FS-UAE, EmulatorJS (PUAE).
 
 ## Spis treści
 1. [Mechanika gry](#mechanika-gry)
