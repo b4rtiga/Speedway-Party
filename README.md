@@ -202,7 +202,7 @@ Gotowa konfiguracja jest w [tools/winuae/SpeedwayParty-A1200.uae](tools/winuae/S
    - *Boot priority*: 0 lub wyżej (katalog ma być dyskiem startowym)
 6. **Game ports:** port 1 = joystick (klawiatura lub pad), port 0 = drugi joystick (np. joystick USB) w trybie **Joystick**, nie myszy, jeśli gra 2+ graczy. **Nie zostawiaj myszy w porcie 0**, bo kursor w menu będzie skakał.
 7. Start. Kickstart uruchomi `s/startup-sequence`, a ten od razu grę. Workbench nie jest potrzebny.
-8. **Obraz na całe okno:** w szablonie konfiguracji okno ma 640×512 (obraz gry 320×256 powiększony 2×), a obraz jest wycentrowany (`gfx_xcenter/gfx_ycenter=smart`), więc gra wypełnia okno bez ramki. Ramkę wokół obrazu gra i tak wygasza (bit BRDRBLNK w AGA).
+8. **Obraz na całe okno:** w szablonie konfiguracji okno ma 640×512 (obraz gry 320×256 powiększony 2×), a obraz jest wycentrowany (`gfx_center_horizontal/gfx_center_vertical=smart`; starsze nazwy `gfx_xcenter/gfx_ycenter` nowe WinUAE pomija i obraz był przesunięty o 9 pikseli w prawo z uciętą prawą krawędzią), więc gra wypełnia okno bez ramki. Ramkę wokół obrazu gra i tak wygasza (bit BRDRBLNK w AGA).
 
 Jeśli wolisz Workbench: podepnij `dist/` jako dodatkowy dysk i w Shellu wpisz `cd Speedway:` i `SpeedwayParty`.
 
