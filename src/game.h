@@ -316,6 +316,7 @@ UBYTE    track_grip_at(WORD x, WORD y);
 GripZone track_zone_at(WORD x, WORD y);
 GripZone track_zone_fast(WORD x, WORD y);          /* z tablicy komorek 8x8 */
 LONG     track_progress(WORD x, WORD y);          /* 0..lap_length */
+BOOL     track_on_start_straight(WORD x, WORD y); /* punkt na dolnej prostej (startowej) */
 void     track_point(LONG s, WORD lateral, WORD *x, WORD *y);
 WORD     track_lateral(WORD x, WORD y);           /* odleglosc od osi: - do kraweznika, + do bandy */
 void     track_snap_lateral(fix16 *x, fix16 *y, WORD lat);

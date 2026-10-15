@@ -147,7 +147,7 @@ Tor wyjeżdża się też z biegu na bieg: linia, którą jeździ cała stawka, c
 
 ### Odsypisko i „szeroka niesie”
 
-Pod bandą zbiera się luźna nawierzchnia. Wjazd tam za wolno – motocykl się zakopuje. Wjazd z pełną prędkością w lekkim uślizgu – „szeroka niesie” i odsypisko przyspiesza. Wyjeżdżona, ubita ścieżka pod bandą już nie zakopuje.
+Pod bandą zbiera się luźna nawierzchnia. Wjazd tam za wolno – motocykl się zakopuje. Wjazd z pełną prędkością w lekkim uślizgu – „szeroka niesie” i odsypisko przyspiesza. Wyjeżdżona, ubita ścieżka pod bandą już nie zakopuje. Wyjątek: od taśmy do pierwszego łuku wszyscy mają tę samą przyczepność (ze środka toru) i nikt się nie zakopuje – pole D pod bandą rusza tak samo szybko jak pole A.
 
 ### Polewanie i schnięcie
 
@@ -302,6 +302,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `sh tools/sim/news_test.sh` | testy gazety (reguły nagłówków, podsumowanie, długie nazwiska) |
 | `sh tools/sim/records_test.sh` | testy tabel rekordów i pliku `halloffame.dat` |
 | `sh tools/sim/sprites_test.sh` | test klatek motocykli (kolor kasku nadany przy kopiowaniu = dawne 4 komplety) |
+| `sh tools/sim/start_test.sh [turnieje]` | uczciwość startu: 4 jednakowe boty, wyniki wg pola A–D (prędkość po 1 s, miejsce w 1. łuku i na mecie, zwycięstwa); `DIAG=1` – szpryca, krawężnik, linia jazdy |
 | `sh tools/sim/pack_test.sh` | test rozpakowywania danych spakowanych na dyskietce |
 | `sh tools/sim/batch.sh` | kilka turniejów botów – statystyki poziomów AI |
 | `python tools/mksocial.py` | miniaturka repozytorium na GitHubie |

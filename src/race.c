@@ -127,6 +127,16 @@ static void update_bike(Bike *b)
     LONG s, prev_s;
     WORD lat, pen;
 
+    if (b->lap <= 1 && track_on_start_straight(px, py)) {
+        /* Od tasmy do pierwszego luku rowne szanse: przyczepnosc ze srodka toru w tym samym
+         * miejscu prostej i bez zakopywania w odsypisku. Dawniej pole D (pod banda, w luznym
+         * odsypisku) ruszalo wyraznie wolniej i do luku wjezdzalo prawie zawsze ostatnie. */
+        WORD cx, cy;
+        track_point(track_progress(px, py), 0, &cx, &cy);
+        grip = track_grip_at(cx, cy);
+        zone = GRIP_MIDDLE;
+    }
+
     in = (g_tour.riders[b->rider].control == CTRL_AI) ? ai_steer(b) : b->input;
     b->prev_input = in;
 

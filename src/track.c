@@ -137,6 +137,13 @@ angle8 atan2_8(LONG dy, LONG dx)
     return (angle8)a;
 }
 
+/* prosta startowa (dolna) - od taśmy do pierwszego luku */
+BOOL track_on_start_straight(WORD x, WORD y)
+{
+    WORD dx = x - CX;
+    return (BOOL)(y >= CY && dx >= -HALF_L && dx <= HALF_L);
+}
+
 LONG track_progress(WORD x, WORD y)
 {
     WORD dx = x - CX;
