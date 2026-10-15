@@ -24,6 +24,8 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 
 **Dokumentacja:** [docs/DOKUMENTACJA.md](docs/DOKUMENTACJA.md) (źródło do edycji) i [docs/SpeedwayParty-dokumentacja.pdf](docs/SpeedwayParty-dokumentacja.pdf) (PDF, `python tools/mkdocs.py`).
 
+**English:** the game is also available in English (`SpeedwayParty_EN.adf`). Documentation in English: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) and [docs/SpeedwayParty-documentation.pdf](docs/SpeedwayParty-documentation.pdf).
+
 ## Pobierz i zagraj
 
 Gra jest w dwóch wersjach językowych: **polskiej** i **angielskiej** (*English version*).

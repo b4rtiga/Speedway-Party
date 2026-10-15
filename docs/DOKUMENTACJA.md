@@ -2,7 +2,7 @@
 
 Zręcznościowa gra żużlowa na Amigę 1200 (AGA). Turniej 15 biegów dla 1–4 graczy przy jednym ekranie, wolne miejsca zajmują boty.
 
-> Ten plik jest źródłem dokumentacji. Edytuj go jak zwykły tekst (Markdown), a PDF zrób poleceniem `python tools/mkdocs.py` (szczegóły w rozdziale *Jak aktualizować tę dokumentację*). Wersja i data w PDF biorą się same z gita.
+> Ten plik jest źródłem dokumentacji. Edytuj go jak zwykły tekst (Markdown), a PDF zrób poleceniem `python tools/mkdocs.py` (szczegóły w rozdziale *Jak aktualizować tę dokumentację*). Wersja i data w PDF biorą się same z gita. Wersja angielska: `docs/DOCUMENTATION.md` i `docs/SpeedwayParty-documentation.pdf`.
 
 ![Bieg](../art/screen_05_racing.png)
 
@@ -186,7 +186,7 @@ NDK 3.9 i libnix są w toolchainie. Sprawdzenie: `m68k-amigaos-gcc --version`.
 | Polecenie (w WSL, w katalogu projektu) | Wynik |
 |---|---|
 | `make dist` | katalog `dist/`: program, `data/`, `s/startup-sequence` – do podpięcia w emulatorze. Motocykle, traktory, tło toru i podprowadzające są tam spakowane (`tools/pack.py`, prosty LZ: 171 → 72 KB); gra rozpakowuje je przy wczytywaniu. W `data/` w repozytorium leżą niespakowane. |
-| `make dist-en` | katalog `dist-en/` z wersją angielską (`-DLANG_EN`; napisy w kodzie jako `T("po polsku", "in English")`) |
+| `make dist-en` | katalog `dist-en/` z wersją angielską (`-DLANG_EN`; napisy w kodzie jako `T("po polsku", "in English")` – nowy napis zawsze w obu językach, angielski musi się zmieścić tam gdzie polski) |
 | `make release` | `release/SpeedwayParty.zip` (obie wersje) i startowe dyskietki `release/SpeedwayParty_PL.adf`, `release/SpeedwayParty_EN.adf` |
 | `python tools/mkicons.py preview` | ikony Workbencha (gra, szuflada, dysk, instrukcja) – podgląd PNG |
 | `make whdload` | wersja WHDLoad w przygotowaniu (`dist-whd/`), jeszcze nieprzetestowana i niewydana |
@@ -308,7 +308,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `python tools/genreferee.py` | portret sędziego i malowana ręka z ilustracji `src/referee.png` |
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png` |
 | `python tools/import_engine.py plik.wav` | pętla silnika z nagrania (obecnie `src/speedway_500cc_10000rpm_loop.wav`) |
-| `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry skompilowanego na PC (`art/screen_*.png`) |
+| `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry skompilowanego na PC (`art/screen_*.png`; z `LANG_EN=1` angielskie w `art/en/`) |
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` |
 | `sh tools/sim/news_test.sh` | testy gazety (reguły nagłówków, podsumowanie, długie nazwiska) |
 | `sh tools/sim/records_test.sh` | testy tabel rekordów i pliku `halloffame.dat` |
@@ -317,7 +317,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `sh tools/sim/pack_test.sh` | test rozpakowywania danych spakowanych na dyskietce |
 | `sh tools/sim/batch.sh` | kilka turniejów botów – statystyki poziomów AI |
 | `python tools/mksocial.py` | miniaturka repozytorium na GitHubie |
-| `python tools/mkdocs.py` | ta dokumentacja w PDF |
+| `python tools/mkdocs.py` | ta dokumentacja w PDF (polska i angielska) |
 | `make dist EXTRA=-DAUTOPLAY` | wersja testowa: sama przechodzi menu i rozgrywa turniej botów |
 | `make dist EXTRA=-DSHOW_LAG` | pomiar: zgubione klatki i czasy w HUD |
 | `make dist EXTRA="-DSHOW_LAG -DSHOW_START"` | pomiar samego startu spod taśmy |
@@ -352,9 +352,9 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 
 ## 13. Jak aktualizować tę dokumentację
 
-1. Edytuj `docs/DOKUMENTACJA.md` (zwykły Markdown: nagłówki `#`, listy `-`, tabele `| |`, obrazki `![opis](../art/plik.png)`, kod w blokach z trzema odwrotnymi apostrofami).
-2. Jeśli zmieniły się ekrany, odśwież zrzuty: `sh tools/shots/run.sh`.
-3. Zrób PDF: `python tools/mkdocs.py` → `docs/SpeedwayParty-dokumentacja.pdf`. Wersja (commit z gita) i data wstawiają się same.
+1. Edytuj `docs/DOKUMENTACJA.md` i angielską `docs/DOCUMENTATION.md` (zwykły Markdown: nagłówki `#`, listy `-`, tabele `| |`, obrazki `![opis](../art/plik.png)`, kod w blokach z trzema odwrotnymi apostrofami).
+2. Jeśli zmieniły się ekrany, odśwież zrzuty: `sh tools/shots/run.sh` i `LANG_EN=1 sh tools/shots/run.sh`.
+3. Zrób PDF: `python tools/mkdocs.py` → `docs/SpeedwayParty-dokumentacja.pdf` i `docs/SpeedwayParty-documentation.pdf` (`--pl` albo `--en` – tylko jedna). Wersja (commit z gita) i data wstawiają się same.
 
 Nagłówek `#` zaczyna nową część na nowej stronie, `##` to rozdział w spisie treści.
 

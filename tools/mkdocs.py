@@ -1,7 +1,9 @@
 """mkdocs.py - dokumentacja docs/DOKUMENTACJA.md -> docs/SpeedwayParty-dokumentacja.pdf
+oraz angielska docs/DOCUMENTATION.md -> docs/SpeedwayParty-documentation.pdf
 
-    python tools/mkdocs.py            # HTML + PDF
+    python tools/mkdocs.py            # HTML + PDF, obie wersje jezykowe
     python tools/mkdocs.py --html     # tylko HTML (build/docs/), np. do podgladu w przegladarce
+    python tools/mkdocs.py --pl       # tylko polska (--en: tylko angielska)
 
 Zrodlem jest zwykly Markdown (edytuj go, nie PDF). Skrypt zamienia go na HTML przygotowany do druku
 (strona tytulowa, spis tresci, numery stron, zrzuty ekranu), a PDF drukuje przegladarka Edge albo
@@ -20,9 +22,15 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SRC = ROOT / "docs/DOKUMENTACJA.md"
-OUT_PDF = ROOT / "docs/SpeedwayParty-dokumentacja.pdf"
-OUT_HTML = ROOT / "build/docs/DOKUMENTACJA.html"
+# jezyk: zrodlo, PDF, HTML, napisy na stronie tytulowej i w spisie tresci
+LANGS = {
+    "pl": dict(src=ROOT / "docs/DOKUMENTACJA.md", pdf=ROOT / "docs/SpeedwayParty-dokumentacja.pdf",
+               html=ROOT / "build/docs/DOKUMENTACJA.html", toc="Spis treści",
+               sub="Dokumentacja gry na Amigę 1200", ver="wersja", gen="wygenerowano"),
+    "en": dict(src=ROOT / "docs/DOCUMENTATION.md", pdf=ROOT / "docs/SpeedwayParty-documentation.pdf",
+               html=ROOT / "build/docs/DOCUMENTATION.html", toc="Contents",
+               sub="Game manual for the Amiga 1200", ver="version", gen="generated"),
+}
 
 CSS = """
 @page { size: A4; margin: 18mm 16mm 18mm 16mm;
@@ -189,7 +197,9 @@ def convert(md, base):
     return "\n".join(out), toc
 
 
-def build_html():
+def build_html(lang):
+    L = LANGS[lang]
+    SRC, OUT_HTML = L["src"], L["html"]
     md = SRC.read_text(encoding="utf-8")
     title = md.splitlines()[0].lstrip("# ").strip()
     body_md = "\n".join(md.splitlines()[1:])
@@ -197,15 +207,15 @@ def build_html():
     version = git_version()
     today = datetime.date.today().isoformat()
     cover_img = img_src("../art/title_art.png", SRC.parent)
-    toc_html = ['<section class="toc"><h2>Spis treści</h2><ol>']
+    toc_html = [f'<section class="toc"><h2>{L["toc"]}</h2><ol>']
     for lvl, t, sid in toc:
         toc_html.append(f'<li class="{"part" if lvl == 1 else "chap"}"><a href="#{sid}">{html.escape(t)}</a></li>')
     toc_html.append("</ol></section>")
-    doc = f"""<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>{html.escape(title)}</title>
+    doc = f"""<!doctype html><html lang="{lang}"><head><meta charset="utf-8"><title>{html.escape(title)}</title>
 <style>{CSS}</style></head><body>
 <section class="cover"><img src="{cover_img}" alt=""><h1>Speedway Party</h1>
-<div class="sub">Dokumentacja gry na Amigę 1200</div>
-<div class="meta">wersja {html.escape(version)} · wygenerowano {today}</div></section>
+<div class="sub">{L["sub"]}</div>
+<div class="meta">{L["ver"]} {html.escape(version)} · {L["gen"]} {today}</div></section>
 {''.join(toc_html)}
 {body}
 </body></html>"""
@@ -224,18 +234,21 @@ def find_browser():
 
 
 def main():
-    page = build_html()
-    print(page)
-    if "--html" in sys.argv:
-        return
-    br = find_browser()
-    if not br:
-        sys.exit("mkdocs: brak Edge/Chrome - otworz HTML w przegladarce i wydrukuj do PDF")
-    OUT_PDF.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run([br, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
-                    "--allow-file-access-from-files", f"--print-to-pdf={OUT_PDF}", page.as_uri()],
-                   check=True, capture_output=True, timeout=180)
-    print(OUT_PDF, f"{OUT_PDF.stat().st_size // 1024} KB")
+    langs = [l for l in LANGS if f"--{l}" in sys.argv] or list(LANGS)
+    for lang in langs:
+        page = build_html(lang)
+        print(page)
+        if "--html" in sys.argv:
+            continue
+        br = find_browser()
+        if not br:
+            sys.exit("mkdocs: brak Edge/Chrome - otworz HTML w przegladarce i wydrukuj do PDF")
+        out_pdf = LANGS[lang]["pdf"]
+        out_pdf.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run([br, "--headless=new", "--disable-gpu", "--no-pdf-header-footer",
+                        "--allow-file-access-from-files", f"--print-to-pdf={out_pdf}", page.as_uri()],
+                       check=True, capture_output=True, timeout=180)
+        print(out_pdf, f"{out_pdf.stat().st_size // 1024} KB")
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 """topng.py - tools/shots/out/*.ppm -> art/screen_*.png (powiekszenie 3x)
-Opcjonalnie: topng.py <katalog ppm> <katalog png> (wersja angielska: out-en -> build/shots-en)"""
+Opcjonalnie: topng.py <katalog ppm> <katalog png> (wersja angielska: out-en -> art/en)"""
 import pathlib
 import sys
 

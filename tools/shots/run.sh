@@ -1,8 +1,8 @@
 #!/bin/sh
 # Zrzuty ekranu z prawdziwego kodu gry na PC (pip: ziglang). Wynik: art/screen_*.png
-# LANG_EN=1 sh tools/shots/run.sh - wersja angielska, zrzuty do build/shots-en/ (art/ bez zmian)
+# LANG_EN=1 sh tools/shots/run.sh - wersja angielska, zrzuty do art/en/ (do dokumentacji angielskiej)
 cd "$(dirname "$0")/../.." || exit 1
-if [ -n "$LANG_EN" ]; then OUT=tools/shots/out-en; DEF=-DLANG_EN; EXE=tools/shots/shots_en.exe; DEST=build/shots-en
+if [ -n "$LANG_EN" ]; then OUT=tools/shots/out-en; DEF=-DLANG_EN; EXE=tools/shots/shots_en.exe; DEST=art/en
 else OUT=tools/shots/out; DEF=; EXE=tools/shots/shots.exe; DEST=art; fi
 mkdir -p "$OUT" "$DEST"
 rm -f "$OUT"/*.ppm                     # stare zrzuty (np. po zmianie nazwy) nie wracaja do art/
