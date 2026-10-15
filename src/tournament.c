@@ -40,7 +40,7 @@ void tournament_default_names(void)
     }
 }
 
-void tournament_defaults(void)
+COLD void tournament_defaults(void)
 {
     static const InputPort ports[MAX_RIDERS] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ZX, INPUT_KEYS_NM };
     UBYTE i;

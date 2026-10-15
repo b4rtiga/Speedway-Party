@@ -5,6 +5,11 @@
 #include <exec/types.h>
 #include "fixmath.h"
 
+/* Rzadko wykonywany kod (inicjalizacja, ekrany menu, ustawienia, tabele, instrukcja, gazeta,
+ * nakladki z wynikami): GCC kompiluje go na rozmiar i nie wkleja w goraca petle - kod biegu
+ * zostaje optymalizowany na szybkosc. */
+#define COLD __attribute__((cold))
+
 #define MAX_RIDERS      4
 #define NUM_HEATS       15
 #define FIXED_HEATS     13        /* biegi 1-13 z tabeli, 14-15 nominowane */

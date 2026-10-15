@@ -79,7 +79,7 @@ static void rgb12_lerp_table(void)
     }
 }
 
-void ui_init(void)
+COLD void ui_init(void)
 {
     rgb12_lerp_table();
     /* ilustracja z tools/genart.py; bez pliku plansza ma sam gradient i napisy */
@@ -107,7 +107,7 @@ void ui_init(void)
     }
 }
 
-void ui_free(void)
+COLD void ui_free(void)
 {
     if (title_img) FreeMem(title_img, FULL_SIZE);
     if (sw_cache) FreeMem(sw_cache, (ULONG)SW_H * PLAY_STRIDE);
@@ -167,7 +167,7 @@ static const char gate_letter[4] = { 'A', 'B', 'C', 'D' };
 const char *g_endcard[2];               /* trailer (tools/shots): ostatnia plansza - ilustracja i 2 linie */
 #endif
 
-static void draw_title(UBYTE *b)
+static COLD void draw_title(UBYTE *b)
 {
     if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
 #ifdef HOST_SIM
@@ -195,7 +195,7 @@ static UBYTE menu_row;
 
 void ui_menu_enter(UBYTE row) { menu_row = (UBYTE)(row < MENU_ITEMS ? row : 0); }
 
-UBYTE ui_menu_update(void)
+COLD UBYTE ui_menu_update(void)
 {
     UBYTE m = input_menu();
     if (m & (BTN_UP | BTN_LEFT))    { menu_row = (UBYTE)((menu_row + MENU_ITEMS - 1) % MENU_ITEMS); ui_invalidate(); }
@@ -204,7 +204,7 @@ UBYTE ui_menu_update(void)
     return 0;
 }
 
-static void draw_menu(UBYTE *b)
+static COLD void draw_menu(UBYTE *b)
 {
     static const char *items[MENU_ITEMS] = { "JEDZIEMY!", "INSTRUKCJA", "REKORDY", "CREDITS" };
     UBYTE i;
@@ -222,7 +222,7 @@ static void draw_menu(UBYTE *b)
 
 /* ======================== PLANSZA TWORCOW ========================= */
 
-static void draw_credits(UBYTE *b)
+static COLD void draw_credits(UBYTE *b)
 {
     text_draw_big_center(b, 10, "SPEEDWAY PARTY", U_RAINBOW, U_SHADOW);
     text_draw_center(b, 62, "AUTOR GRY: b4rtiga", U_WHITE, U_SHADOW);
@@ -242,7 +242,7 @@ static char *fmt_time(char *p, UWORD frames, BOOL hundredths);
 static UBYTE rawkey_char(UBYTE k);
 
 /* tabela TOP 5: "1. MAREK    23.34 S" - puste miejsca jako kreski */
-static void draw_hof_list(UBYTE *b, WORD y, const char *title, const HofEntry *list)
+static COLD void draw_hof_list(UBYTE *b, WORD y, const char *title, const HofEntry *list)
 {
     UBYTE i, k;
     char s[24], *p;
@@ -263,7 +263,7 @@ static void draw_hof_list(UBYTE *b, WORD y, const char *title, const HofEntry *l
     }
 }
 
-static void draw_records(UBYTE *b)
+static COLD void draw_records(UBYTE *b)
 {
     const HofTrack *h = &g_hof[g_tour.track.type % NUM_TRACKS];
     char s[32];
@@ -284,7 +284,7 @@ static const char entry_chars[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ" "\x80\x81\x82\x8
 static UBYTE entry_rider, entry_pos;
 static char  entry_buf[HOF_NAME + 1];
 
-void ui_name_entry_enter(UBYTE rider)
+COLD void ui_name_entry_enter(UBYTE rider)
 {
     entry_rider = rider;
     entry_pos = 0;
@@ -303,7 +303,7 @@ static char entry_step(char c, BYTE dir)
 
 /* GORA/DOL - znak, LEWO/PRAWO - pozycja, pisanie z klawiatury (Alt = polskie litery),
  * Backspace - cofnij, FIRE/Return - zatwierdz */
-BOOL ui_name_entry_update(void)
+COLD BOOL ui_name_entry_update(void)
 {
     UBYTE m = input_menu(), k;
     BOOL changed = FALSE, done = FALSE;
@@ -333,7 +333,7 @@ BOOL ui_name_entry_update(void)
 }
 
 /* miejsce gracza czekajace na imie: "BIEG - 2. MIEJSCE  23.34 S" */
-static void entry_place(UBYTE *b, WORD y, const char *what, const HofEntry *list)
+static COLD void entry_place(UBYTE *b, WORD y, const char *what, const HofEntry *list)
 {
     UBYTE i;
     char s[32], *p;
@@ -349,7 +349,7 @@ static void entry_place(UBYTE *b, WORD y, const char *what, const HofEntry *list
         }
 }
 
-static void draw_name_entry(UBYTE *b)
+static COLD void draw_name_entry(UBYTE *b)
 {
     const HofTrack *h = &g_hof[g_tour.track.type % NUM_TRACKS];
     char s[NAME_LEN + 1];
@@ -433,7 +433,7 @@ static const char *const *const help_text[HELP_PAGES] = { help_text0, help_text1
 
 void ui_help_enter(UBYTE page) { help_page = (UBYTE)(page < HELP_PAGES ? page : 0); }
 
-BOOL ui_help_update(void)
+COLD BOOL ui_help_update(void)
 {
     UBYTE m = input_menu();
     if ((m & BTN_LEFT) && help_page > 0)               { help_page--; ui_invalidate(); }
@@ -448,7 +448,7 @@ BOOL ui_help_update(void)
 #define HD_CX   160
 #define HD_CY   82
 #define HD_HALF 58                              /* polowa prostej */
-static void help_oval_point(WORD s, WORD r, WORD *x, WORD *y)
+static COLD void help_oval_point(WORD s, WORD r, WORD *x, WORD *y)
 {
     if (s < 32 || s >= 224) {                   /* dolna prosta: w prawo */
         WORD t = (WORD)(s < 32 ? s : s - 256);
@@ -466,7 +466,7 @@ static void help_oval_point(WORD s, WORD r, WORD *x, WORD *y)
     }
 }
 
-static void draw_help_oval(UBYTE *b)
+static COLD void draw_help_oval(UBYTE *b)
 {
     WORD s, x, y;
     for (s = 0; s < 256; s++) {
@@ -477,7 +477,7 @@ static void draw_help_oval(UBYTE *b)
         rect_px(b, HD_CX - 4 + s * 2, HD_CY + 20 + s, 2, (WORD)(7 - 2 * s), U_GREEN);
 }
 
-static void draw_help(UBYTE *b)
+static COLD void draw_help(UBYTE *b)
 {
     const char *const *t = help_text[help_page];
     char s[32], *p;
@@ -515,14 +515,14 @@ static const char *const news_body[5][2] = {
 static const char *const news_fact[4] = { "FALSTARTY: ", "WYKLUCZENIA: ", "ZWYCIĘSTWA LIDERA: ", "GRACZE PRZY STOLE: " };
 
 /* liczba wyrownana do prawej krawedzi x1 */
-static void text_uint_right(UBYTE *b, WORD x1, WORD y, ULONG v, UBYTE c)
+static COLD void text_uint_right(UBYTE *b, WORD x1, WORD y, ULONG v, UBYTE c)
 {
     char s[8];
     text_uint(s, v, 1);
     text_draw(b, (WORD)(x1 - text_len(s) * FONT_W), y, s, c, 0);
 }
 
-static void draw_news(UBYTE *b)
+static COLD void draw_news(UBYTE *b)
 {
     const NewsSummary *n = news_summary();
     char s[48], *p;
@@ -567,7 +567,7 @@ static void draw_news(UBYTE *b)
     if (blink) text_draw_center(b, 240, "FIRE - NASTĘPNY TURNIEJ", U_RED, 0);
 }
 
-BOOL ui_title_update(void)
+COLD BOOL ui_title_update(void)
 {
     return (input_menu() & BTN_FIRE) != 0;
 }
@@ -587,7 +587,7 @@ static const char *level_names[3] = { "NOWICJUSZ", "PROFESJONALISTA", "MISTRZ" }
 /* znaki do wyboru joystickiem */
 static const UBYTE charset[] = " ABCDEFGHIJKLMNOPQRSTUVWXYZ\x80\x81\x82\x83\x84\x85\x86\x87\x88" "0123456789-.";
 
-void ui_setup_enter(void)
+COLD void ui_setup_enter(void)
 {
     setup_row = ROW_START;
     editing = FALSE;
@@ -595,7 +595,7 @@ void ui_setup_enter(void)
 
 static WORD setup_row_y(UBYTE row) { return (WORD)(50 + row * 18); }
 
-static void draw_setup(UBYTE *b)
+static COLD void draw_setup(UBYTE *b)
 {
     char s[48], *p;
     UBYTE i;
@@ -657,7 +657,7 @@ static void draw_setup(UBYTE *b)
 
 static UBYTE name_len(const char *n) { UBYTE l = 0; while (n[l]) l++; return l; }
 
-static UBYTE rawkey_char(UBYTE k)
+static COLD UBYTE rawkey_char(UBYTE k)
 {
     static const char row1[] = "1234567890-";
     static const char rowq[] = "QWERTYUIOP";
@@ -681,7 +681,7 @@ static UBYTE rawkey_char(UBYTE k)
     return c;
 }
 
-static UBYTE charset_next(UBYTE c, BYTE dir)
+static COLD UBYTE charset_next(UBYTE c, BYTE dir)
 {
     UBYTE i, n = sizeof(charset) - 1;
     for (i = 0; i < n && charset[i] != c; i++) ;
@@ -689,7 +689,7 @@ static UBYTE charset_next(UBYTE c, BYTE dir)
     return charset[(i + n + dir) % n];
 }
 
-static void edit_name(Rider *r, UBYTE m)
+static COLD void edit_name(Rider *r, UBYTE m)
 {
     UBYTE len = name_len(r->name), k;
 
@@ -715,7 +715,7 @@ static void edit_name(Rider *r, UBYTE m)
     }
 }
 
-BOOL ui_setup_update(void)
+COLD BOOL ui_setup_update(void)
 {
     UBYTE m = input_menu();
     UBYTE k;
@@ -776,7 +776,7 @@ static char *fmt_time(char *p, UWORD frames, BOOL hundredths)
 }
 
 /* "REKORD BIEGU 41.2 S NOWAK" / "REKORD OKR.  9.84 S KOWALSKI" */
-static void record_text(char *s, BOOL lap)
+static COLD void record_text(char *s, BOOL lap)
 {
     TrackRecord *r = records_for(g_tour.track.type);
     UWORD fr = lap ? r->lap_frames : r->heat_frames;
@@ -787,7 +787,7 @@ static void record_text(char *s, BOOL lap)
     name_trunc(p, lap ? r->lap_name : r->heat_name, 10);
 }
 
-static void wetness_text(char *s)
+static COLD void wetness_text(char *s)
 {
     UBYTE w = g_tour.track.wetness;
     text_cat(text_cat(s, "TOR: "), w > 170 ? "MOKRY" : w > 60 ? "WILGOTNY" : "SUCHY");
@@ -820,7 +820,7 @@ static void rect_px(UBYTE *b, WORD x, WORD y, WORD w, WORD h, UBYTE c)
     }
 }
 
-static void tiny_number(UBYTE *b, WORD x, WORD y, UBYTE v, UBYTE c)
+static COLD void tiny_number(UBYTE *b, WORD x, WORD y, UBYTE v, UBYTE c)
 {
     UBYTE d[2], n = 0, i, k;
     if (v >= 10) d[n++] = (UBYTE)(v / 10);
@@ -840,7 +840,7 @@ static void tiny_number(UBYTE *b, WORD x, WORD y, UBYTE v, UBYTE c)
 #define TB_PTS   (TB_GRID + NUM_HEATS * TB_CELL)
 #define TB_HEAD  9
 #define TB_ROW   13
-static void draw_standings(UBYTE *b, WORD y)
+static COLD void draw_standings(UBYTE *b, WORD y)
 {
     UBYTE order[MAX_RIDERS], i, h, next = g_tour.current_heat;
     WORD bottom = (WORD)(y + TB_HEAD + MAX_RIDERS * TB_ROW);
@@ -880,7 +880,7 @@ static void draw_standings(UBYTE *b, WORD y)
     }
 }
 
-static void draw_table(UBYTE *b)
+static COLD void draw_table(UBYTE *b)
 {
     UBYTE hn = g_tour.current_heat, g;
     char s[48], *p;
@@ -1041,7 +1041,7 @@ static void present_girls(UBYTE *b, UBYTE bi)
     }
 }
 
-static void draw_present(UBYTE *b, UBYTE bi)
+static COLD void draw_present(UBYTE *b, UBYTE bi)
 {
     UBYTE hn = g_tour.current_heat, g;
     char s[48], *p;
@@ -1073,7 +1073,7 @@ BOOL ui_confirm(void)
 
 /* ======================== WYBOR POL ================================ */
 
-static void draw_pick(UBYTE *b)
+static COLD void draw_pick(UBYTE *b)
 {
     UBYTE hn = g_tour.current_heat, g, i;
     UBYTE *row = g_tour.heat_table[hn];
@@ -1118,7 +1118,7 @@ static void draw_pick(UBYTE *b)
     text_draw_center(b, 234, "LEWO/PRAWO: POLE   FIRE: WYBIERZ", U_GREY, 0);
 }
 
-void ui_pick_update(void)
+COLD void ui_pick_update(void)
 {
     static UWORD ai_wait;
     UBYTE *row = g_tour.heat_table[g_tour.current_heat];
@@ -1153,7 +1153,7 @@ void ui_pick_update(void)
 
 /* =========================== PODIUM ================================ */
 
-static void draw_podium(UBYTE *b)
+static COLD void draw_podium(UBYTE *b)
 {
     static const WORD bx[3] = { 128, 48, 208 }, top[3] = { 86, 110, 128 };
     static const UBYTE col[3] = { U_GOLD, U_SILVER, U_BRONZE };
@@ -1214,7 +1214,7 @@ static Overlay current_overlay(void)
 }
 
 /* bieg czeka: ktos z ludzi nie trzyma kierunku pod tasma */
-static void draw_hold(UBYTE *b)
+static COLD void draw_hold(UBYTE *b)
 {
     UBYTE m = not_holding_mask(), g;
     WORD y = PANEL_Y + 34;
@@ -1231,7 +1231,7 @@ static void draw_hold(UBYTE *b)
 }
 
 /* pauza: panel z pytaniem (na torze w prostokacie nakladek, w menu na srodku ekranu) */
-static void draw_pause(UBYTE *b, WORD y)
+static COLD void draw_pause(UBYTE *b, WORD y)
 {
     panel(b, PANEL_X, y, PANEL_W, 92, U_PANEL, U_GOLD);
     text_draw_big_center(b, y + 8, "PAUZA", U_GOLD, U_SHADOW);
@@ -1240,7 +1240,7 @@ static void draw_pause(UBYTE *b, WORD y)
     text_draw_center(b, y + 72, "FIRE - GRAJ DALEJ", U_WHITE, U_SHADOW);
 }
 
-static void draw_false_start(UBYTE *b)
+static COLD void draw_false_start(UBYTE *b)
 {
     Heat *h = &g_tour.heat;
     Bike *bk = &g_tour.bikes[h->false_starter];
@@ -1260,7 +1260,7 @@ static void draw_false_start(UBYTE *b)
     text_draw_center(b, PANEL_Y + 90, s, U_GREY, 0);
 }
 
-static void draw_result(UBYTE *b)
+static COLD void draw_result(UBYTE *b)
 {
     static const char *pts_txt[4] = { "3 PKT", "2 PKT", "1 PKT", "0 PKT" };
     Heat *h = &g_tour.heat;
@@ -1322,7 +1322,7 @@ extern UWORD g_grading_progress;   /* 0..255, z main.c */
 #define GRADE_W 128
 #define GRADE_H 62
 
-static void draw_grading(UBYTE *b)
+static COLD void draw_grading(UBYTE *b)
 {
     WORD w = (WORD)((96 * g_grading_progress / 255) & ~15);
     panel(b, GRADE_X, GRADE_Y, GRADE_W, GRADE_H, U_PANEL, U_BORDER);
@@ -1440,7 +1440,7 @@ static UBYTE startwin_px(WORD x, WORD y, UBYTE lamp)
 
 static void draw_lamp(UBYTE *b, UBYTE lamp);
 
-static void draw_startwin_static(UBYTE *b, UBYTE lamp)
+static COLD void draw_startwin_static(UBYTE *b, UBYTE lamp)
 {
     WORD x, y;
     panel(b, SW_X, SW_Y, SW_W, SW_H, U_PANEL, U_BORDER);

@@ -357,7 +357,7 @@ static void force_redraw(void)
     shown.menu = 0;
 }
 
-void hud_init(void)
+COLD void hud_init(void)
 {
     have_referee = asset_load("PROGDIR:data/referee.bin", referee, sizeof(referee));
     have_arm = asset_load("PROGDIR:data/refarm.bin", ref_arm, sizeof(ref_arm));

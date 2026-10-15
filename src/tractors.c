@@ -21,7 +21,7 @@ typedef struct { LONG s88; WORD lat; WORD x, y; angle8 heading; } Vehicle;
 static UWORD  *veh_mem;
 static Vehicle veh[NUM_VEH];
 
-BOOL tractors_init(void)
+COLD BOOL tractors_init(void)
 {
     veh_mem = AllocMem(VEH_BYTES, MEMF_CHIP | MEMF_CLEAR);
     if (!veh_mem) return FALSE;

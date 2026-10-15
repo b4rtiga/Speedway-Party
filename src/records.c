@@ -71,7 +71,7 @@ static BOOL import_old(void)
     return TRUE;
 }
 
-void records_load(void)
+COLD void records_load(void)
 {
     hof_clear();
     dirty = FALSE;
@@ -80,7 +80,7 @@ void records_load(void)
     if (import_old()) dirty = TRUE;               /* przy wyjsciu powstanie halloffame.dat */
 }
 
-void records_save(void)
+COLD void records_save(void)
 {
     struct Process *pr;
     APTR old_win;

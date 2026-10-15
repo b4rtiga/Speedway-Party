@@ -365,7 +365,7 @@ void track_tick_flush(void)
 /* Inny tor na kazdy turniej: 1-2 wyjezdzone sciezki w losowym miejscu przekroju
  * (przy krawezniku, srodkiem albo szeroko), lekko falujace wzdluz toru, o losowej sile.
  * Ubicie podnosi przyczepnosc i jest widoczne jak sciezki wyjezdzone w biegach. */
-void track_random_surface(void)
+COLD void track_random_surface(void)
 {
     Track *t = &g_tour.track;
     WORD hw = t->half_width;
@@ -599,7 +599,7 @@ static void load_hud_palette(void)
     }
 }
 
-void track_render(UBYTE *dst)
+COLD void track_render(UBYTE *dst)
 {
     WORD x, y;
     for (y = 0; y < PLAY_H; y++)
@@ -619,7 +619,7 @@ void track_render(UBYTE *dst)
 }
 
 /* Przelaczenie toru: geometria, mapa przyczepnosci, tasma i pola, tlo i palety. */
-void track_select(UBYTE type)
+COLD void track_select(UBYTE type)
 {
     Track *t = &g_tour.track;
     WORD gx, gy, i;
@@ -674,7 +674,7 @@ void track_select(UBYTE type)
 }
 
 /* Wszystkie tory wczytywane z gory - po przejeciu sprzetu nie ma juz dos.library. */
-BOOL track_init(void)
+COLD BOOL track_init(void)
 {
     UBYTE i;
     g_tour.track.wetness = 0;

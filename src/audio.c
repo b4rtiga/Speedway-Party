@@ -79,7 +79,7 @@ static UBYTE crowd_vol, crowd_target, crowd_boost;
 static UBYTE last_leader = 0xFF, last_finished;
 static BOOL  cheered;                     /* okrzyk na ostatniej prostej juz byl w tym biegu */
 
-BOOL audio_init(void)
+COLD BOOL audio_init(void)
 {
     UBYTE i;
     silence = AllocMem(4, MEMF_CHIP | MEMF_CLEAR);
