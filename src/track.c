@@ -542,7 +542,9 @@ static void build_palettes(void)
     set_rgb(&d[105], 240, 240, 240); set_rgb(&d[106], 255, 220, 0);  set_rgb(&d[107], 170, 30, 110);
     set_rgb(&d[108], 0, 0, 0);       set_rgb(&d[109], 200, 200, 215); set_rgb(&d[110], 205, 125, 60);
     set_rgb(&d[111], 60, 220, 90);   set_rgb(&d[112], 255, 60, 50);
-    /* 113..120: tablice podprowadzajacych - jasne i ciemne odcienie kaskow (jak tools/genart.py) */
+    /* 113..122: tablice podprowadzajacych - jasne i ciemne odcienie kaskow, cyjan logo DEV84
+     * (jak tools/genart.py; zarezerwowane tez w palecie planszy tytulowej, tools/gentitle.py) */
+    set_rgb(&d[121], 107, 224, 255);   set_rgb(&d[122], 40, 115, 150);
     set_rgb(&d[113], 255, 120, 105);   set_rgb(&d[117], 150, 10, 15);
     set_rgb(&d[114], 120, 170, 255);   set_rgb(&d[118], 15, 45, 150);
     set_rgb(&d[115], 255, 255, 255);   set_rgb(&d[119], 170, 172, 190);

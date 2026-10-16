@@ -45,6 +45,7 @@ COLD void tournament_defaults(void)
     static const InputPort ports[MAX_RIDERS] = { INPUT_JOY1, INPUT_JOY0, INPUT_KEYS_ZX, INPUT_KEYS_NM };
     UBYTE i;
     g_tour.num_humans = 1;
+    g_tour.track_choice = TRACK_RANDOM;
     tournament_default_names();
     for (i = 0; i < MAX_RIDERS; i++) {
         Rider *r = &g_tour.riders[i];

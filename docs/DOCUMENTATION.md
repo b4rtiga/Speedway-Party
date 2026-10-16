@@ -67,13 +67,15 @@ FIRE or ESC takes you back from the manual, the records and the credits.
 
 ### Settings
 
-Number of players (0–4), each player's controls and name, bot skill, track condition (dry, damp, wet – random at first), music and defects (chapter 4). The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed LET'S RACE! with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
+Number of players (0–4), each player's controls and name, and bot skill. The **TOURNAMENT OPTIONS** row opens a separate screen: track condition at the start (dry, damp, wet or random – the default), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the settings. A summary of the chosen options is shown under the list. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed LET'S RACE! with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
 
 ![Settings](../art/en/screen_02_setup.png)
 
+![Tournament options](../art/en/screen_29_opcje.png)
+
 ### Race programme and rider presentation
 
-Before each heat the programme shows who starts from which gate, the points table for all heats and the track records. Then the start girls stand at gates A–D holding boards in the helmet colours of the riders starting there (3 seconds or FIRE). They sway to the beat, and every now and then one of them blows a kiss.
+Before each heat the programme shows who starts from which gate, the points table for all heats and the track records. Then the start girls stand at gates A–D holding boards in the helmet colours of the riders starting there, with the logos of the sponsors from the infield banners (3 seconds or FIRE). They sway to the beat, and every now and then one of them blows a kiss.
 
 ![Race programme](../art/en/screen_03_table.png)
 
@@ -162,7 +164,7 @@ Loose dirt collects by the fence. Ride into it too slowly and the bike bogs down
 
 ### Watering and drying
 
-The track condition at the start is random (you can change it in the settings). A wet track grips clearly worse – you have to slide harder. After heats 4, 7, 11 and 13 the track is graded and watered, then dries out heat by heat.
+The track condition at the start is random by default (you can set it in the tournament options). A wet track grips clearly worse – you have to slide harder. After heats 4, 7, 11 and 13 the track is graded and watered, then dries out heat by heat.
 
 # Part II. For developers
 

@@ -94,11 +94,10 @@ static void enter(GameState s)
     state_timer = 0;
     if (s == GS_SETUP) {
         ui_setup_enter();                /* kursor na START TURNIEJU */
-        /* stan toru losowy przy kazdym wejsciu do ustawien (gracz moze go zmienic);
-         * do ziarna dokladamy pozycje wiazki i licznik klatek - zalezne od chwili nacisniecia */
+        /* do ziarna losowania (stan toru, nawierzchnia, defekty) dokladamy pozycje wiazki
+         * i licznik klatek - zalezne od chwili nacisniecia */
         g_rng ^= ((ULONG)g_frame << 16) ^ hw_vpos();
         if (!g_rng) g_rng = 0x2026B4u;
-        g_tour.start_condition = (UBYTE)rng_range(0, 2);
     }
     while (key_get() != 0xFF) ;      /* stare wcisniecia nie przechodza do nowego ekranu */
     ui_invalidate();
@@ -242,6 +241,11 @@ static BOOL handle_pause(void)
         }
         return TRUE;
     }
+    if (edge && g_tour.state == GS_OPTIONS) {        /* ESC w opcjach: powrot do ustawien */
+        enter(GS_SETUP);
+        ui_setup_focus_options();
+        return TRUE;
+    }
     if (edge && g_tour.state == GS_SETUP) {          /* ESC w ustawieniach: powrot do ekranu wyboru */
         ui_menu_enter(0);
         enter(GS_MENU);
@@ -264,6 +268,14 @@ static BOOL handle_pause(void)
         return TRUE;
     }
     return FALSE;
+}
+
+/* ustawienia: SETUP_OPTIONS -> ekran opcji turnieju; TRUE = start turnieju */
+static BOOL setup_pick(void)
+{
+    UBYTE p = ui_setup_update();
+    if (p == SETUP_OPTIONS) { ui_options_enter(); enter(GS_OPTIONS); }
+    return (BOOL)(p == SETUP_START);
 }
 
 static void update_state(void)
@@ -314,6 +326,10 @@ static void update_state(void)
         else while (key_get() != 0xFF) ;  /* wcisniecia sprzed ekranu nie wpisuja znakow */
         break;
 
+    case GS_OPTIONS:                     /* opcje turnieju: POWROT (albo ESC) do ustawien */
+        if (state_timer > FPS / 4 && ui_options_update()) { enter(GS_SETUP); ui_setup_focus_options(); }
+        break;
+
     case GS_HELP:                        /* LEWO/PRAWO - strony, FIRE / Return (albo ESC) wraca */
         if (state_timer > FPS / 4 && ui_help_update()) { ui_menu_enter(1); enter(GS_MENU); }
         break;
@@ -324,11 +340,13 @@ static void update_state(void)
         if (state_timer == 3 * FPS) { g_tour.num_humans = 0; tournament_default_names(); ui_invalidate(); }
         if (state_timer > 4 * FPS) {        /* bez reakcji na klawisze - nic nie zepsuje testu */
 #else
-        if (ui_setup_update()) {
+        if (setup_pick()) {
 #endif
             records_resolve_pending();           /* przerwany turniej: jego miejsca z imieniem z nazwiska */
             tournament_reset();
             g_tour.current_heat = 0;
+            g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice
+                                                                         : (UBYTE)rng_range(0, 2);
             {
                 static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
                 track_set_wetness(start_wet[g_tour.start_condition]);

@@ -235,6 +235,7 @@ typedef enum {
     GS_NEWS,             /* gazeta po zawodach (po podium) */
     GS_RECORDS,          /* tabela rekordow toru (z ekranu wyboru) */
     GS_NAME_ENTRY,         /* wpisywanie imienia po rekordzie (gracz w TOP 5) */
+    GS_OPTIONS,          /* opcje turnieju (z ustawien): stan toru, defekty, muzyka */
     GS_QUIT
 } GameState;
 
@@ -266,6 +267,7 @@ typedef struct Tournament {
     Particle  particles[MAX_PARTICLES];
     UBYTE     particle_head;               /* bufor kolowy: nowa nadpisuje najstarsza */
     UBYTE     start_condition;             /* stan toru na start: 0 suchy, 1 wilgotny, 2 mokry */
+    UBYTE     track_choice;                /* opcja STAN TORU: 0..2 jak wyzej, TRACK_RANDOM = losowany */
     UBYTE     new_records;                 /* REC_HEAT|REC_LAP pobite w ostatnim biegu */
     TourStats stats;                       /* fakty zawodow (gazeta) */
     GameState state;
@@ -274,6 +276,8 @@ typedef struct Tournament {
 extern Tournament g_tour;
 extern BOOL g_paused;             /* ESC: pauza z pytaniem (main.c) */
 extern BOOL g_pause_quit;         /* TRUE: pytanie o wyjscie z gry (menu glowne), FALSE: do menu */
+
+#define TRACK_RANDOM 3                     /* track_choice: stan toru losowany na start turnieju */
 
 /* tournament.c */
 void tournament_defaults(void);                  /* nazwiska, AI - raz przy starcie programu */

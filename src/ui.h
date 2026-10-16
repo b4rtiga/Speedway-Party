@@ -13,7 +13,12 @@ BOOL ui_panel_covers(WORD x, WORD y, WORD w, WORD h);   /* prostokat zachodzi na
 void ui_render(void);              /* raz na klatke, rysuje do bufora "back" */
 
 BOOL ui_title_update(void);        /* TRUE = przejdz dalej */
-BOOL ui_setup_update(void);        /* TRUE = start turnieju */
+UBYTE ui_setup_update(void);       /* SETUP_START = start turnieju, SETUP_OPTIONS = opcje, 0 = nic */
+#define SETUP_START   1
+#define SETUP_OPTIONS 2
+void ui_setup_focus_options(void); /* po powrocie z opcji: kursor na OPCJE TURNIEJU */
+void ui_options_enter(void);       /* opcje turnieju: kursor na STAN TORU */
+BOOL ui_options_update(void);      /* TRUE = powrot do ustawien */
 void ui_menu_enter(UBYTE row);     /* ekran wyboru: 0 = JEDZIEMY!, 1 = INSTRUKCJA, 2 = REKORDY, 3 = CREDITS */
 UBYTE ui_menu_update(void);        /* 1 = JEDZIEMY!, 2 = INSTRUKCJA, 3 = REKORDY, 4 = CREDITS, 0 = nic */
 void ui_name_entry_enter(UBYTE rider);   /* wpis imienia do rekordow (domyslne z nazwiska) */

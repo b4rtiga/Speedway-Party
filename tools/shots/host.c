@@ -40,8 +40,10 @@ BOOL asset_load(const char *name, void *dst, LONG size)
     return n == size;
 }
 
-void video_set_play_palette(const RGB24 *pal) { memcpy(cur_play, pal, sizeof(cur_play)); memcpy(cur_menu, pal, sizeof(cur_menu)); }
-void video_set_menu_palette(const RGB24 *pal) { memcpy(cur_menu, pal, sizeof(cur_menu)); }
+/* jak video.c: menu ma wlasna palete (plansza tytulowa), paleta toru trafia do niego tylko bez niej */
+static BOOL menu_own_pal;
+void video_set_play_palette(const RGB24 *pal) { memcpy(cur_play, pal, sizeof(cur_play)); if (!menu_own_pal) memcpy(cur_menu, pal, sizeof(cur_menu)); }
+void video_set_menu_palette(const RGB24 *pal) { menu_own_pal = TRUE; memcpy(cur_menu, pal, sizeof(cur_menu)); }
 void video_set_hud_palette(const RGB24 *pal) { memcpy(cur_hud, pal, sizeof(cur_hud)); }
 void video_set_hud_color(UBYTE i, UBYTE r, UBYTE g, UBYTE b) { cur_hud[i].r = r; cur_hud[i].g = g; cur_hud[i].b = b; }
 void video_palette_tick(void) { }
@@ -55,7 +57,7 @@ void video_blend_track_palette(UBYTE wet)
         cur_play[i].g = (UBYTE)(d->g + (((WORD)w->g - d->g) * wet >> 8));
         cur_play[i].b = (UBYTE)(d->b + (((WORD)w->b - d->b) * wet >> 8));
     }
-    memcpy(cur_menu, cur_play, sizeof(cur_menu));       /* jak w grze: obie listy Coppera */
+    if (!menu_own_pal) memcpy(cur_menu, cur_play, sizeof(cur_menu));   /* jak w grze: menu z wlasna paleta zostaje */
 }
 void video_blend_track_palette_lazy(UBYTE wet) { video_blend_track_palette(wet); }   /* PC: od razu */
 void video_set_lines(const UWORD *bg, const UWORD *fg)

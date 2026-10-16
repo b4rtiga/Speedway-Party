@@ -67,13 +67,15 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ### Ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy, poziom botów, stan toru (suchy, wilgotny, mokry – na start losowany), muzyka i defekty (rozdział 4). Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz JEDZIEMY!: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **OPCJE TURNIEJU** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ustawień. Pod listą widać skrót wybranych opcji. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz JEDZIEMY!: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
 ![Ustawienia](../art/screen_02_setup.png)
 
+![Opcje turnieju](../art/screen_29_opcje.png)
+
 ### Program zawodów i prezentacja
 
-Przed każdym biegiem program pokazuje, kto startuje z którego pola, oraz tabelę punktów ze wszystkich biegów i rekordy toru. Potem podprowadzające stają na polach A–D z tablicami w kolorach kasków zawodników, którzy z nich startują (3 sekundy albo FIRE). Kołyszą się w rytm, a któraś co chwilę posyła buziaka.
+Przed każdym biegiem program pokazuje, kto startuje z którego pola, oraz tabelę punktów ze wszystkich biegów i rekordy toru. Potem podprowadzające stają na polach A–D z tablicami w kolorach kasków zawodników, którzy z nich startują, z logo sponsorów z banerów na murawie (3 sekundy albo FIRE). Kołyszą się w rytm, a któraś co chwilę posyła buziaka.
 
 ![Program zawodów](../art/screen_03_table.png)
 
@@ -162,7 +164,7 @@ Pod bandą zbiera się luźna nawierzchnia. Wjazd tam za wolno – motocykl się
 
 ### Polewanie i schnięcie
 
-Stan toru na start jest losowany (można go zmienić w ustawieniach). Mokry tor trzyma wyraźnie gorzej – trzeba łamać mocniej. Po biegach 4, 7, 11 i 13 tor jest równany i polewany, a potem z biegu na bieg przesycha.
+Stan toru na start jest domyślnie losowany (można go ustawić w opcjach turnieju). Mokry tor trzyma wyraźnie gorzej – trzeba łamać mocniej. Po biegach 4, 7, 11 i 13 tor jest równany i polewany, a potem z biegu na bieg przesycha.
 
 # Część II. Dla twórców
 

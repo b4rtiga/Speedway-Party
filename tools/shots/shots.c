@@ -367,6 +367,8 @@ static int screenshots(void)
     tournament_default_names();       /* GRACZ 2 zamiast CPU 2 */
     g_defects_enabled = TRUE;            /* w ustawieniach domyslnie TAK */
     g_tour.state = GS_SETUP;   render(); shot("02_setup", FALSE);
+    ui_options_enter();
+    g_tour.state = GS_OPTIONS; render(); shot("29_opcje", FALSE);
     g_defects_enabled = FALSE;
     g_tour.num_humans = 0;
 

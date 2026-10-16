@@ -622,12 +622,10 @@ COLD BOOL ui_title_update(void)
 
 /* ========================= USTAWIENIA ============================= */
 
-#define SETUP_ROWS   9
-#define ROW_COND     5
-#define ROW_MUSIC    6
-#define ROW_DEFECTS  7
-#define ROW_START    8
-static const char *cond_names[3] = { T("SUCHY", "DRY"), T("WILGOTNY", "DAMP"), T("MOKRY", "WET") };
+#define SETUP_ROWS   7
+#define ROW_OPTIONS  5
+#define ROW_START    6
+static const char *cond_names[4] = { T("SUCHY", "DRY"), T("WILGOTNY", "DAMP"), T("MOKRY", "WET"), T("LOSOWY", "RANDOM") };
 static const char *port_names[INPUT_NONE] = {
     "JOY 1", "JOY 0", "JOY 3 LPT", "JOY 4 LPT", T("KLAW Z/X", "KEYS Z/X"), T("KLAW N/M", "KEYS N/M"), T("STRZAŁKI", "ARROWS")
 };
@@ -642,7 +640,11 @@ COLD void ui_setup_enter(void)
     editing = FALSE;
 }
 
-static WORD setup_row_y(UBYTE row) { return (WORD)(46 + row * 17); }
+void ui_setup_focus_options(void) { setup_row = ROW_OPTIONS; }
+
+static WORD setup_row_y(UBYTE row) { return (WORD)(50 + row * 18); }
+
+static const char *yes_no(BOOL v) { return v ? T("TAK", "YES") : T("NIE", "NO"); }
 
 static COLD void draw_setup(UBYTE *b)
 {
@@ -670,21 +672,22 @@ static COLD void draw_setup(UBYTE *b)
         text_draw(b, 168, y, human ? T("GRACZ", "HUMAN") : "AI", human ? U_GREEN : U_GREY, U_SHADOW);
         text_draw(b, human ? 216 : 192, y, human ? port_names[r->input] : level_names[r->ai_level], U_GOLD, U_SHADOW);   /* PROFESJONALISTA = 15 znakow */
     }
-    text_draw(b, 40, setup_row_y(ROW_COND), T("STAN TORU:", "TRACK:"), U_WHITE, U_SHADOW);
-    p = text_cat(s, "< ");
-    p = text_cat(p, cond_names[g_tour.start_condition]);
-    text_cat(p, " >");
-    text_draw(b, 168, setup_row_y(ROW_COND), s, U_GOLD, U_SHADOW);
-    text_draw(b, 40, setup_row_y(ROW_MUSIC), T("MUZYKA:", "MUSIC:"), U_WHITE, U_SHADOW);
-    text_draw(b, 168, setup_row_y(ROW_MUSIC), g_music_enabled ? T("< TAK >", "< YES >") : T("< NIE >", "< NO >"), U_GOLD, U_SHADOW);
-    text_draw(b, 40, setup_row_y(ROW_DEFECTS), T("DEFEKTY:", "DEFECTS:"), U_WHITE, U_SHADOW);
-    text_draw(b, 168, setup_row_y(ROW_DEFECTS), g_defects_enabled ? T("< TAK >", "< YES >") : T("< NIE >", "< NO >"), U_GOLD, U_SHADOW);
+    text_draw(b, 40, setup_row_y(ROW_OPTIONS), T("OPCJE TURNIEJU", "TOURNAMENT OPTIONS"), U_WHITE, U_SHADOW);
+    text_draw(b, 200, setup_row_y(ROW_OPTIONS), ">", U_GOLD, U_SHADOW);
     text_draw_center(b, setup_row_y(ROW_START), T("START TURNIEJU", "START TOURNAMENT"), setup_row == ROW_START ? U_RAINBOW : U_WHITE, U_SHADOW);
+    /* skrot opcji pod lista */
+    p = text_cat(s, T("TOR: ", "TRACK: "));
+    p = text_cat(p, cond_names[g_tour.track_choice]);
+    p = text_cat(p, T("  DEFEKTY: ", " DEFECTS: "));
+    p = text_cat(p, yes_no(g_defects_enabled));
+    p = text_cat(p, T("  MUZYKA: ", " MUSIC: "));
+    text_cat(p, yes_no(g_music_enabled));
+    text_draw_center(b, 182, s, U_GREY, 0);
 
     text_draw_center(b, 206, editing ? T("PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA", "TYPE ON KEYBOARD / UP-DOWN LETTER")
                                      : T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY, 0);
     text_draw_center(b, 222, editing ? T("PRAWO: DODAJ  LEWO: USUŃ  FIRE: OK", "RIGHT: ADD  LEFT: DELETE  FIRE: OK")
-                                     : T("FIRE: EDYCJA NAZWISKA / START", "FIRE: EDIT NAME / START"), U_GREY, 0);
+                                     : T("FIRE: NAZWISKO / OPCJE / START", "FIRE: NAME / OPTIONS / START"), U_GREY, 0);
     text_draw_center(b, 238, T("ESC - POWRÓT DO MENU", "ESC - BACK TO MENU"), U_GREY, 0);
 #ifdef SHOW_LAG
     {
@@ -766,7 +769,7 @@ static COLD void edit_name(Rider *r, UBYTE m)
     }
 }
 
-COLD BOOL ui_setup_update(void)
+COLD UBYTE ui_setup_update(void)
 {
     UBYTE m = input_menu();
     UBYTE k;
@@ -780,7 +783,7 @@ COLD BOOL ui_setup_update(void)
         edit_name(r, m);
         for (k = 0; k <= NAME_LEN && !changed; k++) if (before[k] != r->name[k]) changed = TRUE;
         if (changed || was != editing) ui_invalidate();
-        return FALSE;
+        return 0;
     }
     while (key_get() != 0xFF) ;      /* poza edycja ignorujemy pisanie */
 
@@ -800,19 +803,78 @@ COLD BOOL ui_setup_update(void)
                 r->input = (InputPort)((r->input + INPUT_NONE + d) % INPUT_NONE);
             else
                 r->ai_level = (AiLevel)((r->ai_level + 3 + d) % 3);
-        } else if (setup_row == ROW_COND) {
-            g_tour.start_condition = (UBYTE)((g_tour.start_condition + 3 + d) % 3);
-        } else if (setup_row == ROW_MUSIC) {
-            g_music_enabled = (BOOL)!g_music_enabled;
-        } else if (setup_row == ROW_DEFECTS) {
-            g_defects_enabled = (BOOL)!g_defects_enabled;
         }
     }
     if (m & BTN_FIRE) {
-        if (setup_row == ROW_START) return TRUE;
-        if (setup_row == ROW_MUSIC) { g_music_enabled = (BOOL)!g_music_enabled; changed = TRUE; }
-        if (setup_row == ROW_DEFECTS) { g_defects_enabled = (BOOL)!g_defects_enabled; changed = TRUE; }
+        if (setup_row == ROW_START) return SETUP_START;
+        if (setup_row == ROW_OPTIONS) return SETUP_OPTIONS;
         if (setup_row >= 1 && setup_row <= MAX_RIDERS) { editing = TRUE; changed = TRUE; }
+    }
+    if (changed) ui_invalidate();
+    return 0;
+}
+
+/* ===================== OPCJE TURNIEJU ============================== */
+
+/* Z ustawien (wiersz OPCJE TURNIEJU): stan toru na start (albo losowy), defekty, muzyka.
+ * LEWO/PRAWO zmienia, FIRE zmienia albo wraca (POWROT), ESC wraca do ustawien. */
+#define OPT_ROWS    4
+#define OPT_TRACK   0
+#define OPT_DEFECTS 1
+#define OPT_MUSIC   2
+#define OPT_BACK    3
+static UBYTE opt_row;
+
+void ui_options_enter(void) { opt_row = OPT_TRACK; }
+
+static WORD opt_row_y(UBYTE row) { return (WORD)(64 + row * 24); }
+
+static COLD void draw_options(UBYTE *b)
+{
+    static const char *const label[3] = { T("STAN TORU:", "TRACK:"), T("DEFEKTY:", "DEFECTS:"), T("MUZYKA:", "MUSIC:") };
+    static const char *const about[OPT_ROWS] = {
+        T("STAN NAWIERZCHNI NA START TURNIEJU", "TRACK CONDITION AT THE START"),
+        T("AWARIE MOTOCYKLI: OK. 1 NA TURNIEJ", "ENGINE FAILURES: ABOUT 1 PER EVENT"),
+        T("MUZYKA W MENU", "MUSIC IN THE MENUS"),
+        T("POWRÓT DO USTAWIEŃ", "BACK TO THE SETTINGS") };
+    char s[24], *p;
+    UBYTE i;
+    text_draw_big_center(b, 12, T("OPCJE TURNIEJU", "TOURNAMENT OPTIONS"), U_RAINBOW, U_SHADOW);
+    blit_fill(b, 16, opt_row_y(opt_row) - 4, 288, 17, U_CURSOR);
+    for (i = 0; i < 3; i++) {
+        text_draw(b, 40, opt_row_y(i), label[i], U_WHITE, U_SHADOW);
+        p = text_cat(s, "< ");
+        p = text_cat(p, i == OPT_TRACK ? cond_names[g_tour.track_choice] :
+                        yes_no(i == OPT_DEFECTS ? g_defects_enabled : g_music_enabled));
+        text_cat(p, " >");
+        text_draw(b, 168, opt_row_y(i), s, U_GOLD, U_SHADOW);
+    }
+    text_draw_center(b, opt_row_y(OPT_BACK), T("POWRÓT", "BACK"), opt_row == OPT_BACK ? U_RAINBOW : U_WHITE, U_SHADOW);
+    text_draw_center(b, 172, about[opt_row], U_GREY, 0);
+    text_draw_center(b, 206, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY, 0);
+    text_draw_center(b, 222, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY, 0);
+    text_draw_center(b, 238, T("ESC - POWRÓT DO USTAWIEŃ", "ESC - BACK TO SETTINGS"), U_GREY, 0);
+}
+
+COLD BOOL ui_options_update(void)
+{
+    UBYTE m = input_menu();
+    BOOL changed = FALSE;
+    BYTE d = 0;
+    while (key_get() != 0xFF) ;
+    if (m & BTN_UP)   { opt_row = (UBYTE)((opt_row + OPT_ROWS - 1) % OPT_ROWS); changed = TRUE; }
+    if (m & BTN_DOWN) { opt_row = (UBYTE)((opt_row + 1) % OPT_ROWS); changed = TRUE; }
+    if (m & BTN_RIGHT) d = 1;
+    if (m & BTN_LEFT) d = -1;
+    if (m & BTN_FIRE) {
+        if (opt_row == OPT_BACK) return TRUE;
+        d = 1;
+    }
+    if (d) {
+        changed = TRUE;
+        if (opt_row == OPT_TRACK) g_tour.track_choice = (UBYTE)((g_tour.track_choice + 4 + d) % 4);
+        else if (opt_row == OPT_DEFECTS) g_defects_enabled = (BOOL)!g_defects_enabled;
+        else if (opt_row == OPT_MUSIC) g_music_enabled = (BOOL)!g_music_enabled;
     }
     if (changed) ui_invalidate();
     return FALSE;
@@ -1077,6 +1139,35 @@ static void draw_girl_rows(UBYTE *b, WORD x0, WORD py, UBYTE color, WORD y0, WOR
     }
 }
 
+/* Sponsorzy z banerow na murawie (tools/genart.py: 3DPJOY i DEV84) w malej wersji - same napisy
+ * literami 3x5 jak na banerze 3DPJOY - na tabliczce w srodku tablicy: pola A i C - 3DPJOY
+ * (czarny na bialym, czerwona kropka przycisku), B i D - DEV84 (cyjan 121 z cieniem 122 na czarnym).
+ * Kolory tylko z czesci palety wspolnej z plansza tytulowa. */
+static const char *const logo_rows[2][5] = {
+    { "###.##..###...#.###.#.#", "..#.#.#.#.#...#.#.#.#.#", ".##.#.#.###...#.#.#..#.", "..#.#.#.#...#.#.#.#..#.", "###.##..#....#..###..#." },
+    { "##..###.#.#.###.#.#", "#.#.#...#.#.#.#.#.#", "#.#.##..#.#.###.###", "#.#.#...#.#.#.#...#", "##..###..#..###...#" } };
+
+static void draw_logo(UBYTE *b, WORD cx, WORD cy, UBYTE which)
+{
+    const char *const *rows = logo_rows[which];
+    WORD w = 0, x0, y0, r, c, pass;
+    while (rows[0][w]) w++;
+    x0 = (WORD)(cx - w / 2); y0 = (WORD)(cy - 2);
+    rect_px(b, x0 - 3, y0 - 3, w + 6, 11, which ? U_GREY : U_SHADOW);      /* ramka tabliczki */
+    rect_px(b, x0 - 2, y0 - 2, w + 4, 9, which ? U_SHADOW : U_WHITE);
+    if (!which) rect_px(b, x0 + w - 1, y0 - 2, 2, 1, U_RED);              /* przycisk joysticka */
+    for (pass = which ? 0 : 1; pass < 2; pass++)                           /* DEV84: najpierw cien */
+        for (r = 0; r < 5; r++)
+            for (c = 0; c < w; ) {
+                WORD n = 1;
+                if (rows[r][c] != '#') { c++; continue; }
+                while (rows[r][c + n] == '#') n++;                          /* odcinek */
+                rect_px(b, x0 + c + (pass ? 0 : 1), y0 + r + (pass ? 0 : 1), n, 1,
+                        (UBYTE)(which ? (pass ? 121 : 122) : U_SHADOW));
+                c = (WORD)(c + n);
+            }
+}
+
 /* Tablica nad glowa (52x26, trzymana w dloniach), rysowana wierszami (rect_px): cien, czarny
  * kontur z zaokraglonymi rogami, pole w kolorze kasku z gradientem (polysk u gory, ciemniejszy dol,
  * przejscia ditheringiem w szachownice), wypukla krawedz (jasna z lewej, ciemna z prawej), odblask
@@ -1094,7 +1185,7 @@ static WORD board_row_inset(WORD r)
     return 0;
 }
 
-static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color)
+static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color, UBYTE sponsor)
 {
     WORD bx = (WORD)(x0 - 2), by = (WORD)(y0 + 2 - BOARD_H), cy = (WORD)(by + BOARD_H / 2);
     UBYTE base = (UBYTE)(U_HELMET + color), lt = (UBYTE)(U_HELMET_LT + color), dk = (UBYTE)(U_HELMET_DK + color);
@@ -1131,10 +1222,11 @@ static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color)
     rect_px(b, bx + 6, by + 2, 14, 1, U_WHITE);                      /* odblask */
     rect_px(b, bx + 4, by + 3, 3, 1, U_WHITE);
     for (i = 0; i < 2; i++) {                                         /* nity */
-        WORD nx = (WORD)(i ? bx + BOARD_W - 7 : bx + 5);
+        WORD nx = (WORD)(i ? bx + BOARD_W - 5 : bx + 3);
         rect_px(b, nx, cy - 1, 2, 2, U_SILVER);
         rect_px(b, nx + 1, cy, 1, 1, U_SHADOW);
     }
+    draw_logo(b, (WORD)(bx + BOARD_W / 2), cy, sponsor);
 }
 
 /* serduszko 5x4 (buziak): wiersze bitowo, bit 4 = lewy piksel */
@@ -1177,7 +1269,7 @@ static void draw_girl_upper(UBYTE *b, UBYTE g, UBYTE color, BYTE amp)
 {
     WORD x0 = gate_x(g);
     rect_px(b, x0 - 8, PRES_Y - CACHE_TOP, 64, CACHE_ROWS, 0);
-    draw_board(b, (WORD)(x0 + amp), PRES_Y, color);
+    draw_board(b, (WORD)(x0 + amp), PRES_Y, color, (UBYTE)(g & 1));
     if (girls_img) draw_girl_rows(b, x0, PRES_Y, color, 0, UPPER_ROWS, amp);
 }
 
@@ -1989,6 +2081,7 @@ panel_done:
     case GS_NAME_ENTRY: draw_name_entry(b); break;
     case GS_NEWS:      draw_news(b); break;
     case GS_SETUP:     draw_setup(b); break;
+    case GS_OPTIONS:   draw_options(b); break;
     case GS_TABLE:     draw_table(b); break;
     case GS_PRESENT:   draw_present(b, bi); break;
     case GS_GATE_PICK: draw_pick(b); break;
