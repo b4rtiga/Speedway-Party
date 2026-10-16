@@ -7,10 +7,10 @@
 
 Material: prawdziwy kod gry skompilowany na PC (tools/shots, tryb "cinema") - sceny: start
 spod tasmy, szpryca, noc, deszcz, defekt, upadek w 1. luku, fotofinisz (zwolnione tempo
-i stopklatka), mistrzostwa z fajerwerkami, plansza koncowa. Tu: wirtualna kamera 16:9 (podaza
+i stopklatka), mistrzostwa z fajerwerkami, plansza tytulowa z nazwa gry. Tu: wirtualna kamera 16:9 (podaza
 za motocyklami z zapisu pozycji, odjazdy i najazdy), skalowanie "ostre dwuliniowe" (wyrazne
 piksele przy plynnym ruchu kamery), napisy fontem gry (src/font.c) i dzwiek: silniki z rejestrow
-Pauli (tools/trailer_audio.py), muzyka Black Motor, gwar, brzeczyk i okrzyk z data/ (bez gwizdka - na zuzlu sie nie gwizdze).
+Pauli (tools/trailer_audio.py), muzyka Black Motor, gwar, brzeczyk, jek trybun i okrzyk z data/.
 Wymaga: numpy, ffmpeg w PATH, pip install ziglang (kompilacja tools/shots)."""
 import os
 import pathlib
@@ -32,16 +32,17 @@ WORK = ROOT / "build" / ("cinema_en" if EN else "cinema")
 OUT = ROOT / ("art/en" if EN else "art")
 
 CAPTIONS = {        # scena: (tekst PL, tekst EN, od klatki sceny, do klatki sceny)
-    1: ("JEDNA TAŚMA", "ONE TAPE", 15, 145),
-    2: ("SZPRYCA W TWARZ", "DIRT IN YOUR FACE", 10, 150),
-    3: ("ZAWODY W NOCY", "UNDER THE LIGHTS", 10, 150),
-    4: ("DESZCZ", "RAIN", 10, 150),
+    1: ("JEDNA TAŚMA", "ONE TAPE", 12, 122),
+    2: ("SZPRYCA W TWARZ", "DIRT IN YOUR FACE", 8, 125),
+    3: ("ZAWODY W NOCY", "UNDER THE LIGHTS", 8, 125),
+    4: ("DESZCZ", "RAIN", 8, 125),
     5: ("DEFEKT!", "ENGINE FAILURE!", 40, 200),
     6: ("UPADEK!", "CRASH!", 62, 165),
     7: ("FOTOFINISZ", "PHOTO FINISH", 84, 300),
     8: ("MECZE I MISTRZOSTWA", "MATCHES AND CHAMPIONSHIPS", 10, 150),
 }
-SUBTITLE = ("AMIGA 1200   1-4 GRACZY", "AMIGA 1200   1-4 PLAYERS")
+SIGNOFF = ("Z ŻUŻLOWYM POZDROWIENIEM!", "SEE YOU AT THE TAPE!")   # na planszy tytulowej
+GREEN = 125                                                          # klatka zielonego w scenie 1
 
 
 # ------------------------------------------------------------------ material z gry
@@ -146,10 +147,10 @@ def target(scene, f, n, m, first):
     """cel kamery (cx, cy, ww, tor?) dla klatki f z n klatek sceny"""
     fx, fy = m["bx"][m["focus"]], m["by"][m["focus"]]
     if scene == 1:
-        if f < 150:                                   # zblizenie na tasme, lekki najazd
+        if f < GREEN:                                 # zblizenie na tasme, lekki najazd
             cx, cy = pack(first)
-            return cx, cy - 4, 120 - 20 * ease(f / 150), True
-        k = ease((f - 150) / 70)                      # zielone: odjazd na caly tor
+            return cx, cy - 4, 120 - 20 * ease(f / GREEN), True
+        k = ease((f - GREEN) / 70)                    # zielone: odjazd na caly tor
         px, py = pack(m)
         return px + (160 - px) * k, py + (104 - py) * k, 100 + 220 * k, True
     if scene == 2:
@@ -178,7 +179,8 @@ def target(scene, f, n, m, first):
         return (fx + sx) / 2, (fy + sy) / 2, 170, True
     if scene == 8:                                    # klasyfikacja: od tytulu w dol do mistrza
         return 160, 90 + 76 * ease(f / n), 320, False
-    return 160, 90, 304 + 16 * ease(f / n), False   # plansza koncowa: lekki odjazd
+    k = ease(f / 150)                                 # plansza tytulowa: od logo na cala ilustracje
+    return 160, 46 + 44 * k, 150 + 170 * k, False
 
 
 # ------------------------------------------------------------------ obraz
@@ -234,11 +236,14 @@ def make_video(meta):
                 text = cap[1] if EN else cap[0]
                 vis = (f - cap[2]) // 2 + 1                       # literka po literce
                 draw_text(img, text, 56, H - 56 - 60, 6, (255, 204, 40), visible=vis)
-            if sc == 9 and f >= 20:
-                sub = SUBTITLE[1 if EN else 0]
-                m3 = text_mask(sub, 3)
-                draw_text(img, sub, (W - m3.shape[1]) // 2, H - 70, 3, (235, 235, 235),
-                          visible=(f - 20) // 2 + 1)
+            if sc == 9 and f >= 100:                          # pozegnanie pod ilustracja, na ciemnym pasie
+                k = min(1.0, (f - 100) / 20)
+                band = (1 - 0.6 * k * np.clip((np.arange(H) - (H - 170)) / 90, 0, 1))[:, None, None]
+                img = (img * band).astype(np.uint8)
+                sub = SIGNOFF[1 if EN else 0]
+                m5 = text_mask(sub, 5)
+                draw_text(img, sub, (W - m5.shape[1]) // 2, H - 92, 5, (255, 204, 40),
+                          visible=(f - 110) // 2 + 1 if f >= 110 else 0)
             if sc == 7 and f == len(idx) - 60:
                 thumb = img.copy()
             ff.stdin.write(img.tobytes())
@@ -279,7 +284,7 @@ def make_audio(meta):
         return idx[min(f, len(idx) - 1)] * RATE // FPS
 
     music = loop_to(load_s8("src/music/BlackMotor/black_motor_s8.raw", 15977), total)
-    start = at(1, 150)                                      # muzyka wchodzi na zielonym
+    start = at(1, GREEN)                                    # muzyka wchodzi na zielonym
     mv = np.zeros(total, np.float32)
     mv[start:] = 0.62
     mv[(scene == 7) & (flags > 0)] = 0.25                   # zwolnione tempo: muzyka w tle
@@ -300,7 +305,11 @@ def make_audio(meta):
         e = min(total, pos + len(s))
         fx[pos:e] += s[:e - pos]
 
-    put("data/buzzer.raw", at(1, 150), 0.8)
+    put("data/buzzer.raw", at(1, GREEN), 0.8)
+    for i, m in enumerate(meta):                            # bieg przerwany po upadku: jek trybun
+        if m["scene"] == 6 and m["phase"] == 5 and meta[i - 1]["phase"] != 5:
+            put("data/groan.raw", i * RATE // FPS, 0.8)
+            break
     put("data/cheer.raw", at(7, 60), 0.8)
     put("data/cheer.raw", at(8, 5), 0.5)
 

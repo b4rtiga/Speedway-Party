@@ -152,7 +152,7 @@ Gdy nic się nie dzieje, sędzia mruga i zerka na boki zza przyciemnianych okula
 2. Pali się czerwone – czekasz sekundę, dwie, trzy, nigdy nie wiadomo ile.
 3. Zielone, brzęczyk, trzask zwolnionej taśmy – **puść od razu**. Im szybciej puścisz, tym lepszy start.
 
-- **Za wcześnie:** gwizdek, „TAŚMA!”, czerwona flaga i ostrzeżenie. Druga taśma w tym samym biegu to wykluczenie.
+- **Za wcześnie:** jęk zawodu trybun, „TAŚMA!”, czerwona flaga i ostrzeżenie. Druga taśma w tym samym biegu to wykluczenie.
 - **Za późno** (dłużej niż 0,3 s po zielonym): koło mieli w miejscu.
 - **Awaria maszyny:** czasem światła gasną, a sędzia startuje bieg flagą narodową – trzeba patrzeć na jego rękę.
 
@@ -280,7 +280,7 @@ Na gołym A1200 program i dane siedzą w Chip RAM, który współdzieli z układ
 
 ### Dźwięk (Paula)
 
-Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; w menu – muzyka w podwójnym buforze), kibice, efekty (brzęczyk z trzaskiem taśmy, gwizdek, okrzyk trybun, gdy prowadzący wjeżdża na ostatnią prostą – ok. 0,6 s przed metą). Silnik to pętla 8 cykli zapłonu z nagrania (`data/engine.raw`); wysokość tonu zmienia się z obrotami przez okres odtwarzania Pauli. Okrzyk trybun (`data/cheer.raw`, 2,6 s) generuje `tools/genaudio.py`; jeśli w `src/` leży nagranie `crowd_cheer.wav`, okrzyk powstaje z niego (mono, 11 025 Hz, najwyżej 3 s).
+Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; w menu – muzyka w podwójnym buforze), kibice, efekty (brzęczyk z trzaskiem taśmy, jęk trybun, okrzyk trybun, gdy prowadzący wjeżdża na ostatnią prostą – ok. 0,6 s przed metą). Silnik to pętla 8 cykli zapłonu z nagrania (`data/engine.raw`); wysokość tonu zmienia się z obrotami przez okres odtwarzania Pauli. Okrzyk trybun (`data/cheer.raw`, 2,6 s) generuje `tools/genaudio.py`; jeśli w `src/` leży nagranie `crowd_cheer.wav`, okrzyk powstaje z niego (mono, 11 025 Hz, najwyżej 3 s).
 
 ### Moduły
 
@@ -307,7 +307,7 @@ Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; 
 
 ### Dane (katalog data/)
 
-Wszystkie pliki generują narzędzia z `tools/` i są w repozytorium: tor (`track0.bpl`, `track0.pal`), plansza tytułowa (`title.bpl`, `title.pal`), motocykle (`bikes.spr`: jeden komplet klatek, kolor kasku nadaje gra), traktory (`tractors.spr`), HUD (`hud.pal`, `referee.bin`, `refarm.bin`), podprowadzające (`girls.bin`), dźwięki (`engine.raw`, `crowd.raw`, `buzzer.raw`, `whistle.raw`, `cheer.raw`) i muzyka (`music.raw`, kopiowana przy budowaniu).
+Wszystkie pliki generują narzędzia z `tools/` i są w repozytorium: tor (`track0.bpl`, `track0.pal`), plansza tytułowa (`title.bpl`, `title.pal`), motocykle (`bikes.spr`: jeden komplet klatek, kolor kasku nadaje gra), traktory (`tractors.spr`), HUD (`hud.pal`, `referee.bin`, `refarm.bin`), podprowadzające (`girls.bin`), dźwięki (`engine.raw`, `crowd.raw`, `buzzer.raw`, `groan.raw`, `cheer.raw`) i muzyka (`music.raw`, kopiowana przy budowaniu).
 
 ## 9. Uruchomienie w WinUAE
 

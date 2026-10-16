@@ -656,7 +656,7 @@ static int screenshots(void)
 /* ------------------------------------------------------------------------------
  * Tryb "cinema": material do filmowego trailera (tools/mkcinema.py). Sceny z prawdziwego
  * kodu gry: start spod tasmy, szpryca w 1. luku, noc, deszcz, defekt, upadek w 1. luku,
- * fotofinisz (zwolnione tempo i stopklatka), mistrzostwa z fajerwerkami, plansza koncowa.
+ * fotofinisz (zwolnione tempo i stopklatka), mistrzostwa z fajerwerkami, plansza tytulowa.
  * Klatki 320x256 RGB na stdout; CINEMA_META: co klatke wiersz tekstu (scena, faza, flagi,
  * pozycje motocykli, motocykl "w kadrze") - kamere i napisy robi mkcinema.py; TRAILER_AUDIO:
  * rejestry silnikow jak w trybie trailer. Klatki ida przez bufor kolowy (3 s), wiec ujecie
@@ -791,10 +791,10 @@ static int cinema(void)
     cin_fresh_tournament(0x5EED01u, 0);
     cin_heat(0);
     while (g_tour.heat.phase != HEAT_TAPE_UP) cin_step();
-    cin_go_live(150);
+    cin_go_live(125);
     for (i = 0; i < 150; i++) cin_step();
     cin_scene = 2;
-    for (i = 0; i < 150; i++) cin_step();
+    for (i = 0; i < 125; i++) cin_step();
     cin_cut();
 
     /* 3. noc */
@@ -806,7 +806,7 @@ static int cinema(void)
     while (g_tour.heat.phase != HEAT_RACING) cin_step();
     for (i = 0; i < 260; i++) cin_step();
     cin_go_live(0);
-    for (i = 0; i < 150; i++) cin_step();
+    for (i = 0; i < 125; i++) cin_step();
     cin_cut();
     track_set_night(FALSE);
     g_tour.night = 0;
@@ -819,7 +819,7 @@ static int cinema(void)
     while (g_tour.heat.phase != HEAT_RACING) cin_step();
     for (i = 0; i < 400; i++) cin_step();
     cin_go_live(0);
-    for (i = 0; i < 150; i++) cin_step();
+    for (i = 0; i < 125; i++) cin_step();
     cin_cut();
     g_tour.rain_from = 0xFF;
 
@@ -911,20 +911,14 @@ static int cinema(void)
         g_tour.series = 0;
     }
 
-    /* 9. plansza koncowa: ilustracja tytulowa z napisem */
+    /* 9. plansza tytulowa z nazwa gry (napis pozegnalny dorysowuje mkcinema.py) */
     cin_scene = 9;
     {
         extern const char *g_endcard[2];
-#ifdef LANG_EN
-        g_endcard[0] = "SEE YOU";
-        g_endcard[1] = "AT THE TAPE!";
-#else
-        g_endcard[0] = "Z ŻUŻLOWYM";
-        g_endcard[1] = "POZDROWIENIEM!";
-#endif
+        g_endcard[0] = g_endcard[1] = 0;
         tenter(GS_TITLE);
         cin_live = TRUE;
-        cin_hold(150, FALSE);
+        cin_hold(250, FALSE);
         cin_cut();
     }
     fclose(cin_meta_f);

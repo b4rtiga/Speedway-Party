@@ -35,7 +35,7 @@ void blit_plot(UBYTE *buf, WORD x, WORD y, UBYTE c)          /* jak blit.c (tlo 
 void blit_restores_begin(void) {}
 void blit_copy(UBYTE *d, const UBYTE *s, WORD x, WORD y, WORD w, WORD h) { (void)d; (void)s; (void)x; (void)y; (void)w; (void)h; }
 void sfx_buzzer(void) {}
-void sfx_whistle(void) {}
+void sfx_groan(void) {}
 BOOL asset_load(const char *name, void *dst, LONG size) { (void)name; (void)dst; (void)size; return FALSE; }
 
 void stubs_init(void)

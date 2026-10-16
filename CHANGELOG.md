@@ -5,6 +5,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 
 ## 0.96 – w przygotowaniu
 
+- **Bez gwizdka:** na żużlu sędzia nie gwiżdże (zapala czerwone światła) – po taśmie i przerwaniu biegu słychać teraz jęk zawodu trybun.
 - **Kaski** całe w kolorze zawodnika (wcześniej ćwierć kasku była szara jak cień).
 - **Poprawki na Amidze:** ramki i kwadraty kasków na ekranach mistrzostw, końca meczu i treningu wyrównane do 16 pikseli (Blitter rysował je przesunięte).
 - **Nowy trailer:** filmowy, 35 s w 16:9 – start spod taśmy, szpryca, noc, deszcz, defekt, upadek, fotofinisz i mistrzostwa, z kamerą za motocyklami.

@@ -4,7 +4,8 @@
                     gdy jest nagranie ENGINE_WAV, engine.raw robi z niego tools/import_engine.py
   data/crowd.raw    gwar kibicow, petla bez szwu, 11025 Hz
   data/buzzer.raw   start: brzeczyk + puszczenie tasmy (metaliczne "klak" i swist gumy), 0.7 s, 11025 Hz
-  data/whistle.raw  gwizdek sedziego z "groszkiem" 0.8 s, 11025 Hz (polowa pamieci; ton 2850 Hz miesci sie)
+  data/groan.raw    jek zawodu trybun ("uuu...") po tasmie i przerwaniu biegu, 1.4 s, 11025 Hz -
+                    na zuzlu sedzia nie gwizdze (czerwone swiatla), slychac trybuny
   data/cheer.raw    okrzyk trybun, gdy prowadzacy wjezdza na ostatnia prosta, 2.6 s, 11025 Hz - syntetyczny;
                     gdy jest nagranie CHEER_WAV, cheer.raw powstaje z niego (mono, 11025 Hz, do 3 s)
 Podglady: art/*.wav (engine_sweep.wav symuluje Paule: obroty od wolnych do maksymalnych).
@@ -92,17 +93,28 @@ def buzzer(rate=11025, dur=0.7):
     return to_s8(x)
 
 
-def whistle(rate=11025, dur=0.8):
-    t = np.arange(int(rate * dur)) / rate
-    trill = 35 + 4 * np.sin(2 * np.pi * 1.3 * t)              # "groszek" w gwizdku
-    phase_t = np.cumsum(trill) / rate
-    f = 2850 + 70 * np.sin(2 * np.pi * phase_t)
-    phase = np.cumsum(2 * np.pi * f / rate)
-    am = 0.62 + 0.38 * np.sin(2 * np.pi * phase_t) ** 2
-    harm = 0.18 if 2 * 2920 < rate / 2 else 0.0               # 2. harmoniczna tylko, gdy miesci sie pod Nyquistem
-    x = (np.sin(phase) + harm * np.sin(2 * phase)) * am + rng.normal(0, 0.06, t.size)
-    env = np.minimum(1, t / 0.02) * np.minimum(1, (dur - t) / 0.08)
-    return to_s8(x * env)
+def groan(rate=11025, dur=1.4):
+    """jek zawodu trybun: kilkadziesiat glosow "uuu" (samogloska u/o) z opadajacym tonem + szum"""
+    r = np.random.default_rng(1414)                      # osobne ziarno - inne probki bez zmian
+    n = int(rate * dur)
+    t = np.arange(n) / rate
+    src = np.zeros(n)
+    for _ in range(56):
+        f0 = r.uniform(110, 260)
+        on = r.uniform(0.0, 0.18)
+        rise = r.uniform(0.08, 0.2)
+        fall = 1 - 0.22 * np.clip((t - on) / 0.9, 0, 1)   # "uuuu..." opada
+        vib = 1 + 0.02 * np.sin(2 * np.pi * r.uniform(3, 6) * t + r.uniform(0, 6))
+        phase = np.cumsum(f0 * fall * vib) / rate
+        saw = 2 * (phase % 1) - 1
+        env = np.clip((t - on) / rise, 0, 1) * np.exp(-np.maximum(0, t - on - 0.4) / r.uniform(0.35, 0.7))
+        src += saw * env * r.uniform(0.5, 1.0)
+    voices = resonator(src, 340, 90, rate) + 0.55 * resonator(src, 780, 130, rate) + 0.15 * resonator(src, 2400, 300, rate)
+    noise = r.normal(0, 1, n)
+    murmur = (lowpass(noise, 0.25) - lowpass(noise, 0.04)) * np.clip(t / 0.15, 0, 1) * np.exp(-t / 1.0)
+    x = voices / (np.max(np.abs(voices)) + 1e-9) + 0.3 * murmur / (np.max(np.abs(murmur)) + 1e-9)
+    x *= np.minimum(1, (dur - t) / 0.4)
+    return to_s8(np.tanh(x * 1.3))
 
 
 def resonator(x, f, bw, rate):
@@ -196,7 +208,7 @@ def main():
         "engine": (engine(), None),
         "crowd": (crowd(), 11025),
         "buzzer": (buzzer(), 11025),
-        "whistle": (whistle(), 11025),
+        "groan": (groan(), 11025),
         "cheer": (cheer_from_wav(CHEER_WAV) if CHEER_WAV.exists() else cheer(), 11025),
     }
     if CHEER_WAV.exists():

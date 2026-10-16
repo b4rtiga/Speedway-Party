@@ -3,7 +3,7 @@
  *   kanal 0 (L): silnik lidera          - petla 8 zaplonow, okres z obrotow
  *   kanal 1 (P): silnik drugiego        - jw.
  *   kanal 2 (P): gwar kibicow           - petla, glosnosc plynnie do celu
- *   kanal 3 (L): efekty jednorazowe     - brzeczyk, gwizdek, okrzyk trybun na ostatniej prostej
+ *   kanal 3 (L): efekty jednorazowe     - brzeczyk, jek trybun, okrzyk trybun na ostatniej prostej
  *
  * Jednorazowy efekt na Pauli: start DMA laduje (latch) LC/LEN do licznikow,
  * wiec w nastepnej klatce wpisujemy do LC/LEN 2-slowowa cisze - po koncu
@@ -44,7 +44,7 @@
 #define RPM_TO_PER   8867237UL            /* 3546895 * 120 / ENGINE_CYCLE: 4-suw, 1 cylinder */
 #define PER_CROWD    322                  /* 11025 Hz */
 #define PER_BUZZER   322
-#define PER_WHISTLE  322                  /* 11025 Hz */
+#define PER_GROAN    322                  /* 11025 Hz */
 #define PER_CHEER    322                  /* 11025 Hz */
 #define PER_MUSIC    222                  /* 3546895 / 222 = 15977 Hz (PAL) */
 #define MUSIC_VOL    48
@@ -56,10 +56,10 @@
 #define INTF_AUD1    0x0100
 
 typedef struct { BYTE *data; ULONG len; } Sample;
-enum { S_ENGINE = 0, S_CROWD, S_BUZZER, S_WHISTLE, S_CHEER, S_COUNT };
+enum { S_ENGINE = 0, S_CROWD, S_BUZZER, S_GROAN, S_CHEER, S_COUNT };
 static const char *files[S_COUNT] = {
     "PROGDIR:data/engine.raw", "PROGDIR:data/crowd.raw",
-    "PROGDIR:data/buzzer.raw", "PROGDIR:data/whistle.raw", "PROGDIR:data/cheer.raw"
+    "PROGDIR:data/buzzer.raw", "PROGDIR:data/groan.raw", "PROGDIR:data/cheer.raw"
 };
 static Sample smp[S_COUNT];
 static Sample music;                      /* data/music.raw, Fast albo Chip RAM */
@@ -177,7 +177,8 @@ static void play_sfx(UBYTE id, UWORD per, UBYTE vol)
 }
 
 void sfx_buzzer(void)  { play_sfx(S_BUZZER, PER_BUZZER, 64); crowd_boost = 100; }
-void sfx_whistle(void) { play_sfx(S_WHISTLE, PER_WHISTLE, 56); }
+/* tasma / przerwanie biegu: na zuzlu sedzia nie gwizdze (czerwone swiatla) - slychac jek trybun */
+void sfx_groan(void) { play_sfx(S_GROAN, PER_GROAN, 60); crowd_boost = 40; }
 
 /* ---------------------------- muzyka --------------------------------- */
 

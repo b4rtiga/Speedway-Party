@@ -468,7 +468,7 @@ void audio_stop(void);                            /* przed oddaniem systemu */
 void audio_update(void);                          /* raz na klatke */
 extern BOOL g_music_enabled;                      /* muzyka w menu (opcja w ustawieniach) */
 void sfx_buzzer(void);
-void sfx_whistle(void);
+void sfx_groan(void);                            /* jek trybun: tasma, przerwany bieg */
 void audio_music_cut(void);                      /* muzyka: cisza od razu (przed dluzszym liczeniem) */
 
 /* hud.c */

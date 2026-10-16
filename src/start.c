@@ -79,7 +79,7 @@ static void call_false_start(UBYTE bike_idx)
         g_tour.stats.exclusions++;
         g_tour.stats.excluded[b->rider]++;
     }
-    sfx_whistle();
+    sfx_groan();
 }
 
 /* Upadek w biegu: czerwona flaga, upadly wykluczony (W, jak po drugiej tasmie - race_init_heat
@@ -97,7 +97,7 @@ void start_stop_fall(UBYTE bike_idx)
     b->state = BIKE_EXCLUDED;
     g_tour.stats.exclusions++;
     g_tour.stats.excluded[b->rider]++;
-    sfx_whistle();
+    sfx_groan();
 }
 
 /* Wejscie "trzyma" przed startem: czlowiek - realny przycisk, AI - zawsze trzyma

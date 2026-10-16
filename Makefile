@@ -34,7 +34,7 @@ $(EN_DIR)/%.o: src/%.c src/*.h
 $(EN_DIR)/SpeedwayParty: $(EN_OBJ)
 	$(CC) $(LDFLAGS) -o $@ $(EN_OBJ)
 
-DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/girls.bin data/hud.pal data/referee.bin data/refarm.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw data/cheer.raw \
+DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/girls.bin data/hud.pal data/referee.bin data/refarm.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/groan.raw data/cheer.raw \
        data/track0n.pal data/track0n.map
 
 # Pliki pakowane na dyskietce (tools/pack.py, rozpakowuje assets.c) - w data/ zostaja niespakowane
