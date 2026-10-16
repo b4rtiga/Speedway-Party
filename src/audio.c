@@ -320,7 +320,7 @@ static void update_engines(void)
 
     if (g_paused) {
         /* pauza: silniki cichna */
-    } else if (g_tour.state == GS_HEAT && g_tour.heat.phase != HEAT_FALSE_START) {
+    } else if (g_tour.state == GS_HEAT && g_tour.heat.phase != HEAT_FALSE_START && g_tour.heat.phase != HEAT_REPLAY) {
         pick_engines(pick);
         for (c = 0; c < 2; c++)
             if (pick[c] != 0xFF) {

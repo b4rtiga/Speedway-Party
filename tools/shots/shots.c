@@ -539,6 +539,20 @@ static int screenshots(void)
     tournament_award_points();
     g_tour.state = GS_HEAT_RESULT; render(); hud_update(); shot("test_defekt_wynik", FALSE);   /* kontrola: tylko tools/shots/out */
 
+    /* fotofinisz: biegi az do pierwszego zakonczonego "o wlos", stopklatka powtorki na linii */
+    for (i = 0; i < NUM_HEATS; i++) {
+        begin((UBYTE)i);
+        g_tour.state = GS_HEAT;
+        while (g_tour.heat.phase != HEAT_FINISHED) step();
+        if (!race_photo_finish()) continue;
+        g_tour.heat.phase = HEAT_REPLAY;
+        race_replay_frame(race_replay_cross());
+        roost_reset();
+        render(); bike_sprites(); render(); hud_update(); shot("32_fotofinisz", TRUE);
+        race_photo_done();
+        break;
+    }
+
     /* zawody w nocy: tor w swietle reflektorow (gennight.py) */
     g_tour.night = 1;
     track_set_night(TRUE);

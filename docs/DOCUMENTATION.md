@@ -89,9 +89,11 @@ At the bottom of the screen there is a bar: helmet colours in race order, the la
 
 ### Results, track break, podium and newspaper
 
-After each heat – results with points and the time. After heats 4, 7, 11 and 13 tractors grade and water the track. After the last heat – the podium, followed by the “OVAL HERALD” newspaper summing up the meeting. FIRE on the newspaper starts a new tournament.
+After each heat – results with points and the time. When the runner-up crosses the line at most 0.1 s behind the winner, the game first shows a **photo finish**: the end of the heat in slow motion and a freeze-frame on the line with the margin (FIRE skips it). After heats 4, 7, 11 and 13 tractors grade and water the track. After the last heat – the podium, followed by the “OVAL HERALD” newspaper summing up the meeting. FIRE on the newspaper starts a new tournament.
 
 ![Heat result](../art/en/screen_07_result.png)
+
+![Photo finish](../art/en/screen_32_fotofinisz.png)
 
 ![A defect: the engine coughs and smokes (yellow bike)](../art/en/screen_27_defekt.png)
 

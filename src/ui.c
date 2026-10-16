@@ -28,7 +28,7 @@ enum { U_PANEL = 96, U_PANEL2, U_BORDER, U_WHITE, U_RAINBOW, U_GOLD, U_GREY,
 #define PANEL_H 112
 #define NAME_EDIT_MAX 13
 
-typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE, OV_HOLD } Overlay;
+typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE, OV_HOLD, OV_PHOTO } Overlay;
 
 static UBYTE serial = 1, drawn_serial[2];
 static UBYTE panel_ov[2];                /* nakladka narysowana w panelu bufora (OV_NONE = pusty) */
@@ -1496,6 +1496,7 @@ static Overlay current_overlay(void)
     if (g_paused) return OV_PAUSE;
     if (not_holding_mask()) return OV_HOLD;
     if (g_tour.state == GS_HEAT && g_tour.heat.phase == HEAT_FALSE_START) return OV_FALSE_START;
+    if (g_tour.state == GS_HEAT && g_tour.heat.phase == HEAT_REPLAY) return OV_PHOTO;
     if (g_tour.state == GS_HEAT_RESULT) return OV_RESULT;
     if (g_tour.state == GS_TRACK_GRADING) return OV_GRADING;
     return OV_NONE;
@@ -1546,6 +1547,19 @@ static COLD void draw_false_start(UBYTE *b)
     p = text_uint(p, h->restarts, 1);
     text_cat(p, ")");
     text_draw_center(b, PANEL_Y + 90, s, U_GREY, 0);
+}
+
+/* fotofinisz: pasek u gory panelu - tor z linia mety (dolna prosta) zostaje widoczny */
+#define PHOTO_H 44
+static COLD void draw_photo(UBYTE *b)
+{
+    char s[32], *p;
+    UBYTE g = race_photo_gap();
+    panel(b, PANEL_X, PANEL_Y, PANEL_W, PHOTO_H, U_PANEL, U_GOLD);
+    text_draw_big_center(b, PANEL_Y + 6, T("FOTOFINISZ!", "PHOTO FINISH!"), U_GOLD, U_SHADOW);
+    p = text_cat(s, g ? T("RÓŻNICA: 0.", "MARGIN: 0.") : T("RÓŻNICA: PONIŻEJ 0.02 S", "MARGIN: UNDER 0.02 S"));
+    if (g) { p = text_uint(p, (ULONG)(g * 2), 2); text_cat(p, " S"); }      /* setne: 0.04, 0.10 */
+    text_draw_center(b, PANEL_Y + 30, s, U_WHITE, U_SHADOW);
 }
 
 static COLD void draw_result(UBYTE *b)
@@ -1633,6 +1647,7 @@ BOOL ui_panel_covers(WORD x, WORD y, WORD w, WORD h)
     switch (panel_ov[g_video.back]) {
     case OV_NONE:     return FALSE;
     case OV_HOLD:     py = PANEL_Y + 10; ph = 76; break;
+    case OV_PHOTO:    ph = PHOTO_H; break;
     case OV_PAUSE:    py = PANEL_Y + 10; ph = 92; break;
     case OV_GRADING:  px = GRADE_X; py = GRADE_Y; pw = GRADE_W; ph = GRADE_H; break;
     default:          break;                               /* tasma, wynik: caly panel */
@@ -1648,7 +1663,8 @@ static UBYTE tape_style(void)
     switch (g_tour.heat.phase) {
     case HEAT_TAPE_UP:  return g_tour.heat.tape_anim;
     case HEAT_RACING:
-    case HEAT_FINISHED: return TAPE_GONE;
+    case HEAT_FINISHED:
+    case HEAT_REPLAY:   return TAPE_GONE;
     default:            return 0;
     }
 }
@@ -2060,6 +2076,7 @@ void ui_render(void)
             case OV_GRADING:     draw_grading(b); break;
             case OV_PAUSE:       draw_pause(b, PANEL_Y + 10); break;
             case OV_HOLD:        draw_hold(b); break;
+            case OV_PHOTO:       draw_photo(b); break;
             default: break;
             }
         }

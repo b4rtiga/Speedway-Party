@@ -50,6 +50,19 @@ static UWORD winner_frame;
 #define FALL_HIT_CHANCE 30                 /* ... 30% szansy (upada najezdzajacy) */
 #define FALL_STOP       (FPS * 3 / 2)      /* po 1,5 s czerwona flaga */
 static UBYTE fall_bike = 0xFF, fall_timer;
+
+/* Fotofinisz: pozycje motocykli z ostatnich REPLAY_N klatek (pierscien). Gdy drugi minie mete
+ * najwyzej PHOTO_GAP klatek po zwyciezcy, nagrywamy jeszcze REPLAY_AFTER klatek i stop -
+ * main.c pokazuje to w zwolnionym tempie przed wynikami. 2,4 KB. */
+#define REPLAY_N     100
+#define PHOTO_GAP    5                     /* 0,1 s - w symulatorze ok. 1 na 2 turnieje */
+#define REPLAY_AFTER 24
+typedef struct { LONG x, y; UBYTE frame, skid; } RecBike;
+static RecBike rec[REPLAY_N][MAX_RIDERS];
+static UWORD rec_head, rec_count, rec_cross;
+static WORD  rec_left;                     /* -1: nagrywa stale; >0: tyle klatek do konca; 0: koniec */
+static UBYTE photo_gap;
+static BOOL  photo;
 static UBYTE end_wait;                   /* odliczanie od przejazdu ostatniego przez mete */
 #define END_WAIT_FRAMES (2 * FPS)
 
@@ -66,6 +79,9 @@ void race_init_heat(void)
     end_wait = 0;
     fall_bike = 0xFF;
     fall_timer = 0;
+    rec_head = rec_count = 0;
+    rec_left = -1;
+    photo = FALSE;
     for (g = 0; g < 4; g++) {
         Bike *b = &g_tour.bikes[g];
         UBYTE r = h->gate_rider[g];
@@ -159,6 +175,37 @@ static void slide_fallen(Bike *b)
     if (track_lateral(FIX2INT(b->x), FIX2INT(b->y)) > OUTER_LIMIT) {
         track_snap_lateral(&b->x, &b->y, OUTER_LIMIT - 1);
         b->speed = 0;
+    }
+}
+
+static void record_frame(void)
+{
+    UBYTE i;
+    if (rec_left == 0) return;
+    for (i = 0; i < MAX_RIDERS; i++) {
+        const Bike *b = &g_tour.bikes[i];
+        RecBike *r = &rec[rec_head][i];
+        r->x = b->x; r->y = b->y; r->frame = b->sprite_frame; r->skid = b->skid_frame;
+    }
+    rec_head = (UWORD)((rec_head + 1) % REPLAY_N);
+    if (rec_count < REPLAY_N) rec_count++;
+    if (rec_left > 0 && --rec_left == 0) photo = TRUE;
+}
+
+BOOL  race_photo_finish(void) { return photo; }
+void  race_photo_done(void) { photo = FALSE; }
+UBYTE race_photo_gap(void) { return photo_gap; }
+UWORD race_replay_len(void) { return rec_count; }
+UWORD race_replay_cross(void) { return (UWORD)(rec_count > rec_cross ? rec_count - 1 - rec_cross : 0); }
+
+void race_replay_frame(UWORD k)
+{
+    UWORD idx = (UWORD)((rec_head + REPLAY_N - rec_count + k) % REPLAY_N);
+    UBYTE i;
+    for (i = 0; i < MAX_RIDERS; i++) {
+        Bike *b = &g_tour.bikes[i];
+        const RecBike *r = &rec[idx][i];
+        b->x = r->x; b->y = r->y; b->sprite_frame = r->frame; b->skid_frame = r->skid;
     }
 }
 
@@ -310,6 +357,11 @@ static void update_bike(Bike *b)
         b->finish_frame = h->race_frames;
         h->finish_order[h->finished_count++] = b->rider;
         if (h->finished_count == 1) winner_frame = h->race_frames;
+        if (h->finished_count == 2 && rec_left < 0 && h->race_frames - winner_frame <= PHOTO_GAP) {
+            photo_gap = (UBYTE)(h->race_frames - winner_frame);   /* fotofinisz: nagraj jeszcze chwile */
+            rec_left = REPLAY_AFTER;
+            rec_cross = (UWORD)(REPLAY_AFTER + photo_gap - 1);      /* klatek od mety zwyciezcy do konca */
+        }
     }
 
     b->skid_frame = (UBYTE)(b->drift > 18 ? 2 : (b->drift > 8 || b->drift < -6) ? 1 : 0);
@@ -462,6 +514,7 @@ void race_update(void)
     roost_update(TRUE);
     collisions();
     update_positions();
+    record_frame();
 #ifdef SHOW_LAG
     p2 = hw_vpos();
 #endif

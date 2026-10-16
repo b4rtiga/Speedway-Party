@@ -15,6 +15,7 @@ int main(int argc, char **argv)
     FILE *trace = fopen("tools/sim/trace.csv", "w");
     int h, i;
     long total_frames = 0;
+    int photos = 0;
 
     stubs_init();
     fixmath_init();
@@ -71,6 +72,7 @@ int main(int argc, char **argv)
             }
             frame++;
         }
+        if (race_photo_finish()) photos++;
         total_frames += frame;
         tournament_award_points();
 
@@ -138,6 +140,7 @@ int main(int argc, char **argv)
     printf("średnio %.1f s na bieg (z procedurą startową)\n", total_frames / 50.0 / heats);
     printf("defekty: %d\n", g_tour.stats.defects);
     printf("upadki: %d\n", g_tour.stats.falls);
+    printf("fotofinisze: %d\n", photos);
     {
         FILE *w = fopen("tools/sim/wear.csv", "w");
         int gx, gy;

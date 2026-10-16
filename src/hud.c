@@ -405,7 +405,7 @@ void hud_update(void)
     if (lap > LAPS_PER_HEAT) lap = LAPS_PER_HEAT;
 
     /* 1 czerwone, 2 zielone, 3 schowane: 2 s po starcie i po biegu (w biegu juz niepotrzebne) */
-    lights = (h->phase == HEAT_FINISHED || (h->phase == HEAT_RACING && h->race_frames >= 2 * FPS) ||
+    lights = (h->phase == HEAT_FINISHED || h->phase == HEAT_REPLAY || (h->phase == HEAT_RACING && h->race_frames >= 2 * FPS) ||
               (h->phase == HEAT_FALSE_START && h->stop_fall)) ? 3 :            /* upadek: bieg juz trwal */
              h->emergency ? 0 :                              /* awaria: swiatla nie dzialaja */
              h->phase == HEAT_RED_LIGHT ? 1 : (h->phase == HEAT_TAPE_UP || h->phase == HEAT_RACING) ? 2 : 0;

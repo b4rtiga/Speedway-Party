@@ -189,7 +189,8 @@ typedef enum {
     HEAT_TAPE_UP,        /* zielone, tasma leci w gore (2-3 klatki) */
     HEAT_RACING,
     HEAT_FALSE_START,    /* czerwona flaga, powtorka */
-    HEAT_FINISHED
+    HEAT_FINISHED,
+    HEAT_REPLAY          /* fotofinisz: powtorka konca biegu (main.c) */
 } HeatPhase;
 
 #define TAPE_GONE 8                 /* klatki animacji odlotu tasmy (0.16 s) */
@@ -334,6 +335,13 @@ void race_init_heat(void);
 void race_update(void);
 LONG race_leader_distance(void);                 /* dystans najdalej jadacego */
 BOOL race_fall_active(void);                     /* ktos lezy, sedzia zaraz przerwie bieg (czerwona) */
+/* fotofinisz: drugi na mecie najwyzej PHOTO_GAP klatek za zwyciezca - koncowka biegu nagrana */
+BOOL  race_photo_finish(void);                   /* jest nagranie do pokazania */
+void  race_photo_done(void);                     /* pokazane - nastepny bieg od nowa */
+UBYTE race_photo_gap(void);                      /* roznica na mecie [klatki 1/50 s] */
+UWORD race_replay_len(void);                     /* klatek nagrania */
+UWORD race_replay_cross(void);                   /* klatka nagrania, w ktorej zwyciezca minal linie */
+void  race_replay_frame(UWORD k);                /* motocykle w pozycjach z klatki k nagrania */
 LONG race_straight_entry(UBYTE lap);             /* wjazd na prosta startowa konczaca okrazenie lap */
 void race_launch(Bike *b);
 

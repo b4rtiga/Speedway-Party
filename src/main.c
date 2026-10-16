@@ -125,9 +125,27 @@ static void read_bike_inputs(void)
     }
 }
 
+/* Fotofinisz: koncowka biegu w zwolnionym tempie (co 2 klatki obrazu klatka nagrania),
+ * potem stopklatka na przecieciu linii przez zwyciezce; FIRE pomija. */
+#define REPLAY_HOLD (2 * FPS)
+static UWORD replay_t;
+
+static BOOL update_replay(void)
+{
+    UWORD len = race_replay_len(), k = (UWORD)(replay_t / 2);
+    replay_t++;
+    if (k < len) race_replay_frame(k);
+    else race_replay_frame(race_replay_cross());
+    return (BOOL)(k >= len + REPLAY_HOLD / 2 || (replay_t > FPS / 2 && ui_confirm()));
+}
+
 static void update_heat(void)
 {
     Heat *h = &g_tour.heat;
+    if (h->phase == HEAT_REPLAY) {
+        if (update_replay()) { race_photo_done(); h->phase = HEAT_FINISHED; }
+        else return;
+    }
     read_bike_inputs();
     start_update();
     if (h->phase == HEAT_TAPE_UP || h->phase == HEAT_RACING)
@@ -135,6 +153,14 @@ static void update_heat(void)
     if (h->phase != last_phase) {     /* np. TASMA! / powtorka -> nakladka sie zmienia */
         last_phase = h->phase;
         ui_invalidate();
+    }
+    if (h->phase == HEAT_FINISHED && race_photo_finish()) {   /* o wlos: najpierw powtorka */
+        h->phase = HEAT_REPLAY;
+        last_phase = HEAT_REPLAY;
+        replay_t = 0;
+        roost_reset();
+        ui_invalidate();
+        return;
     }
     if (h->phase == HEAT_FINISHED) {
         g_tour.new_records = records_check_heat();

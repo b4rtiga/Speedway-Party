@@ -7,6 +7,7 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 
 - **Night meetings:** a new TIME: DAY / NIGHT option. At night four floodlight masts light the track – the bends in warm light, the straights in half-darkness.
 - **Machine defects:** at a random moment of a heat an engine coughs, smokes and dies, and the rider rolls onto the infield and waits there until the end of the heat – 0 points (“D”). About one defect per tournament, at most one per rider; they can be switched off.
+- **Photo finish:** when the runner-up crosses the line at most 0.1 s behind the winner, the game shows the end of the heat in slow motion and a freeze-frame on the line with the margin.
 - **Falls:** hitting the fence at high speed or running hard into a rival sometimes ends in a fall – red flag, the faller is excluded and the heat is rerun from the tape.
 - **Fair chances from every gate:** bots lay the bike down in time before a bend, and each one takes a slightly different line in a heat. Before, with four identical bots gate C won 59% of heats and gate A 1%; now every gate wins between 20 and 34%.
 - **Settings are remembered:** player names and controls, bot skill, track condition, time of day, defects and music – after a restart everything is as it was (`settings.dat` next to the game).
