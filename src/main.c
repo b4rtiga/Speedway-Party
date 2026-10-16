@@ -371,6 +371,7 @@ static void update_state(void)
             g_tour.current_heat = 0;
             g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice
                                                                          : (UBYTE)rng_range(0, 2);
+            g_tour.rain_from = g_tour.rain_opt ? (UBYTE)rng_range(2, 8) : 0xFF;   /* deszcz od biegu 3..9 */
             {
                 static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
                 track_set_wetness(start_wet[g_tour.start_condition]);

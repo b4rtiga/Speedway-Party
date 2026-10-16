@@ -46,6 +46,7 @@ COLD void tournament_defaults(void)
     UBYTE i;
     g_tour.num_humans = 1;
     g_tour.track_choice = TRACK_RANDOM;
+    g_tour.rain_from = 0xFF;
     tournament_default_names();
     for (i = 0; i < MAX_RIDERS; i++) {
         Rider *r = &g_tour.riders[i];

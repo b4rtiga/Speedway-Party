@@ -67,7 +67,7 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ### Turniej: zawodnicy i ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Zawodnicy i ustawienia zapisują się przy wyjściu z gry do pliku `settings.dat` obok gry (tylko gdy coś się zmieniło), więc po ponownym uruchomieniu są takie jak ostatnio. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), deszcz (rozdział 6), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Zawodnicy i ustawienia zapisują się przy wyjściu z gry do pliku `settings.dat` obok gry (tylko gdy coś się zmieniło), więc po ponownym uruchomieniu są takie jak ostatnio. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
 ![Turniej: zawodnicy](../art/screen_02_setup.png)
 
@@ -170,6 +170,12 @@ Pod bandą zbiera się luźna nawierzchnia. Wjazd tam za wolno – motocykl się
 ### Polewanie i schnięcie
 
 Stan toru na start jest domyślnie losowany (można go ustawić w ustawieniach turnieju). Mokry tor trzyma wyraźnie gorzej – trzeba łamać mocniej. Po biegach 4, 7, 11 i 13 tor jest równany i polewany, a potem z biegu na bieg przesycha.
+
+### Deszcz
+
+W ustawieniach turnieju DESZCZ: TAK – w losowym biegu (od 3. do 9.) zaczyna padać. Od tej chwili tor nie przesycha, tylko z biegu na bieg mięknie i trzyma coraz gorzej, a w biegu widać krople. W tabeli programu przy stanie toru pojawia się „PADA”.
+
+![Deszcz](../art/screen_33_deszcz.png)
 
 ### Zawody w nocy
 

@@ -139,7 +139,7 @@ COLD void records_save(void)
 #endif
 
 /* ---------------- ustawienia (settings.dat) ----------------
- * "SPS1", liczba graczy, stan toru, pora, defekty, muzyka, rezerwa; potem dla kazdego wiersza:
+ * "SPS1", liczba graczy, stan toru, pora, defekty, muzyka, deszcz; potem dla kazdego wiersza:
  * nazwisko (NAME_LEN + 1, z zerem), sterowanie, poziom bota. Bez pliku albo z bledem - domyslne. */
 static UBYTE set_loaded[SET_LEN];                 /* stan z pliku - zapis tylko po zmianie */
 
@@ -152,7 +152,7 @@ static void settings_pack(UBYTE *b)
     b[6] = g_tour.night;
     b[7] = (UBYTE)(g_defects_enabled ? 1 : 0);
     b[8] = (UBYTE)(g_music_enabled ? 1 : 0);
-    b[9] = 0;
+    b[9] = g_tour.rain_opt;
     for (i = 0; i < MAX_RIDERS; i++) {
         UBYTE *r = b + 10 + i * SET_RIDER;
         const Rider *rd = &g_tour.riders[i];
@@ -169,7 +169,7 @@ COLD void settings_load(void)
     UBYTE i, k;
     settings_pack(set_loaded);                    /* domyslne - gdy pliku nie ma */
     if (!asset_load(SET_DAT, b, SET_LEN) || b[0] != 'S' || b[1] != 'P' || b[2] != 'S' || b[3] != '1') return;
-    if (b[4] > MAX_RIDERS || b[5] > TRACK_RANDOM || b[6] > 1 || b[7] > 1 || b[8] > 1) return;
+    if (b[4] > MAX_RIDERS || b[5] > TRACK_RANDOM || b[6] > 1 || b[7] > 1 || b[8] > 1 || b[9] > 1) return;
     for (i = 0; i < MAX_RIDERS; i++) {
         const UBYTE *r = b + 10 + i * SET_RIDER;
         if (r[NAME_LEN] != 0 || r[NAME_LEN + 1] >= INPUT_NONE || r[NAME_LEN + 2] > AI_MASTER) return;
@@ -179,6 +179,7 @@ COLD void settings_load(void)
     g_tour.night = b[6];
     g_defects_enabled = (BOOL)b[7];
     g_music_enabled = (BOOL)b[8];
+    g_tour.rain_opt = b[9];
     for (i = 0; i < MAX_RIDERS; i++) {
         const UBYTE *r = b + 10 + i * SET_RIDER;
         Rider *rd = &g_tour.riders[i];

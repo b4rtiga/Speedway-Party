@@ -275,6 +275,8 @@ typedef struct Tournament {
     UBYTE     start_condition;             /* stan toru na start: 0 suchy, 1 wilgotny, 2 mokry */
     UBYTE     track_choice;                /* opcja STAN TORU: 0..2 jak wyzej, TRACK_RANDOM = losowany */
     UBYTE     night;                       /* opcja PORA: 1 = zawody w nocy (track_set_night) */
+    UBYTE     rain_opt;                    /* opcja DESZCZ: w ktoryms biegu zaczyna padac */
+    UBYTE     rain_from;                   /* bieg (0..), od ktorego pada; 0xFF = nie pada */
     UBYTE     new_records;                 /* REC_HEAT|REC_LAP pobite w ostatnim biegu */
     TourStats stats;                       /* fakty zawodow (gazeta) */
     GameState state;
@@ -285,6 +287,8 @@ extern BOOL g_paused;             /* ESC: pauza z pytaniem (main.c) */
 extern BOOL g_pause_quit;         /* TRUE: pytanie o wyjscie z gry (menu glowne), FALSE: do menu */
 
 #define TRACK_RANDOM 3                     /* track_choice: stan toru losowany na start turnieju */
+
+#define RAINING() (g_tour.current_heat >= g_tour.rain_from)   /* w tym biegu pada */
 
 /* tournament.c */
 void tournament_defaults(void);                  /* nazwiska, AI - raz przy starcie programu */

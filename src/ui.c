@@ -677,10 +677,11 @@ static COLD void draw_setup(UBYTE *b)
     /* skrot opcji pod lista */
     p = text_cat(s, T("TOR: ", "TRACK: "));
     p = text_cat(p, cond_names[g_tour.track_choice]);
-    p = text_cat(p, g_tour.night ? T("   NOC", "   NIGHT") : T("   DZIEŃ", "   DAY"));
-    p = text_cat(p, T("   DEFEKTY: ", "   DEFECTS: "));
+    p = text_cat(p, g_tour.night ? T("  NOC", "  NIGHT") : T("  DZIEŃ", "  DAY"));
+    if (g_tour.rain_opt) p = text_cat(p, T("  DESZCZ", "  RAIN"));
+    p = text_cat(p, T("  DEFEKTY: ", "  DEFECTS: "));
     p = text_cat(p, yes_no(g_defects_enabled));
-    p = text_cat(p, T("   MUZYKA: ", "   MUSIC: "));
+    p = text_cat(p, T("  MUZYKA: ", "  MUSIC: "));
     text_cat(p, yes_no(g_music_enabled));
     text_draw_small_center(b, 184, s, U_GREY);
 
@@ -819,24 +820,27 @@ COLD UBYTE ui_setup_update(void)
 
 /* Z ekranu TURNIEJ (wiersz USTAWIENIA): stan toru na start (albo losowy), defekty, muzyka.
  * LEWO/PRAWO zmienia, FIRE zmienia albo wraca (POWROT), ESC wraca do ekranu TURNIEJ. */
-#define OPT_ROWS    5
+#define OPT_ROWS    6
 #define OPT_TRACK   0
 #define OPT_NIGHT   1
-#define OPT_DEFECTS 2
-#define OPT_MUSIC   3
-#define OPT_BACK    4
+#define OPT_RAIN    2
+#define OPT_DEFECTS 3
+#define OPT_MUSIC   4
+#define OPT_BACK    5
 static UBYTE opt_row;
 
 void ui_options_enter(void) { opt_row = OPT_TRACK; }
 
-static WORD opt_row_y(UBYTE row) { return (WORD)(58 + row * 22); }
+static WORD opt_row_y(UBYTE row) { return (WORD)(50 + row * 20); }
 
 static COLD void draw_options(UBYTE *b)
 {
-    static const char *const label[4] = { T("STAN TORU:", "TRACK:"), T("PORA:", "TIME:"), T("DEFEKTY:", "DEFECTS:"), T("MUZYKA:", "MUSIC:") };
+    static const char *const label[5] = { T("STAN TORU:", "TRACK:"), T("PORA:", "TIME:"), T("DESZCZ:", "RAIN:"),
+                                          T("DEFEKTY:", "DEFECTS:"), T("MUZYKA:", "MUSIC:") };
     static const char *const about[OPT_ROWS] = {
         T("STAN NAWIERZCHNI NA START TURNIEJU", "TRACK CONDITION AT THE START"),
         T("NOC: TOR W SWIETLE REFLEKTOROW", "NIGHT: TRACK UNDER FLOODLIGHTS"),
+        T("W TRAKCIE TURNIEJU ZACZNIE PADAC", "IT WILL START RAINING MID-EVENT"),
         T("AWARIE MOTOCYKLI: OK. 1 NA TURNIEJ", "ENGINE FAILURES: ABOUT 1 PER EVENT"),
         T("MUZYKA W MENU", "MUSIC IN THE MENUS"),
         T("POWRÓT DO EKRANU TURNIEJU", "BACK TO THE TOURNAMENT SCREEN") };
@@ -844,17 +848,18 @@ static COLD void draw_options(UBYTE *b)
     UBYTE i;
     text_draw_big_center(b, 12, T("USTAWIENIA", "SETTINGS"), U_RAINBOW, U_SHADOW);
     blit_fill(b, 16, opt_row_y(opt_row) - 4, 288, 17, U_CURSOR);
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < 5; i++) {
         text_draw(b, 40, opt_row_y(i), label[i], U_WHITE, U_SHADOW);
         p = text_cat(s, "< ");
         p = text_cat(p, i == OPT_TRACK ? cond_names[g_tour.track_choice] :
                         i == OPT_NIGHT ? (g_tour.night ? T("NOC", "NIGHT") : T("DZIEŃ", "DAY")) :
+                        i == OPT_RAIN ? yes_no(g_tour.rain_opt) :
                         yes_no(i == OPT_DEFECTS ? g_defects_enabled : g_music_enabled));
         text_cat(p, " >");
         text_draw(b, 168, opt_row_y(i), s, U_GOLD, U_SHADOW);
     }
     text_draw_center(b, opt_row_y(OPT_BACK), T("POWRÓT", "BACK"), opt_row == OPT_BACK ? U_RAINBOW : U_WHITE, U_SHADOW);
-    text_draw_center(b, 176, about[opt_row], U_GREY, 0);
+    text_draw_center(b, 174, about[opt_row], U_GREY, 0);
     text_draw_small_center(b, 216, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY);
     text_draw_small_center(b, 227, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY);
     text_draw_small_center(b, 238, T("ESC - POWRÓT", "ESC - BACK"), U_GREY);
@@ -878,6 +883,7 @@ COLD BOOL ui_options_update(void)
         changed = TRUE;
         if (opt_row == OPT_TRACK) g_tour.track_choice = (UBYTE)((g_tour.track_choice + 4 + d) % 4);
         else if (opt_row == OPT_NIGHT) g_tour.night = (UBYTE)(!g_tour.night && track_night_available());
+        else if (opt_row == OPT_RAIN) g_tour.rain_opt = (UBYTE)!g_tour.rain_opt;
         else if (opt_row == OPT_DEFECTS) g_defects_enabled = (BOOL)!g_defects_enabled;
         else if (opt_row == OPT_MUSIC) g_music_enabled = (BOOL)!g_music_enabled;
     }
@@ -912,7 +918,8 @@ static COLD void wetness_text(char *s)
 {
     UBYTE w = g_tour.track.wetness;
     char *p = text_cat(text_cat(s, T("TOR: ", "TRACK: ")), w > 170 ? T("MOKRY", "WET") : w > 60 ? T("WILGOTNY", "DAMP") : T("SUCHY", "DRY"));
-    if (g_tour.night) text_cat(p, T(", NOC", ", NIGHT"));
+    if (g_tour.night) p = text_cat(p, T(", NOC", ", NIGHT"));
+    if (RAINING()) text_cat(p, T(", PADA", ", RAINING"));
 }
 
 /* cyfry 3x5 do naglowka tabeli (numery biegow) - bity: 5 wierszy po 3 */

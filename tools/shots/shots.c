@@ -553,6 +553,18 @@ static int screenshots(void)
         break;
     }
 
+    /* deszcz: krople w biegu, tor mieknie */
+    g_tour.rain_from = 0;
+    track_set_wetness(200);
+    begin(1);
+    g_tour.state = GS_HEAT;
+    while (g_tour.heat.phase != HEAT_RACING) step();
+    for (i = 0; i < 300; i++) { step(); roost_update(FALSE); }
+    for (i = 0; i < 2; i++) { step(); }
+    render(); bike_sprites(); render(); hud_update(); shot("33_deszcz", TRUE);
+    g_tour.rain_from = 0xFF;
+    track_set_wetness(0);
+
     /* zawody w nocy: tor w swietle reflektorow (gennight.py) */
     g_tour.night = 1;
     track_set_night(TRUE);

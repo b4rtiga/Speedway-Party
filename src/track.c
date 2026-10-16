@@ -599,6 +599,13 @@ void track_apply_watering(void)
 void track_dry_step(void)
 {
     Track *t = &g_tour.track;
+    if (RAINING()) {                               /* deszcz: tor mieknie zamiast schnac */
+        if (t->wetness == 255) return;
+        t->wetness = t->wetness < 255 - 10 ? t->wetness + 10 : 255;
+        grip_rows_left = GRIP_H;
+        video_blend_track_palette_lazy(t->wetness);
+        return;
+    }
     if (t->wetness == 0) return;
     t->wetness = t->wetness > 12 ? t->wetness - 12 : 0;
     grip_rows_left = GRIP_H;                       /* przyczepnosc przeliczy track_tick po 2 wiersze */

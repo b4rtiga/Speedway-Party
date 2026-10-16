@@ -77,9 +77,30 @@ static void emit(UBYTE owner, const Bike *b, BOOL spin)
     p->owner = owner;
 }
 
-#define OWNER_WATER 0xFF            /* woda i dym: nikogo nie spowalniaja, nie spulchniaja toru */
+#define OWNER_WATER 0xFF            /* woda z polewaczki: nikogo nie spowalnia, nie spulchnia toru, nie leci na murawe */
+#define OWNER_FX    0xFE            /* deszcz i dym: jak woda, ale takze nad murawa */
 static const UBYTE water_colors[2] = { 214, 215 };
 static const UBYTE smoke_colors[3] = { 133, 134, 135 };   /* szarosci palety toru */
+
+/* deszcz: kropla w losowym miejscu toru - smuga z 2 drobin jedna nad druga, szybko w dol
+ * (nikogo nie spowalnia, nie spulchnia toru) */
+static void emit_rain(void)
+{
+    WORD x = (WORD)rng_range(4, SCREEN_W - 22), y = (WORD)rng_range(4, PLAY_H - 10), k;
+    UBYTE life = (UBYTE)(3 + rng_range(0, 2)), col = track_night_color(x, y, water_colors[rng_next() & 1]);
+    for (k = 0; k < 2; k++) {
+        Particle *p = &g_tour.particles[g_tour.particle_head];
+        g_tour.particle_head = (UBYTE)((g_tour.particle_head + 1) % MAX_PARTICLES);
+        p->x = INT2FIX(x);
+        p->y = INT2FIX(y - k * 2);
+        p->dx = FIX_ONE / 2;
+        p->dy = FIX_ONE * 3;
+        p->life = life;
+        p->color = col;
+        p->big = 0;
+        p->owner = OWNER_FX;
+    }
+}
 
 /* dym z krztuszacego sie silnika (defekt): w gore i do tylu, wolno */
 static void emit_smoke(const Bike *b)
@@ -94,7 +115,7 @@ static void emit_smoke(const Bike *b)
     p->life = (UBYTE)(14 + rng_range(0, 10));
     p->color = track_night_color(FIX2INT(p->x), FIX2INT(p->y), smoke_colors[rng_range(0, 2)]);
     p->big = 1;
-    p->owner = OWNER_WATER;
+    p->owner = OWNER_FX;
 }
 
 /* Woda z rampy: na boki (obie strony) i lekko do tylu, krotkie zycie.
@@ -129,7 +150,7 @@ void roost_update(BOOL bikes)
         p->dx -= p->dx >> 2;              /* opor: drobina szybko opada na tor */
         p->dy -= p->dy >> 2;
         p->life--;
-        if (!p->life && p->owner != OWNER_WATER)
+        if (!p->life && p->owner < OWNER_FX)
             track_loosen(FIX2INT(p->x), FIX2INT(p->y));   /* grudka spadla na tor */
         if (p->x < 0 || p->y < 0 || FIX2INT(p->x) > SCREEN_W - 17 || FIX2INT(p->y) > PLAY_H - 2)
             p->life = 0;
@@ -137,6 +158,7 @@ void roost_update(BOOL bikes)
             p->life = 0;             /* woda tylko na nawierzchni, nie na murawie (panel) */
     }
     if (!bikes) return;
+    if (RAINING() && g_tour.state == GS_HEAT) { emit_rain(); emit_rain(); emit_rain(); }   /* 3 krople na klatke */
 
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
@@ -161,7 +183,7 @@ UBYTE roost_hits(const Bike *b)
     for (i = 0; i < MAX_PARTICLES; i++) {
         const Particle *p = &g_tour.particles[i];
         WORD dx, dy;
-        if (p->life < HIT_MIN_LIFE || p->owner == me || p->owner == OWNER_WATER) continue;
+        if (p->life < HIT_MIN_LIFE || p->owner == me || p->owner >= OWNER_FX) continue;
         dx = (WORD)(FIX2INT(p->x) - fx);
         if (dx > 6 || dx < -6) continue;               /* szybkie odrzucenie bez mnozenia */
         dy = (WORD)(FIX2INT(p->y) - fy);
