@@ -87,6 +87,14 @@ release: dist dist-en
 	python3 tools/mkadf.py dist release/SpeedwayParty_PL.adf SpeedwayParty
 	python3 tools/mkadf.py dist-en release/SpeedwayParty_EN.adf SpeedwayParty
 
+# Plyty CD32 (NIEWYDANE, nieprzetestowane na CD32): release/SpeedwayParty_CD32_PL.iso i _EN.iso.
+# CD32 startuje tylko z plyty z plikiem znaku towarowego CD32.TM (plik Commodore - nie ma go
+# w repozytorium, obrazow z nim nie dodajemy do gita): make cd32 CD32TM=sciezka/CD32.TM
+cd32: dist dist-en
+	@test -n "$(CD32TM)" || { echo "uzycie: make cd32 CD32TM=<plik CD32.TM z plyty CD32>"; exit 1; }
+	python3 tools/mkiso.py dist release/SpeedwayParty_CD32_PL.iso SPEEDWAYPARTY "$(CD32TM)"
+	python3 tools/mkiso.py dist-en release/SpeedwayParty_CD32_EN.iso SPEEDWAYPARTY "$(CD32TM)"
+
 # Wersja WHDLoad (NIEWYDANA, nieprzetestowana: WHDLoad nie dziala pod AROS-em z naszej konfiguracji
 # WinUAE - test wymaga oryginalnego Kickstartu 3.1): ten sam kod z -DWHDLOAD (pliki i pamiec przez WHDLoad, bez systemu - src/whd.c,
 # naglowki zastepcze src/whd/proto), start src/whdstart.s, slave tools/whdload/slave.s.
@@ -143,4 +151,4 @@ clean:
 	rm -f $(OBJ) SpeedwayParty
 	rm -rf dist dist-en dist-whd $(WHD_DIR) $(EN_DIR) data/music.raw .music-*
 
-.PHONY: clean dist dist-en release asan whdload assets check sim
+.PHONY: clean dist dist-en release asan whdload cd32 assets check sim

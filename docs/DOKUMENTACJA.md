@@ -47,6 +47,7 @@ Każdy gracz ma tylko dwa przyciski: **LEWO** i **PRAWO**. Gaz jest automatyczny
 - Ustawienia **JOY 1** i **STRZAŁKI** działają zamiennie (joystick w porcie 1 albo strzałki), chyba że drugie wybrał inny gracz.
 - **Menu:** joystick w porcie 1 albo 0 (góra/dół/lewo/prawo, FIRE = zatwierdź) albo strzałki i Return.
 - **Drugi przycisk joysticka** działa jak ESC: pauza z pytaniem, powrót z instrukcji i twórców.
+- **Pad CD32** (także pad THEA500 Mini): czerwony = FIRE, niebieski = drugi przycisk (ESC). Całą grę obsłużysz bez klawiatury – nazwisko wpiszesz joystickiem (GÓRA/DÓŁ litera, PRAWO dodaje, LEWO usuwa).
 - **Joystick w porcie 0** musi być w emulatorze ustawiony w trybie joysticka, nie myszy.
 - **Nazwiska** edytujesz z klawiatury, polskie litery przez Alt (np. Alt+X = Ź, Alt+Z = Ż).
 
@@ -229,6 +230,7 @@ NDK 3.9 i libnix są w toolchainie. Sprawdzenie: `m68k-amigaos-gcc --version`.
 | `make release` | `release/SpeedwayParty.zip` (obie wersje) i startowe dyskietki `release/SpeedwayParty_PL.adf`, `release/SpeedwayParty_EN.adf` |
 | `python tools/mkicons.py preview` | ikony Workbencha (gra, szuflada, dysk, instrukcja) – podgląd PNG |
 | `make whdload` | wersja WHDLoad w przygotowaniu (`dist-whd/`), jeszcze nieprzetestowana i niewydana |
+| `make cd32 CD32TM=…/CD32.TM` | obrazy płyt CD32 `release/SpeedwayParty_CD32_PL.iso` i `_EN.iso` (`tools/mkiso.py`: ISO 9660 bez zewnętrznych narzędzi). CD32 startuje tylko z płyty z plikiem znaku towarowego `CD32.TM` – to plik Commodore, więc nie ma go w repozytorium i trzeba go podać (z dowolnej płyty CD32); obrazy nie trafiają do gita. Jeszcze nieprzetestowane na CD32. Rekordy i ustawienia na płycie się nie zapisują. |
 | `make check` | kontrola składni i typów całego kodu Clangiem dla 68020 |
 | `make sim` | symulator turnieju botów z tą samą logiką gry |
 | `make asan` | kontrola pamięci (AddressSanitizer, gcc w WSL): zrzuty PL i EN, trailer i symulator – wyłapuje m.in. za krótkie bufory napisów, które na Amidze po cichu psują stos |

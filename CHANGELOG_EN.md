@@ -17,6 +17,7 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 - **Settings are remembered:** player names and controls, bot skill, track condition, time of day, defects and music – after a restart everything is as it was (`settings.dat` next to the game).
 - **Three tracks:** OVAL, WIDE (64 px instead of 56 – more room for passing) and LONG (straights 10% longer, narrower). You pick the track in the settings; each one has its own records (LEFT/RIGHT switches the track on the RECORDS screen) and its own night version.
 - **Championship:** a new EVENT option value – three rounds on three tracks with the same riders, heat points add up (as in the Grand Prix). Overall standings after each round, the champion and fireworks after the last one.
+- **CD32 pad** (and THEA500 Mini's pad): red = FIRE, blue = ESC – the whole game without a keyboard. For developers: `make cd32` builds a CD32 disc image (needs your own `CD32.TM` file, not tested yet).
 - **New SETTINGS screen** (from the tournament screen): the track, track condition (dry, damp, wet or random), time of day (day or night), rain, an individual event, a team match or a championship, defects and music. A summary of the settings is shown under the list of riders.
 - **Menu:** TOURNAMENT instead of LET'S RACE! and a new PRACTICE item; the riders screen is called TOURNAMENT.
 - **Start girls:** new glossy boards in the helmet colours with sponsor logos (3DPJOY, DEV84), a smooth sway of the whole figure with the board, and kisses with a flying heart.

@@ -17,6 +17,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 - **Gra pamięta ustawienia:** nazwiska i sterowanie graczy, poziomy botów oraz stan toru, porę, defekty i muzykę – po ponownym uruchomieniu wszystko jest jak ostatnio (plik `settings.dat` obok gry).
 - **Trzy tory:** OWAL, SZEROKI (64 px zamiast 56 – więcej miejsca na mijanki) i DŁUGI (proste dłuższe o 10%, węższy). Tor wybierasz w ustawieniach; każdy ma własne rekordy (na ekranie REKORDY LEWO/PRAWO zmienia tor) i własną wersję nocną.
 - **Mistrzostwa:** nowa wartość opcji ZAWODY – trzy rundy na trzech torach z tymi samymi zawodnikami, punkty biegowe się sumują (jak w Grand Prix). Po każdej rundzie klasyfikacja generalna, po ostatniej mistrz i fajerwerki.
+- **Pad CD32** (i pad THEA500 Mini): czerwony = FIRE, niebieski = ESC – cała gra bez klawiatury. Dla twórców: `make cd32` składa obraz płyty CD32 (wymaga własnego pliku `CD32.TM`, jeszcze nieprzetestowany).
 - **Nowy ekran USTAWIENIA** (z ekranu turnieju): tor, stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc), deszcz, zawody indywidualne, drużynowe albo mistrzostwa, defekty i muzyka. Pod listą zawodników widać skrót wybranych ustawień.
 - **Menu:** TURNIEJ zamiast JEDZIEMY! i nowa pozycja TRENING; ekran zawodników nazywa się TURNIEJ.
 - **Podprowadzające:** nowe wypukłe tablice w kolorach kasków z logo sponsorów (3DPJOY, DEV84), płynne kołysanie całej sylwetki z tablicą i buziaki z odlatującym serduszkiem.

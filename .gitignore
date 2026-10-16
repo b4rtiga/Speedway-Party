@@ -35,3 +35,6 @@ Thumbs.db
 /tools/sim/out/
 /dist-whd/
 /dist-en/
+
+# plyty CD32 (make cd32) zawieraja plik CD32.TM Commodore - nie do repozytorium
+/release/*.iso

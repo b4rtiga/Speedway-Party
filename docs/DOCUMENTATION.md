@@ -47,6 +47,7 @@ Each player has just two controls: **LEFT** and **RIGHT**. The throttle is autom
 - The **JOY 1** and **CURSORS** settings work interchangeably (joystick in port 1 or cursor keys), unless another player has chosen the other one.
 - **Menus:** joystick in port 1 or 0 (up/down/left/right, FIRE = confirm) or cursor keys and Return.
 - **The second joystick button** works like ESC: pause with a question, back from the manual and the credits.
+- **CD32 pad** (also THEA500 Mini's pad): red = FIRE, blue = the second button (ESC). The whole game works without a keyboard – you can enter a name with the joystick (UP/DOWN letter, RIGHT adds, LEFT deletes).
 - **The joystick in port 0** must be set to joystick mode in the emulator, not mouse.
 - **Names** are edited with the keyboard; Polish letters via Alt (e.g. Alt+X = Ź, Alt+Z = Ż).
 
@@ -229,6 +230,7 @@ NDK 3.9 and libnix come with the toolchain. Check: `m68k-amigaos-gcc --version`.
 | `make release` | `release/SpeedwayParty.zip` (both versions) and the boot floppies `release/SpeedwayParty_PL.adf`, `release/SpeedwayParty_EN.adf` |
 | `python tools/mkicons.py preview` | Workbench icons (game, drawer, disk, manual) – PNG preview |
 | `make whdload` | a WHDLoad version in preparation (`dist-whd/`), not tested and not released yet |
+| `make cd32 CD32TM=…/CD32.TM` | CD32 disc images `release/SpeedwayParty_CD32_PL.iso` and `_EN.iso` (`tools/mkiso.py`: ISO 9660 without external tools). A CD32 boots only from a disc with the `CD32.TM` trademark file – a Commodore file, so it is not in the repository and you have to supply it (from any CD32 disc); the images are not committed. Not tested on a CD32 yet. Records and settings are not saved on a CD. |
 | `make check` | syntax and type check of all the code with Clang for the 68020 (both languages) |
 | `make sim` | a bot tournament simulator using the same game logic |
 | `make asan` | memory check (AddressSanitizer, gcc in WSL): Polish and English screenshots, the trailer and the simulator – catches e.g. too-short text buffers that silently corrupt the stack on the Amiga |
