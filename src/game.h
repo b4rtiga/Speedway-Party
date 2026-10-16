@@ -268,6 +268,7 @@ typedef struct Tournament {
     UBYTE     particle_head;               /* bufor kolowy: nowa nadpisuje najstarsza */
     UBYTE     start_condition;             /* stan toru na start: 0 suchy, 1 wilgotny, 2 mokry */
     UBYTE     track_choice;                /* opcja STAN TORU: 0..2 jak wyzej, TRACK_RANDOM = losowany */
+    UBYTE     night;                       /* opcja PORA: 1 = zawody w nocy (track_set_night) */
     UBYTE     new_records;                 /* REC_HEAT|REC_LAP pobite w ostatnim biegu */
     TourStats stats;                       /* fakty zawodow (gazeta) */
     GameState state;
@@ -352,6 +353,11 @@ void     track_wear(WORD x, WORD y);             /* motocykl ubija nawierzchnie 
 void     track_loosen(WORD x, WORD y);           /* szpryca spadla na tor - spulchnia */
 void     track_reset_wear(void);                 /* rowny tor (nowy turniej / zmiana toru) */
 void     track_random_surface(void);              /* losowe wyjezdzone sciezki na start turnieju */
+/* noc (tools/gennight.py): paleta nocna, tor przeliczony wg mapy swiatla reflektorow */
+BOOL     track_night_available(void);             /* sa dane nocy i kopia toru (pristine) */
+void     track_set_night(BOOL on);                /* przed track_reset_wear - przelicza tlo toru */
+UBYTE    track_night_color(WORD x, WORD y, UBYTE c);   /* kolor rysowany na torze w (x, y) */
+UBYTE    track_night_lit(UBYTE c);                /* kolor w pelnym swietle (okienko startowe) */
 void     track_flush_wear(UBYTE bi, UBYTE *buf, WORD kx, WORD ky, WORD kw, WORD kh);  /* zmienione komorki do bufora (poza prostokatem) */
 void     track_forget_wear(UBYTE bi);             /* bufor dostal cale tlo */
 void     track_dry_step(void);

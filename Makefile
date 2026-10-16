@@ -34,7 +34,8 @@ $(EN_DIR)/%.o: src/%.c src/*.h
 $(EN_DIR)/SpeedwayParty: $(EN_OBJ)
 	$(CC) $(LDFLAGS) -o $@ $(EN_OBJ)
 
-DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/girls.bin data/hud.pal data/referee.bin data/refarm.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw data/cheer.raw
+DATA = data/track0.pal data/track0.bpl data/title.bpl data/title.pal data/girls.bin data/hud.pal data/referee.bin data/refarm.bin data/bikes.spr        data/tractors.spr data/engine.raw data/crowd.raw data/buzzer.raw data/whistle.raw data/cheer.raw \
+       data/track0n.pal data/track0n.map
 
 # Pliki pakowane na dyskietce (tools/pack.py, rozpakowuje assets.c) - w data/ zostaja niespakowane
 PACKED = bikes.spr tractors.spr track0.bpl girls.bin
@@ -124,6 +125,7 @@ assets:
 	python tools/genaudio.py
 	python tools/import_engine.py src/speedway_500cc_10000rpm_loop.wav
 	python tools/genfont.py
+	python tools/gennight.py
 
 # Kontrola skladni Clangiem i symulator logiki na PC (pip install ziglang)
 check:

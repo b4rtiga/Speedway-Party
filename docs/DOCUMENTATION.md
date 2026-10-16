@@ -67,7 +67,7 @@ FIRE or ESC takes you back from the manual, the records and the credits.
 
 ### Tournament: riders and settings
 
-Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: track condition at the start (dry, damp, wet or random – the default), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
+Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: track condition at the start (dry, damp, wet or random – the default), time of day (day or night – chapter 6), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
 
 ![Tournament: riders](../art/en/screen_02_setup.png)
 
@@ -165,6 +165,12 @@ Loose dirt collects by the fence. Ride into it too slowly and the bike bogs down
 ### Watering and drying
 
 The track condition at the start is random by default (you can set it in the tournament settings). A wet track grips clearly worse – you have to slide harder. After heats 4, 7, 11 and 13 the track is graded and watered, then dries out heat by heat.
+
+### Night meetings
+
+In the tournament settings choose TIME: NIGHT. Four floodlight masts in the corners of the stands light the track: the bends are in warm light, the straights in half-darkness. Night does not change the riding – grip, grooves, watering and defects work the same; it is only darker on the screen (roost and water are darker in the shadows too).
+
+![A night meeting](../art/en/screen_30_noc.png)
 
 # Part II. For developers
 
@@ -314,6 +320,7 @@ They need Python 3 with `numpy`, ffmpeg in PATH, and for the code check and the 
 |---|---|
 | `make assets` | regenerates graphics, sound and the font (`genart`, `gentitle`, `gengirls`, `genaudio`, `genfont`) |
 | `python tools/gentitle.py` | the title screen from the illustration `src/title.png` |
+| `python tools/gennight.py` | night meetings: the night palette and the floodlight map (`data/track0n.pal`, `data/track0n.map`); the game turns the day track into the night one when a tournament starts |
 | `python tools/genreferee.py` | the referee's portrait and painted hand from `src/referee.png` |
 | `python tools/gengirls.py` | the start girls from `src/girls.png` |
 | `python tools/import_engine.py file.wav` | the engine loop from a recording (currently `src/speedway_500cc_10000rpm_loop.wav`) |

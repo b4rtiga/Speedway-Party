@@ -243,6 +243,47 @@ static void rebuild_grip(void)
  * kamyczki znikaja. Zmienione komorki kopiuje Blitter (blok 16x8) do obu buforow
  * ekranu - kazdy bufor ma wlasna liste "brudnych" komorek. */
 static UBYTE *pristine;                    /* oryginal tla wybranego toru (dowolna pamiec) */
+
+/* ---------------- noc ----------------
+ * data/track0n.map (tools/gennight.py): night.map[jasnosc][kolor dzienny] -> kolor palety nocnej,
+ * siatka jasnosci w rogach komorek 8x8 (0..15) i 3 kolory poswiaty masztow; data/track0n.pal -
+ * paleta nocna sucho/mokro. W nocy tlo toru to pristine (dzienne) przeliczone kolor po kolorze. */
+#define NIGHT_LEVELS 16
+#define LIGHT_W      (GRIP_W + 1)
+#define LIGHT_H      (GRIP_H + 1)
+static struct {                            /* uklad pliku track0n.map */
+    UBYTE map[NIGHT_LEVELS][256];
+    UBYTE grid[LIGHT_H][LIGHT_W];
+    UBYTE glow[3];
+} night;
+#define NIGHT_FILE   (NIGHT_LEVELS * 256 + LIGHT_W * LIGHT_H + 3)
+static RGB24  night_pal[2][256];
+static BOOL   night_ok, night_on;
+static const WORD mast_xy[4][2] = { { 28, 22 }, { 292, 22 }, { 28, 190 }, { 292, 190 } };
+
+/* jasnosc 0..15 w (x, y): dwuliniowo miedzy rogami komorki (ta sama arytmetyka w gennight.py) */
+static UBYTE light_at(WORD x, WORD y)
+{
+    WORD gx = (WORD)(x >> 3), gy = (WORD)(y >> 3), tx = (WORD)(x & 7), ty = (WORD)(y & 7);
+    const UBYTE *a = &night.grid[gy][gx], *c = &night.grid[gy + 1][gx];
+    return (UBYTE)((a[0] * (8 - tx) * (8 - ty) + a[1] * tx * (8 - ty) + c[0] * (8 - tx) * ty + c[1] * tx * ty) >> 6);
+}
+
+BOOL track_night_available(void) { return (BOOL)(night_ok && pristine); }
+
+UBYTE track_night_color(WORD x, WORD y, UBYTE c)
+{
+    if (!night_on) return c;
+    if (x < 0) x = 0; else if (x > SCREEN_W - 1) x = SCREEN_W - 1;
+    if (y < 0) y = 0; else if (y > PLAY_H - 1) y = PLAY_H - 1;
+    return night.map[light_at(x, y)][c];
+}
+
+UBYTE track_night_lit(UBYTE c)
+{
+    if (!night_on || (c >= 96 && c < 128)) return c;     /* napisy i panele - stale */
+    return night.map[NIGHT_LEVELS - 1][c];
+}
 static BYTE   pristine_type = -1;
 static UBYTE  level_drawn[GRIP_H][GRIP_W];
 static UBYTE  wear_dirty[2][GRIP_H][GRIP_W];
@@ -288,6 +329,7 @@ static void cell_rows(WORD gx, WORD gy, const UWORD pk[3][3], WORD r0, WORD r1)
             } else if (c >= 52 && c < 56 && f > 120) {     /* kamyczki zepchniete z linii */
                 c = 16 + 3 * 8 + 2;
             }
+            if (night_on) c = night.map[light_at(x, y)][c];      /* noc: kolor wg swiatla */
             for (pl = 0; pl < PLAY_DEPTH; pl++) if (c & (1 << pl)) out[pl] |= bit;
         }
         for (pl = 0; pl < PLAY_DEPTH; pl++) dst[pl * ROW_BYTES] = out[pl];
@@ -444,6 +486,54 @@ void track_flush_wear(UBYTE bi, UBYTE *buf, WORD kx, WORD ky, WORD kw, WORD kh)
                 blit_copy(buf, g_video.background, (WORD)((gx * GRIP_CELL) & ~15), (WORD)(gy * GRIP_CELL),
                           16, GRIP_CELL);
             }
+}
+
+/* Noc wlaczona/wylaczona: paleta i tlo toru od nowa z pristine (dzienne kolory), w nocy kazdy
+ * piksel przez night_map wg jasnosci, plus poswiata masztow. Wywolywane na programie zawodow
+ * (przed track_reset_wear) - przeliczenie calego tla trwa chwile. Komorki wracaja do ubicia 0. */
+COLD void track_set_night(BOOL on)
+{
+    Track *t = &g_tour.track;
+    WORD y, bx, gx, gy;
+    UWORD c;
+    if (!track_night_available()) on = FALSE;
+    night_on = on;
+    for (c = 0; c < 256; c++) {
+        g_video.pal_dry[c] = on ? night_pal[0][c] : track_pal[t->type][0][c];
+        g_video.pal_wet[c] = on ? night_pal[1][c] : track_pal[t->type][1][c];
+    }
+    if (pristine) {
+        for (y = 0; y < PLAY_H; y++)
+            for (bx = 0; bx < ROW_BYTES; bx++) {
+                LONG off = (LONG)y * PLAY_STRIDE + bx;
+                UBYTE in[PLAY_DEPTH], out[PLAY_DEPTH], pl, k;
+                for (pl = 0; pl < PLAY_DEPTH; pl++) { in[pl] = pristine[off + pl * ROW_BYTES]; out[pl] = in[pl]; }
+                if (on) {
+                    for (pl = 0; pl < PLAY_DEPTH; pl++) out[pl] = 0;
+                    for (k = 0; k < 8; k++) {
+                        UBYTE bit = (UBYTE)(0x80 >> k), px = 0;
+                        for (pl = 0; pl < PLAY_DEPTH; pl++) if (in[pl] & bit) px |= (UBYTE)(1 << pl);
+                        px = night.map[light_at((WORD)(bx * 8 + k), y)][px];
+                        for (pl = 0; pl < PLAY_DEPTH; pl++) if (px & (1 << pl)) out[pl] |= bit;
+                    }
+                }
+                for (pl = 0; pl < PLAY_DEPTH; pl++) g_video.background[off + pl * ROW_BYTES] = out[pl];
+            }
+        if (on) {
+            WORD m, dx, dy;
+            for (m = 0; m < 4; m++)                       /* maszty: srodek, pierscien, poswiata */
+                for (dy = -5; dy <= 5; dy++)
+                    for (dx = -5; dx <= 5; dx++) {
+                        WORD r2 = (WORD)(dx * dx + dy * dy);
+                        if (r2 <= 22)
+                            blit_plot(g_video.background, (WORD)(mast_xy[m][0] + dx), (WORD)(mast_xy[m][1] + dy),
+                                      night.glow[r2 <= 2 ? 0 : r2 <= 8 ? 1 : 2]);
+                    }
+        }
+        for (gy = 0; gy < GRIP_H; gy++)                    /* tlo jak przy ubiciu 0 */
+            for (gx = 0; gx < GRIP_W; gx++) level_drawn[gy][gx] = 0;
+    }
+    video_blend_track_palette(t->wetness);
 }
 
 /* bufor dostal cale tlo - nic nie trzeba dokopiowywac */
@@ -695,6 +785,18 @@ COLD BOOL track_init(void)
     build_palettes();                     /* zastepcze palety + paleta HUD */
     load_hud_palette();
     pristine = AllocMem(PLAY_SIZE, 0);    /* bez niej sciezki dzialaja, tylko ich nie widac */
+    {
+        /* noc: mapa kolorow i swiatla (5 KB) + paleta; bez plikow - tylko dzien */
+        static UBYTE pbuf[256 * 3 * 2];
+        UWORD c;
+        night_ok = asset_load("PROGDIR:data/track0n.map", (UBYTE *)&night, NIGHT_FILE) &&
+                   asset_load("PROGDIR:data/track0n.pal", pbuf, sizeof(pbuf));
+        if (night_ok)
+            for (c = 0; c < 256; c++) {
+                set_rgb(&night_pal[0][c], pbuf[c * 3], pbuf[c * 3 + 1], pbuf[c * 3 + 2]);
+                set_rgb(&night_pal[1][c], pbuf[768 + c * 3], pbuf[768 + c * 3 + 1], pbuf[768 + c * 3 + 2]);
+            }
+    }
     for (i = 0; i < NUM_TRACKS; i++) {
         track_bg[i] = AllocMem(PLAY_SIZE, MEMF_CHIP | MEMF_CLEAR);
         if (!track_bg[i]) return FALSE;

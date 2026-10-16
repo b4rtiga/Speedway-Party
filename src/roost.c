@@ -72,7 +72,7 @@ static void emit(UBYTE owner, const Bike *b, BOOL spin)
     p->dx = (fix16)(((LONG)-fc * (back >> 8) - (LONG)fs * (side >> 8)) >> 6);
     p->dy = (fix16)(((LONG)-fs * (back >> 8) + (LONG)fc * (side >> 8)) >> 6);
     p->life = (UBYTE)(LIFE_MIN + rng_range(0, LIFE_RAND));
-    p->color = dust_colors[rng_next() & 3];
+    p->color = track_night_color(FIX2INT(p->x), FIX2INT(p->y), dust_colors[rng_next() & 3]);   /* noc: wg swiatla */
     p->big = (UBYTE)((rng_next() & 3) != 0);
     p->owner = owner;
 }
@@ -92,7 +92,7 @@ static void emit_smoke(const Bike *b)
     p->dx = jitter(FIX_ONE) - (fix16)fc * 16;
     p->dy = jitter(FIX_ONE) - (fix16)fs * 16 - FIX_ONE;
     p->life = (UBYTE)(14 + rng_range(0, 10));
-    p->color = smoke_colors[rng_range(0, 2)];
+    p->color = track_night_color(FIX2INT(p->x), FIX2INT(p->y), smoke_colors[rng_range(0, 2)]);
     p->big = 1;
     p->owner = OWNER_WATER;
 }
@@ -112,7 +112,7 @@ void roost_emit_water(fix16 x, fix16 y, angle8 heading)
     p->dx = (fix16)(((LONG)-fc * (back >> 8) - (LONG)fs * (side >> 8)) >> 6);
     p->dy = (fix16)(((LONG)-fs * (back >> 8) + (LONG)fc * (side >> 8)) >> 6);
     p->life = (UBYTE)(5 + rng_range(0, 5));
-    p->color = water_colors[rng_next() & 1];
+    p->color = track_night_color(FIX2INT(x), FIX2INT(y), water_colors[rng_next() & 1]);
     p->big = (UBYTE)(rng_next() & 1);
     p->owner = OWNER_WATER;
 }

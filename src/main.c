@@ -360,6 +360,7 @@ static void update_state(void)
         if (surface_pending && state_timer >= 15) {
             /* kazdy turniej na innym torze; liczone dopiero po wyciszeniu muzyki z menu
              * (12 klatek) - dluzsza chwila liczenia nie przytnie dzwieku */
+            track_set_night((BOOL)g_tour.night);     /* noc: paleta i tlo toru (chwila liczenia) */
             track_reset_wear();
             track_random_surface();
             surface_pending = FALSE;

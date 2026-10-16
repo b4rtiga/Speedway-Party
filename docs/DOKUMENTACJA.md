@@ -67,7 +67,7 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ### Turniej: zawodnicy i ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
 ![Turniej: zawodnicy](../art/screen_02_setup.png)
 
@@ -165,6 +165,12 @@ Pod bandą zbiera się luźna nawierzchnia. Wjazd tam za wolno – motocykl się
 ### Polewanie i schnięcie
 
 Stan toru na start jest domyślnie losowany (można go ustawić w ustawieniach turnieju). Mokry tor trzyma wyraźnie gorzej – trzeba łamać mocniej. Po biegach 4, 7, 11 i 13 tor jest równany i polewany, a potem z biegu na bieg przesycha.
+
+### Zawody w nocy
+
+W ustawieniach turnieju PORA: NOC. Tor oświetlają cztery maszty z reflektorami w rogach trybun: łuki są w ciepłym świetle, proste w półmroku. Noc nie zmienia jazdy – przyczepność, ścieżki, polewanie i defekty działają tak samo; ciemniej jest tylko na ekranie (szpryca i woda też są ciemniejsze w cieniu).
+
+![Zawody w nocy](../art/screen_30_noc.png)
 
 # Część II. Dla twórców
 
@@ -310,6 +316,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 |---|---|
 | `make assets` | regeneruje grafikę, dźwięk i font (`genart`, `gentitle`, `gengirls`, `genaudio`, `genfont`) |
 | `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png` |
+| `python tools/gennight.py` | zawody w nocy: paleta nocna i mapa światła reflektorów (`data/track0n.pal`, `data/track0n.map`); gra przelicza dzienny tor na nocny przy starcie turnieju |
 | `python tools/genreferee.py` | portret sędziego i malowana ręka z ilustracji `src/referee.png` |
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png` |
 | `python tools/import_engine.py plik.wav` | pętla silnika z nagrania (obecnie `src/speedway_500cc_10000rpm_loop.wav`) |

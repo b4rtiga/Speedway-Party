@@ -517,6 +517,25 @@ static int screenshots(void)
     tournament_award_points();
     g_tour.state = GS_HEAT_RESULT; render(); hud_update(); shot("test_defekt_wynik", FALSE);   /* kontrola: tylko tools/shots/out */
 
+    /* zawody w nocy: tor w swietle reflektorow (gennight.py) */
+    g_tour.night = 1;
+    track_set_night(TRUE);
+    track_set_wetness(0);
+    for (i = 0; i < 2; i++) {                     /* jak w grze: program zawodow miedzy biegami - */
+        g_tour.state = GS_TABLE; render();        /* oba bufory dostana potem cale (nocne) tlo */
+        g_video.front = g_video.back; g_video.back ^= 1;
+    }
+    track_reset_wear();
+    track_random_surface();
+    track_tick_flush();
+    begin(2);
+    g_tour.state = GS_HEAT;
+    while (g_tour.heat.phase != HEAT_RACING) step();
+    for (i = 0; i < 260; i++) step();
+    render(); bike_sprites(); render(); hud_update(); shot("30_noc", TRUE);   /* panel po poprzednim biegu zdjety */
+    track_set_night(FALSE);
+    g_tour.night = 0;
+
     printf("zrzuty: tools/shots/out/\n");
     return 0;
 }

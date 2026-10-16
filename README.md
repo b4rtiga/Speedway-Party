@@ -22,6 +22,8 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 | ![Gazeta po zawodach](art/screen_23_gazeta.png) | ![Wpis imienia](art/screen_24_imie.png) | ![Rekordy toru](art/screen_25_rekordy.png) |
 
 
+**Nowości:** [CHANGELOG.md](CHANGELOG.md) (English: [CHANGELOG_EN.md](CHANGELOG_EN.md)).
+
 **Dokumentacja:** [docs/DOKUMENTACJA.md](docs/DOKUMENTACJA.md) (źródło do edycji) i [docs/SpeedwayParty-dokumentacja.pdf](docs/SpeedwayParty-dokumentacja.pdf) (PDF, `python tools/mkdocs.py`).
 
 **English:** the game is also available in English (`SpeedwayParty_EN.adf`). Documentation in English: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) and [docs/SpeedwayParty-documentation.pdf](docs/SpeedwayParty-documentation.pdf).
