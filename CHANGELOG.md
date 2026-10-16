@@ -6,7 +6,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 ## 0.88 – w przygotowaniu
 
 - **Zawody w nocy:** nowa opcja PORA: DZIEŃ / NOC. W nocy tor oświetlają cztery maszty z reflektorami – łuki w ciepłym świetle, proste w półmroku.
-- **Defekty motocykli:** w losowej chwili biegu silnik krztusi się, dymi i gaśnie – zawodnik dostaje 0 punktów („D”). Średnio jeden defekt na turniej, najwyżej jeden na zawodnika; można je wyłączyć.
+- **Defekty motocykli:** w losowej chwili biegu silnik krztusi się, dymi i gaśnie, a zawodnik zjeżdża na murawę i czeka tam do końca biegu – dostaje 0 punktów („D”). Średnio jeden defekt na turniej, najwyżej jeden na zawodnika; można je wyłączyć.
 - **Nowy ekran USTAWIENIA** (z ekranu turnieju): stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc), defekty i muzyka. Pod listą zawodników widać skrót wybranych ustawień.
 - **Menu:** TURNIEJ zamiast JEDZIEMY!, ekran zawodników nazywa się TURNIEJ.
 - **Podprowadzające:** nowe wypukłe tablice w kolorach kasków z logo sponsorów (3DPJOY, DEV84), płynne kołysanie całej sylwetki z tablicą i buziaki z odlatującym serduszkiem.

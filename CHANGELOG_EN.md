@@ -6,7 +6,7 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 ## 0.88 – in preparation
 
 - **Night meetings:** a new TIME: DAY / NIGHT option. At night four floodlight masts light the track – the bends in warm light, the straights in half-darkness.
-- **Machine defects:** at a random moment of a heat an engine coughs, smokes and dies – the rider scores 0 points (“D”). About one defect per tournament, at most one per rider; they can be switched off.
+- **Machine defects:** at a random moment of a heat an engine coughs, smokes and dies, and the rider rolls onto the infield and waits there until the end of the heat – 0 points (“D”). About one defect per tournament, at most one per rider; they can be switched off.
 - **New SETTINGS screen** (from the tournament screen): track condition (dry, damp, wet or random), time of day (day or night), defects and music. A summary of the settings is shown under the list of riders.
 - **Menu:** TOURNAMENT instead of LET'S RACE!, and the riders screen is called TOURNAMENT.
 - **Start girls:** new glossy boards in the helmet colours with sponsor logos (3DPJOY, DEV84), a smooth sway of the whole figure with the board, and kisses with a flying heart.

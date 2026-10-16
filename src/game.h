@@ -118,6 +118,7 @@ typedef struct Bike {
     /* defekt (race.c): wylosowana chwila awarii i licznik krztuszenia sie / postoju */
     UWORD   defect_frame;     /* klatka biegu, w ktorej silnik zaczyna sie krztusic; 0 = bez defektu */
     UBYTE   defect_timer;     /* 0 = sprawny; krztuszenie: 1..DEFECT_SPUTTER, potem (BIKE_DEFECT) postoj */
+    WORD    park_x, park_y;   /* defekt: miejsce na murawie, gdzie motocykl sie zatrzyma */
 
     /* efekty */
     UBYTE   in_roost;         /* jedzie w szprycy innego motocykla */
@@ -324,7 +325,6 @@ void start_update(void);   /* wywolywane co klatke w fazach przed HEAT_RACING */
 /* race.c */
 extern BOOL g_defects_enabled;                   /* opcja DEFEKTY w ustawieniach */
 #define DEFECT_SPUTTER  (3 * FPS / 2)            /* silnik krztusi sie 1,5 s, zanim zgasnie */
-#define DEFECT_HIDE     (2 * FPS)                /* po 2 s postoju motocykl znika z toru (zjechal na murawe) */
 void race_init_heat(void);
 void race_update(void);
 LONG race_leader_distance(void);                 /* dystans najdalej jadacego */

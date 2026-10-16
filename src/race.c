@@ -271,8 +271,43 @@ static void update_bike(Bike *b)
 }
 
 /* Defekt: w wylosowanej klatce silnik zaczyna sie krztusic (DEFECT_SPUTTER klatek, dym),
- * potem gasnie - BIKE_DEFECT, motocykl toczy sie do zatrzymania, a po DEFECT_HIDE znika.
+ * potem gasnie - BIKE_DEFECT: motocykl zjezdza lukiem na murawe (park_x, park_y: kawalek dalej,
+ * PARK_IN px za kraweznikiem), zwalnia i stoi tam do konca biegu. Nikogo nie blokuje (bez kontaktu).
  * Kto zdazy dojechac do mety w trakcie krztuszenia, konczy bieg normalnie. */
+#define PARK_IN      12                   /* jak gleboko na murawe [px za krawezikiem] */
+#define PARK_AHEAD   48                   /* jak daleko przed miejscem awarii [px drogi] */
+#define ROLL_MIN     (FIX_ONE / 2)        /* najwolniejsze toczenie [px/klatke] */
+
+static void park_target(Bike *b)
+{
+    const Track *t = &g_tour.track;
+    LONG s = track_progress(FIX2INT(b->x), FIX2INT(b->y)) + PARK_AHEAD;
+    if (s >= t->lap_length) s -= t->lap_length;
+    track_point(s, (WORD)(-t->half_width - PARK_IN), &b->park_x, &b->park_y);
+}
+
+/* toczenie bez silnika w strone miejsca na murawie; na miejscu - stoi */
+static void roll_to_park(Bike *b)
+{
+    LONG dx = INT2FIX(b->park_x) - b->x, dy = INT2FIX(b->park_y) - b->y;
+    LONG ax = dx < 0 ? -dx : dx, ay = dy < 0 ? -dy : dy;
+    LONG dist = ax > ay ? ax + ay / 2 : ay + ax / 2;          /* przyblizenie odleglosci */
+    if (dist <= b->speed || dist < FIX_ONE) {
+        b->x = INT2FIX(b->park_x);
+        b->y = INT2FIX(b->park_y);
+        b->speed = 0;
+        return;
+    }
+    b->speed -= b->speed >> 5;                                /* bez napedu - coraz wolniej */
+    if (b->speed < ROLL_MIN) b->speed = ROLL_MIN;
+    b->heading = atan2_8(dy >> 8, dx >> 8);
+    b->course88 = (UWORD)(b->heading << 8);
+    b->drift = 0;
+    b->x += (fix16)((dx >> 8) * (b->speed >> 8) / (dist >> 8)) * 256;    /* 8.8 -> 16.16 */
+    b->y += (fix16)((dy >> 8) * (b->speed >> 8) / (dist >> 8)) * 256;
+    b->skid_frame = 0;
+    b->sprite_frame = ANGLE_TO_FRAME(b->heading);
+}
 static void update_defect(Bike *b)
 {
     if (b->state == BIKE_RACING && b->defect_frame && g_tour.heat.race_frames >= b->defect_frame) {
@@ -284,6 +319,7 @@ static void update_defect(Bike *b)
         if (++b->defect_timer >= DEFECT_SPUTTER) {
             b->state = BIKE_DEFECT;
             b->defect_timer = 1;
+            park_target(b);
             g_tour.stats.defects++;
             g_tour.stats.defected[b->rider] = 1;
         }
@@ -359,7 +395,8 @@ void race_update(void)
     for (i = 0; i < MAX_RIDERS; i++) {
         Bike *b = &g_tour.bikes[i];
         update_defect(b);
-        if (b->state == BIKE_RACING || b->state == BIKE_FINISHED || b->state == BIKE_DEFECT) update_bike(b);
+        if (b->state == BIKE_RACING || b->state == BIKE_FINISHED) update_bike(b);
+        else if (b->state == BIKE_DEFECT) roll_to_park(b);
         else if (b->state == BIKE_WHEELSPIN) b->speed = 0;
         if (b->state != BIKE_EXCLUDED && b->state != BIKE_DEFECT) active++;
         if (b->state == BIKE_FINISHED) done++;

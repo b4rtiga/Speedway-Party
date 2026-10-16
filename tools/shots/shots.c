@@ -513,6 +513,8 @@ static int screenshots(void)
     g_tour.bikes[2].defect_frame = (UWORD)(g_tour.heat.race_frames + 1);
     for (i = 0; i < 40; i++) step();
     bike_sprites(); render(); hud_update(); shot("27_defekt", TRUE);
+    for (i = 0; i < 250; i++) step();          /* silnik zgasl - zawodnik stoi na murawie */
+    bike_sprites(); render(); hud_update(); shot("test_defekt_murawa", TRUE);
     while (g_tour.heat.phase != HEAT_FINISHED) step();
     tournament_award_points();
     g_tour.state = GS_HEAT_RESULT; render(); hud_update(); shot("test_defekt_wynik", FALSE);   /* kontrola: tylko tools/shots/out */
