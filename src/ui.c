@@ -979,25 +979,31 @@ static COLD void draw_table(UBYTE *b)
  *
  * Postac i tablica maja kolor kasku zawodnika; kazda stoi na polu, z ktorego startuje jej
  * zawodnik, i kolysze biodrami: wiersze w pasie bioder przesuniete w bok o -2..2 px
- * (glowa, rece z tablica i stopy w miejscu), kazda w innej fazie. Przerysowywany tylko
- * ten pas i tylko przy zmianie fazy. */
+ * (glowa, rece z tablica i stopy w miejscu), kazda w innej fazie. Wychylenie wiersza to
+ * sinus fazy razy waga wiersza - gladka krzywa (1 - cos), wiec sylwetka wygina sie lukiem,
+ * bez zalamania w biodrach; cykl 1,6 s. Przerysowywany tylko ten pas i tylko przy zmianie fazy. */
 #define PRES_Y      72                      /* gora postaci */
 #define PRES_TIME   (3 * FPS)               /* prezentacja: 3 s albo FIRE */
 #define SWAY_Y0     30                      /* pas bioder (wiersze postaci) */
 #define SWAY_Y1     88
-#define SWAY_MID    58
-#define SWAY_PHASES 64                      /* faza zmienia sie co klatke (64 = ok. 1.3 s) */
+#define SWAY_PHASES 80                      /* faza zmienia sie co klatke (80 = 1,6 s) */
 #define SWAY_AMP    5                       /* wychylenie bioder w polowkach piksela (2.5 px) */
 static UWORD present_t;                     /* klatki od wejscia na ekran prezentacji */
 static UBYTE present_drawn[2][4];           /* faza narysowana w buforze (0xFF = brak) */
 static const BYTE sway_tab[SWAY_PHASES] = {     /* 64 sin */
-    0, 6, 12, 19, 24, 30, 36, 41, 45, 49, 53, 56, 59, 61, 63, 64, 64, 64, 63, 61, 59, 56, 53, 49, 45, 41, 36, 30, 24, 19, 12, 6,
-    0, -6, -12, -19, -24, -30, -36, -41, -45, -49, -53, -56, -59, -61, -63, -64, -64, -64, -63, -61, -59, -56, -53, -49, -45, -41,
-    -36, -30, -24, -19, -12, -6 };
+    0, 5, 10, 15, 20, 24, 29, 33, 38, 42, 45, 49, 52, 55, 57, 59, 61, 62, 63, 64,
+    64, 64, 63, 62, 61, 59, 57, 55, 52, 49, 45, 42, 38, 33, 29, 24, 20, 15, 10, 5,
+    0, -5, -10, -15, -20, -24, -29, -33, -38, -42, -45, -49, -52, -55, -57, -59, -61, -62, -63, -64,
+    -64, -64, -63, -62, -61, -59, -57, -55, -52, -49, -45, -42, -38, -33, -29, -24, -20, -15, -10, -5 };
+/* waga wychylenia wierszy SWAY_Y0..SWAY_Y1 postaci: 255 * (1 - cos) / 2, najwiecej w biodrach */
+static const UBYTE sway_w[SWAY_Y1 - SWAY_Y0 + 1] = {
+    0, 1, 3, 7, 12, 18, 26, 35, 45, 56, 68, 80, 93, 107, 121, 134, 148, 162, 175, 187,
+    199, 210, 220, 229, 237, 243, 248, 252, 254, 255, 254, 252, 248, 243, 237, 229, 220, 210, 199, 187,
+    175, 162, 148, 134, 121, 107, 93, 80, 68, 56, 45, 35, 26, 18, 12, 7, 3, 1, 0 };
 
 static WORD gate_x(UBYTE g) { return (WORD)(16 + g * 80); }
 /* faza podprowadzajacej g: kazda w innym miejscu cyklu */
-static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t + g * 21) & (SWAY_PHASES - 1)); }
+static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t + g * 27) % SWAY_PHASES); }
 
 void ui_present_start(void)
 {
@@ -1013,15 +1019,14 @@ BOOL ui_present_update(void)
     return (BOOL)(present_t >= PRES_TIME);
 }
 
-/* przesuniecie wiersza y przy fazie kolysania amp (64 * sin): najwiecej w biodrach, ku glowie
- * i stopom zanika - kazdy wiersz przeskakuje o piksel w innej chwili, ruch wyglada plynnie */
+/* przesuniecie wiersza y przy fazie kolysania amp (64 * sin): waga wiersza z sway_w, zaokraglenie
+ * do najblizszego piksela */
 static WORD sway_dx(WORD y, BYTE amp)
 {
-    WORD d = (WORD)(y < SWAY_MID ? SWAY_MID - y : y - SWAY_MID), span = y < SWAY_MID ? SWAY_MID - SWAY_Y0 : SWAY_Y1 - SWAY_MID;
     LONG v;
     if (y <= SWAY_Y0 || y >= SWAY_Y1) return 0;
-    v = (LONG)amp * (span - d) * SWAY_AMP;                 /* w 1/(64*span*2) piksela */
-    return (WORD)((v + (v >= 0 ? span * 64 : -span * 64)) / (span * 128));
+    v = (LONG)amp * sway_w[y - SWAY_Y0] * SWAY_AMP;             /* w 1/(64*255*2) piksela */
+    return (WORD)((v + (v >= 0 ? 64L * 255 : -64L * 255)) / (64L * 255 * 2));
 }
 
 /* wiersze y0..y1-1 postaci (x0 podzielne przez 8), kazdy przesuniety o sway_dx */
@@ -1054,18 +1059,14 @@ static void draw_girl_rows(UBYTE *b, WORD x0, WORD py, UBYTE color, WORD y0, WOR
 
 /* Tablica nad glowa (64x36), rysowana wierszami (rect_px): cien, czarny kontur z zaokraglonymi
  * rogami, pole w kolorze kasku z gradientem (polysk u gory, ciemniejszy dol, przejscia ditheringiem
- * w szachownice), wypukla krawedz (jasna z lewej, ciemna z prawej), odblask, nity po bokach
- * i bialy krazek z litera pola startowego. Dlonie podprowadzajacej (kopia z maska) nachodza na
+ * w szachownice), wypukla krawedz (jasna z lewej, ciemna z prawej), odblask i nity po bokach.
+ * Pole startowe jest podpisane pod podprowadzajaca. Dlonie podprowadzajacej (kopia z maska) nachodza na
  * dolna krawedz. */
 #define U_HELMET_LT 113                     /* + kask: jasny odcien (track.c, tools/genart.py) */
 #define U_HELMET_DK 117                     /* + kask: ciemny odcien */
 #define BOARD_W     64
 #define BOARD_H     36
 static const UBYTE board_inset[4] = { 4, 2, 1, 1 };                  /* zaokraglenie rogow */
-static const UBYTE disc_out[27] = { 4, 6, 8, 9, 10, 11, 12, 12, 13, 13, 13, 13, 13, 13,   /* krazek r=13.5 */
-                                    13, 13, 13, 13, 13, 12, 12, 11, 10, 9, 8, 6, 4 };
-static const UBYTE disc_in[25] = { 4, 6, 8, 9, 10, 10, 11, 11, 12, 12, 12, 12, 12,          /* r=12.5 */
-                                   12, 12, 12, 12, 11, 11, 10, 10, 9, 8, 6, 4 };
 
 static WORD board_row_inset(WORD r)
 {
@@ -1074,13 +1075,11 @@ static WORD board_row_inset(WORD r)
     return 0;
 }
 
-static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color, UBYTE gate)
+static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color)
 {
-    WORD bx = (WORD)(x0 - 8), by = (WORD)(y0 + 2 - BOARD_H), cx = (WORD)(bx + BOARD_W / 2), cy = (WORD)(by + BOARD_H / 2);
+    WORD bx = (WORD)(x0 - 8), by = (WORD)(y0 + 2 - BOARD_H), cy = (WORD)(by + BOARD_H / 2);
     UBYTE base = (UBYTE)(U_HELMET + color), lt = (UBYTE)(U_HELMET_LT + color), dk = (UBYTE)(U_HELMET_DK + color);
-    BOOL white = (BOOL)(color == HELMET_WHITE);
     WORD r, i;
-    char s[2];
 
     for (r = 0; r < BOARD_H; r++) {                                  /* cien i kontur */
         i = board_row_inset(r);
@@ -1118,21 +1117,11 @@ static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color, UBYTE gate)
         rect_px(b, nx, cy - 1, 2, 2, U_SILVER);
         rect_px(b, nx + 1, cy, 1, 1, U_SHADOW);
     }
-    for (r = -13; r <= 13; r++) {                                     /* krazek: czarny brzeg */
-        WORD hw = disc_out[r + 13];
-        rect_px(b, cx - hw, cy + r, 2 * hw + 1, 1, U_SHADOW);
-    }
-    for (r = -12; r <= 12; r++) {                                     /* i srodek, dol lekko szary */
-        WORD hw = disc_in[r + 12];
-        rect_px(b, cx - hw, cy + r, 2 * hw + 1, 1, white ? U_PANEL : r >= 9 ? U_SILVER : U_WHITE);
-    }
-    s[0] = gate_letter[gate]; s[1] = 0;
-    text_draw_big(b, cx - FONT_W, cy - FONT_H, s, white ? U_WHITE : U_PANEL, 0);
 }
 
-static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color, UBYTE gate, BYTE amp)
+static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color, BYTE amp)
 {
-    draw_board(b, x0, y0, color, gate);
+    draw_board(b, x0, y0, color);
     if (girls_img) draw_girl_rows(b, x0, y0, color, 0, GIRL_H, amp);
 }
 
@@ -1184,7 +1173,7 @@ static COLD void draw_present(UBYTE *b, UBYTE bi)
         WORD cx = (WORD)(gate_x(g) + GIRL_W / 2);
         UBYTE r = g_tour.heat_table[hn][g];
         if (r == 0xFF) continue;                         /* puste pole (bieg dodatkowy) */
-        draw_girl(b, gate_x(g), PRES_Y, r, g, sway_tab[sway_phase(g)]);
+        draw_girl(b, gate_x(g), PRES_Y, r, sway_tab[sway_phase(g)]);
         present_drawn[bi][g] = sway_phase(g);
         name_trunc(s, g_tour.riders[r].name, 9);
         text_draw(b, (WORD)(cx - text_len(s) * 4), PRES_Y + GIRL_H + 8, s, U_WHITE, U_SHADOW);

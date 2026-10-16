@@ -230,11 +230,13 @@ static int trailer(void)
     ui_menu_enter(0);
     tenter(GS_MENU);   thold(FPS * 3 / 2, FALSE);             /* JEDZIEMY! / CREDITS */
     g_tour.start_condition = 0;                               /* suchy tor */
+    g_defects_enabled = TRUE;                                 /* w ustawieniach domyslnie TAK */
     tenter(GS_SETUP);  thold(FPS * 3 / 2, FALSE);             /* ustawienia: 1 gracz... */
     g_tour.num_humans = 0;                                    /* ...zmiana na pokaz: same boty */
     tournament_default_names();
     ui_invalidate();   thold(2 * FPS, FALSE);
 
+    g_defects_enabled = FALSE;                                /* bieg w trailerze bez losowego defektu */
     tournament_reset();                                       /* START TURNIEJU */
     g_tour.current_heat = 0;
     track_reset_wear();
@@ -273,6 +275,29 @@ static int trailer(void)
     g_tour.current_heat = 1;                                  /* tabela z punktami po biegu 1 */
     tenter(GS_TABLE);  thold(5 * FPS, FALSE);
     fprintf(stderr, "trailer: %ld klatek (%.1f s)\n", trailer_frames, trailer_frames / 50.0);
+    return 0;
+}
+
+/* Tryb "present": sama prezentacja przed biegiem 1 (podprowadzajace z tablicami), PRESENT_S sekund
+ * klatek RGB 320x256 na stdout - podglad kolysania:  shots.exe present | ffmpeg ... */
+static int present(void)
+{
+    const char *env = getenv("PRESENT_S");
+    long n = (env ? atol(env) : 4) * FPS;
+#ifdef _WIN32
+    _setmode(_fileno(stdout), _O_BINARY);
+#endif
+    host_init();
+    fixmath_init();
+    sprites_init();
+    tournament_defaults();
+    tournament_reset();
+    track_init();
+    ui_init();
+    hud_init();
+    g_tour.current_heat = 0;
+    ui_present_start(); tenter(GS_PRESENT);
+    while (n-- > 0) { ui_present_update(); tframe(FALSE); }
     return 0;
 }
 
@@ -499,5 +524,6 @@ int main(int argc, char **argv)
     g_defects_enabled = FALSE;           /* zrzuty i trailer powtarzalne - bez losowych defektow */
     if (argc > 1 && !strcmp(argv[1], "trailer")) return trailer();
     if (argc > 1 && !strcmp(argv[1], "endcard")) return endcard();
+    if (argc > 1 && !strcmp(argv[1], "present")) return present();
     return screenshots();
 }
