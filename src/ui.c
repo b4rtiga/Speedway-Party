@@ -1052,11 +1052,33 @@ static void draw_girl_rows(UBYTE *b, WORD x0, WORD py, UBYTE color, WORD y0, WOR
     }
 }
 
-static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color, BYTE amp)
+/* Tablica nad glowa (64x32): cien, czarny kontur i biala ramka z zaokraglonymi rogami, pole
+ * w kolorze kasku z jasnym polyskiem u gory i ciemniejszym pasem u dolu, na srodku duza litera
+ * pola startowego. Dlonie podprowadzajacej (kopia z maska) nachodza na dolna krawedz. */
+#define U_HELMET_LT 113                     /* + kask: jasny odcien (track.c, tools/genart.py) */
+#define U_HELMET_DK 117                     /* + kask: ciemny odcien */
+static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color, UBYTE gate)
 {
-    /* tablica nad glowa: kolor kasku zawodnika, ciemny kontur */
-    rect_px(b, x0 - 6, y0 - 22, GIRL_W + 12, 24, U_SHADOW);
-    rect_px(b, x0 - 4, y0 - 20, GIRL_W + 8, 20, (UBYTE)(U_HELMET + color));
+    WORD bx = (WORD)(x0 - 8), by = (WORD)(y0 - 30);
+    char s[2];
+    BOOL light = (BOOL)(color == HELMET_WHITE || color == HELMET_YELLOW);
+    rect_px(b, bx + 2, by + 2, 64, 32, U_SHADOW);                      /* cien */
+    rect_px(b, bx, by, 64, 32, U_SHADOW);                              /* kontur */
+    rect_px(b, bx, by, 1, 1, 0); rect_px(b, bx + 63, by, 1, 1, 0); rect_px(b, bx, by + 31, 1, 1, 0);
+    rect_px(b, bx + 1, by + 1, 62, 30, U_WHITE);                       /* ramka */
+    rect_px(b, bx + 1, by + 1, 1, 1, U_SHADOW); rect_px(b, bx + 62, by + 1, 1, 1, U_SHADOW);
+    rect_px(b, bx + 1, by + 30, 1, 1, U_SHADOW); rect_px(b, bx + 62, by + 30, 1, 1, U_SHADOW);
+    rect_px(b, bx + 3, by + 3, 58, 26, (UBYTE)(U_HELMET + color));    /* pole w kolorze kasku */
+    rect_px(b, bx + 3, by + 3, 58, 4, (UBYTE)(U_HELMET_LT + color));  /* polysk */
+    rect_px(b, bx + 3, by + 25, 58, 4, (UBYTE)(U_HELMET_DK + color)); /* cien u dolu */
+    s[0] = gate_letter[gate]; s[1] = 0;
+    text_draw_big(b, x0 + GIRL_W / 2 - FONT_W, by + 5, s, light ? U_PANEL : U_WHITE,
+                  light ? 0 : (UBYTE)(U_HELMET_DK + color));
+}
+
+static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color, UBYTE gate, BYTE amp)
+{
+    draw_board(b, x0, y0, color, gate);
     if (girls_img) draw_girl_rows(b, x0, y0, color, 0, GIRL_H, amp);
 }
 
@@ -1108,7 +1130,7 @@ static COLD void draw_present(UBYTE *b, UBYTE bi)
         WORD cx = (WORD)(gate_x(g) + GIRL_W / 2);
         UBYTE r = g_tour.heat_table[hn][g];
         if (r == 0xFF) continue;                         /* puste pole (bieg dodatkowy) */
-        draw_girl(b, gate_x(g), PRES_Y, r, sway_tab[sway_phase(g)]);
+        draw_girl(b, gate_x(g), PRES_Y, r, g, sway_tab[sway_phase(g)]);
         present_drawn[bi][g] = sway_phase(g);
         name_trunc(s, g_tour.riders[r].name, 9);
         text_draw(b, (WORD)(cx - text_len(s) * 4), PRES_Y + GIRL_H + 8, s, U_WHITE, U_SHADOW);
