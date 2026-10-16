@@ -67,9 +67,9 @@ endif
 # Katalog gotowy do podpiecia w WinUAE jako dysk startowy (bez Workbencha):
 # Kickstart 3.x uruchamia s/startup-sequence, a ta od razu gre.
 dist: SpeedwayParty $(DATA)
+	rm -rf dist/data                     # bez starych plikow (np. usunietych z gry)
 	mkdir -p dist/data dist/s
 	cp SpeedwayParty dist/
-	rm -f dist/data/music.raw
 	cp $(DATA) dist/data/
 	python3 tools/pack.py $(addprefix dist/data/,$(PACKED)) >/dev/null
 	python3 tools/mkicons.py tool dist >/dev/null
