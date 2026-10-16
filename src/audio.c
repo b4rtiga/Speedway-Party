@@ -77,6 +77,7 @@ static UBYTE  sfx_relatch;                /* klatki do podmiany LC/LEN na cisze 
 static UWORD eng_rpm[2], eng_vol[2];
 static UBYTE crowd_vol, crowd_target, crowd_boost;
 static UBYTE last_leader = 0xFF, last_finished;
+UWORD g_crowd_wave;                          /* klatki "fali" na trybunach (main.c) - przy wybuchu gwaru */
 static BOOL  cheered;                     /* okrzyk na ostatniej prostej juz byl w tym biegu */
 
 COLD BOOL audio_init(void)
@@ -359,7 +360,7 @@ static void update_crowd(void)
         if (h->phase == HEAT_RED_LIGHT) crowd_target = 8;               /* cisza przed startem */
         for (i = 0; i < MAX_RIDERS; i++)                                /* zmiana lidera */
             if (g_tour.bikes[i].position == 0 && h->phase == HEAT_RACING) {
-                if (last_leader != 0xFF && last_leader != i && h->race_frames > 3 * FPS) crowd_boost = 60;
+                if (last_leader != 0xFF && last_leader != i && h->race_frames > 3 * FPS) crowd_boost = g_crowd_wave = 60;
                 last_leader = i;
             }
         if (h->phase == HEAT_RACING && !cheered) {
@@ -374,7 +375,7 @@ static void update_crowd(void)
         }
         if (h->phase != HEAT_RACING && h->phase != HEAT_FINISHED) cheered = FALSE;   /* start / powtorka */
         if (h->finished_count != last_finished) {                       /* meta: gwar w gore */
-            if (h->finished_count == 1) crowd_boost = 150;
+            if (h->finished_count == 1) crowd_boost = g_crowd_wave = 150;
             last_finished = h->finished_count;
         }
     } else {

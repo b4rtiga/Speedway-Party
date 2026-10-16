@@ -47,6 +47,11 @@ void video_set_menu_palette(const RGB24 *pal) { menu_own_pal = TRUE; memcpy(cur_
 void video_set_hud_palette(const RGB24 *pal) { memcpy(cur_hud, pal, sizeof(cur_hud)); }
 void video_set_hud_color(UBYTE i, UBYTE r, UBYTE g, UBYTE b) { cur_hud[i].r = r; cur_hud[i].g = g; cur_hud[i].b = b; }
 void video_palette_tick(void) { }
+void video_crowd_cycle(UBYTE shift)
+{
+    UBYTE k;
+    for (k = 0; k < 32; k++) cur_play[140 + k] = g_video.pal_dry[140 + ((k + shift) & 31)];
+}
 void video_blend_track_palette_lazy(UBYTE wet);
 void video_blend_track_palette(UBYTE wet)
 {

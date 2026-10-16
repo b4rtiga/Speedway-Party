@@ -266,6 +266,20 @@ void video_blend_track_palette(UBYTE wet)
     video_set_play_palette(tmp);
 }
 
+/* Fala na trybunach: 32 kolory koszulek kibicow (140..171, tools/genart.py) przesuniete w kolko
+ * o shift - klasyczne cyklowanie kolorow, 64 wpisy do list Coppera na klatke. shift 0 = jak bylo. */
+#define CROWD_FIRST 140
+#define CROWD_N     32
+void video_crowd_cycle(UBYTE shift)
+{
+    UBYTE k, b, m;
+    for (k = 0; k < CROWD_N; k++) {
+        const RGB24 *c = &g_video.pal_dry[CROWD_FIRST + ((k + shift) & (CROWD_N - 1))];
+        for (m = 0; m < (menu_own_pal ? 1 : 2); m++)
+            for (b = 0; b < 2; b++) write_palette(g_video.cop_play_pal[m][b], CROWD_FIRST + k, c);
+    }
+}
+
 /* To samo po kawalku: 64 kolory na klatke (cala paleta w 4 klatki). Pelne mieszanie
  * i wpis 1024 kolorow do list Coppera naraz kosztowalo ok. pol klatki - w biegu (schniecie)
  * i przy rownaniu toru gubilo klatke. */

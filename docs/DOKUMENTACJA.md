@@ -89,7 +89,7 @@ Na dole ekranu jest pasek: kolory kasków w kolejności na torze, numer okrąże
 
 ### Wyniki, przerwa na tor, podium i gazeta
 
-Po biegu – wyniki z punktami i czasem. Gdy drugi zawodnik minie metę najwyżej 0,1 s za zwycięzcą, przed wynikami gra pokazuje **fotofinisz**: końcówkę biegu w zwolnionym tempie i stopklatkę na linii mety z różnicą czasu (FIRE pomija). Po biegach 4, 7, 11 i 13 traktory równają i polewają tor. Po ostatnim biegu – podium, a po nim gazeta „GŁOS OWALU” z podsumowaniem zawodów. FIRE na gazecie zaczyna nowy turniej.
+Po biegu – wyniki z punktami i czasem. Gdy drugi zawodnik minie metę najwyżej 0,1 s za zwycięzcą, przed wynikami gra pokazuje **fotofinisz**: końcówkę biegu w zwolnionym tempie i stopklatkę na linii mety z różnicą czasu (FIRE pomija). Po biegach 4, 7, 11 i 13 traktory równają i polewają tor. Po ostatnim biegu – podium z fajerwerkami, a po nim gazeta „GŁOS OWALU” z podsumowaniem zawodów. FIRE na gazecie zaczyna nowy turniej.
 
 ![Wyniki biegu](../art/screen_07_result.png)
 

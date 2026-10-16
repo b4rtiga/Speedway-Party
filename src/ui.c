@@ -1448,6 +1448,66 @@ COLD void ui_pick_update(void)
 
 /* =========================== PODIUM ================================ */
 
+/* Fajerwerki nad podium: wybuch co FW_EVERY klatek w wolnym pasie pod tytulem i po bokach
+ * blokow podium; iskry rozlatuja sie, opadaja i gasna. Kazdy bufor pamieta swoje narysowane
+ * iskry i je zmazuje (tlo = kolor 0 z Coppera). */
+#define FW_N     56
+#define FW_BURST 28                         /* iskier w wybuchu */
+#define FW_EVERY 22                         /* krokow miedzy wybuchami (krok co 2 klatki) */
+typedef struct { WORD x, y, dx, dy; UBYTE life, col; } Spark;          /* x, y, dx, dy w 1/64 px */
+static Spark fw[FW_N];
+static WORD  fw_drawn[2][FW_N][2];
+static UBYTE fw_drawn_n[2], fw_next, fw_t = FW_EVERY - 2;
+static const UBYTE fw_cols[6] = { U_GOLD, U_RED, U_GREEN, U_WHITE, 98, U_SILVER };
+
+static BOOL fw_free_area(WORD x, WORD y)
+{
+    if (x < 0 || x > SCREEN_W - 1) return FALSE;
+    if (y >= 34 && y <= 66) return TRUE;                          /* pas pod tytulem */
+    return (BOOL)((x < 44 || x >= 276) && y >= 34 && y <= 160);   /* po bokach podium */
+}
+
+static void fireworks_step(void)
+{
+    UBYTE i;
+    if (++fw_t >= FW_EVERY) {                                     /* nowy wybuch */
+        WORD cx = (WORD)rng_range(30, 290), cy = (WORD)rng_range(38, 60);
+        UBYTE col = fw_cols[rng_range(0, 5)], k;
+        fw_t = 0;
+        for (k = 0; k < FW_BURST; k++) {
+            Spark *s = &fw[fw_next];
+            angle8 a = (angle8)(k * 256 / FW_BURST + (rng_next() & 7));
+            WORD sp = (WORD)(40 + rng_range(0, 40));               /* 0.6..1.25 px/klatke */
+            fw_next = (UBYTE)((fw_next + 1) % FW_N);
+            s->x = (WORD)(cx * 64); s->y = (WORD)(cy * 64);
+            s->dx = (WORD)(COS(a) * sp >> 14); s->dy = (WORD)(SIN(a) * sp >> 14);
+            s->life = (UBYTE)(30 + rng_range(0, 14));
+            s->col = col;
+        }
+    }
+    for (i = 0; i < FW_N; i++) {
+        Spark *s = &fw[i];
+        if (!s->life) continue;
+        s->x = (WORD)(s->x + s->dx); s->y = (WORD)(s->y + s->dy);
+        s->dy = (WORD)(s->dy + 2);                                /* grawitacja */
+        s->life--;
+    }
+}
+
+static void fireworks_draw(UBYTE *b, UBYTE bi)
+{
+    UBYTE i, n = 0;
+    for (i = 0; i < fw_drawn_n[bi]; i++) rect_px(b, fw_drawn[bi][i][0], fw_drawn[bi][i][1], 2, 2, 0);
+    for (i = 0; i < FW_N; i++) {
+        const Spark *s = &fw[i];
+        WORD x = (WORD)(s->x >> 6), y = (WORD)(s->y >> 6);
+        if (!s->life || !fw_free_area(x, y) || !fw_free_area(x + 1, y + 1)) continue;
+        rect_px(b, x, y, 2, 2, s->life < 8 ? U_GREY : s->col);       /* iskra 2x2 */
+        fw_drawn[bi][n][0] = x; fw_drawn[bi][n][1] = y; n++;
+    }
+    fw_drawn_n[bi] = n;
+}
+
 static COLD void draw_podium(UBYTE *b)
 {
     static const WORD bx[3] = { 128, 48, 208 }, top[3] = { 86, 110, 128 };
@@ -2095,6 +2155,7 @@ panel_done:
     if (drawn_serial[bi] == serial && buf_is_track[bi] == 0) {
         if (blink_dirty[bi]) { blink_dirty[bi] = 0; draw_blink_line(b); }
         if (g_tour.state == GS_PRESENT) present_girls(b, bi);    /* wychodzace podprowadzajace */
+        if (g_tour.state == GS_PODIUM) { if (bi == 0) fireworks_step(); fireworks_draw(b, bi); }   /* fajerwerki */
         return;
     }
     blink_dirty[bi] = 0;
@@ -2115,7 +2176,7 @@ panel_done:
     case GS_TABLE:     draw_table(b); break;
     case GS_PRESENT:   draw_present(b, bi); break;
     case GS_GATE_PICK: draw_pick(b); break;
-    case GS_PODIUM:    draw_podium(b); break;
+    case GS_PODIUM:    draw_podium(b); fw_drawn_n[bi] = 0; break;
     default: break;
     }
     if (g_paused) draw_pause(b, 82);

@@ -57,7 +57,8 @@ void video_set_menu_palette(const RGB24 *pal);   /* tylko listy menu (plansza ty
 void  video_set_hud_palette(const RGB24 *pal);
 void  video_set_hud_color(UBYTE index, UBYTE r, UBYTE g, UBYTE b);
 void  video_blend_track_palette(UBYTE wet); /* 0 = sucho, 255 = mokro */
-void  video_blend_track_palette_lazy(UBYTE wet);   /* to samo rozlozone na 4 klatki (video_palette_tick) */
+void  video_blend_track_palette_lazy(UBYTE wet);
+void  video_crowd_cycle(UBYTE shift);      /* kibice (kolory 140..171) przesuniete o shift - "fala" */   /* to samo rozlozone na 4 klatki (video_palette_tick) */
 void  video_palette_tick(void);                    /* raz na klatke: kolejne 64 kolory */
 void  video_set_sprite(UBYTE n, const UWORD *data);
 void  video_set_lines(const UWORD *bg12, const UWORD *fg12);   /* PLAY_H (wyscig) / FULL_H (menu) wartosci */

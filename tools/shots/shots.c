@@ -301,6 +301,29 @@ static int present(void)
     return 0;
 }
 
+/* Tryb "podium": ekran podium z fajerwerkami, PRESENT_S sekund klatek RGB na stdout */
+static int podium(void)
+{
+    const char *env = getenv("PRESENT_S");
+    long n = (env ? atol(env) : 4) * FPS;
+    UBYTE i;
+#ifdef _WIN32
+    _setmode(_fileno(stdout), _O_BINARY);
+#endif
+    host_init();
+    fixmath_init();
+    sprites_init();
+    tournament_defaults();
+    tournament_reset();
+    track_init();
+    ui_init();
+    hud_init();
+    for (i = 0; i < MAX_RIDERS; i++) { g_tour.riders[i].points = (UBYTE)(30 - i * 4); g_tour.riders[i].wins = (UBYTE)(5 - i); }
+    tenter(GS_PODIUM);
+    while (n-- > 0) tframe(FALSE);
+    return 0;
+}
+
 /* Tryb "endcard": ostatnia plansza trailera - ilustracja tytulowa z napisem fontem gry
  * (jedna klatka RGB 320x256 na stdout). Napis w 2 liniach: duzy font ma 16 px na znak. */
 static int endcard(void)
@@ -594,5 +617,6 @@ int main(int argc, char **argv)
     if (argc > 1 && !strcmp(argv[1], "trailer")) return trailer();
     if (argc > 1 && !strcmp(argv[1], "endcard")) return endcard();
     if (argc > 1 && !strcmp(argv[1], "present")) return present();
+    if (argc > 1 && !strcmp(argv[1], "podium")) return podium();
     return screenshots();
 }

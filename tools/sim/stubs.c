@@ -16,6 +16,7 @@ void video_set_hud_color(UBYTE i, UBYTE r, UBYTE g, UBYTE b) { (void)i; (void)r;
 void video_blend_track_palette(UBYTE wet) { (void)wet; }
 void video_blend_track_palette_lazy(UBYTE wet) { (void)wet; }
 void video_palette_tick(void) { }
+void video_crowd_cycle(UBYTE shift) { (void)shift; }
 BOOL blit_init(void) { return TRUE; }
 void blit_free(void) {}
 void blit_wait(void) {}

@@ -571,6 +571,20 @@ static int game_main(void)
         render_sprites();
         hud_update();
         audio_update();
+        {
+            /* fala na trybunach przy zmianie lidera i na mecie (nie w nocy - tam inna paleta) */
+            extern UWORD g_crowd_wave;
+            static BOOL waving;
+            if (g_crowd_wave && g_tour.state == GS_HEAT && !g_tour.night) {
+                g_crowd_wave--;
+                video_crowd_cycle((UBYTE)(g_frame >> 2));
+                waving = TRUE;
+            } else if (waving) {
+                g_crowd_wave = 0;
+                video_crowd_cycle(0);
+                waving = FALSE;
+            }
+        }
 #ifdef SHOW_LAG
         v3 = hw_vpos();
 #endif

@@ -15,7 +15,7 @@ status=0
 for lang in PL EN; do
     def=; [ $lang = EN ] && def=-DLANG_EN
     gcc $CF -DHOST_SIM $def tools/shots/shots.c $SRC -o "$B/shots_$lang" || exit 1
-    for mode in "" trailer endcard present; do
+    for mode in "" trailer endcard present podium; do
         if ! "$B/shots_$lang" $mode >/dev/null 2>"$B/log"; then
             echo "BLAD: shots $lang ${mode:-zrzuty}"; grep -E "ERROR|runtime error|#[0-4] " "$B/log" | head -12; status=1
         fi
