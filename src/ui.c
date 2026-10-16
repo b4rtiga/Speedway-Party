@@ -1692,15 +1692,15 @@ static COLD void draw_podium(UBYTE *b)
         sc[1] = tournament_team_points(1);
         text_draw_big_center(b, 10, T("KONIEC MECZU", "MATCH OVER"), U_RAINBOW, U_SHADOW);
         for (t = 0; t < 2; t++) {
-            WORD x = (WORD)(t ? 168 : 24);
+            WORD x = (WORD)(t ? 176 : 16);          /* Blitter: wielokrotnosc 16 */
             BOOL won = (BOOL)(sc[t] > sc[1 - t]);
             panel(b, x, 46, 128, 116, U_PANEL, won ? U_GOLD : U_BORDER);
             text_draw(b, (WORD)(x + 64 - text_len(team_name[t]) * 4), 54, team_name[t], won ? U_GOLD : U_WHITE, U_SHADOW);
             for (k = 0; k < 2; k++) {
                 UBYTE r = (UBYTE)(t * 2 + k);
-                helmet_box(b, x + 8, (WORD)(72 + k * 14), r);
+                helmet_box(b, x + 16, (WORD)(72 + k * 14), r);
                 name_trunc(s, g_tour.riders[r].name, 10);
-                text_draw(b, x + 30, (WORD)(73 + k * 14), s, U_WHITE, U_SHADOW);
+                text_draw(b, x + 38, (WORD)(73 + k * 14), s, U_WHITE, U_SHADOW);
             }
             p = text_uint(s, sc[t], 1);
             text_draw_big(b, (WORD)(x + 64 - text_len(s) * 8), 112, s, won ? U_GOLD : U_WHITE, U_SHADOW);
@@ -1753,7 +1753,7 @@ static COLD void draw_series(UBYTE *b)
     }
     text_draw_center(b, 36, s, U_GOLD, 0);
 
-    panel(b, 12, 70, 296, 82, U_PANEL, U_BORDER);
+    panel(b, 16, 70, 288, 82, U_PANEL, U_BORDER);
     for (k = 0; k < SERIES_ROUNDS; k++) {                         /* naglowki rund: R1 R2 R3 */
         s[0] = 'R'; s[1] = (char)('1' + k); s[2] = 0;
         text_draw(b, (WORD)(176 + k * 32), 76, s, k <= g_tour.series_round ? U_GOLD : U_GREY, U_SHADOW);
@@ -1764,10 +1764,10 @@ static COLD void draw_series(UBYTE *b)
         WORD y = (WORD)(94 + i * 14);
         BOOL lead = (BOOL)(i == 0);
         s[0] = (char)('1' + i); s[1] = '.'; s[2] = 0;
-        text_draw(b, 20, y, s, lead ? U_GOLD : U_WHITE, U_SHADOW);
-        helmet_box(b, 40, (WORD)(y - 1), r);
+        text_draw(b, 24, y, s, lead ? U_GOLD : U_WHITE, U_SHADOW);
+        helmet_box(b, 48, (WORD)(y - 1), r);
         name_trunc(s, g_tour.riders[r].name, 12);
-        text_draw(b, 62, y, s, lead ? U_GOLD : U_WHITE, U_SHADOW);
+        text_draw(b, 72, y, s, lead ? U_GOLD : U_WHITE, U_SHADOW);
         for (k = 0; k < SERIES_ROUNDS; k++) {
             if (k <= g_tour.series_round) text_uint(s, g_tour.series_pts[r][k], 1);
             else text_cat(s, "-");
@@ -1876,9 +1876,9 @@ static COLD void draw_false_start(UBYTE *b)
 }
 
 /* trening: tabliczka na murawie - ostatnie i najlepsze okrazenie, rekord toru */
-#define TRAIN_X 104
+#define TRAIN_X 96                       /* Blitter: x i szerokosc wielokrotnoscia 16 */
 #define TRAIN_Y 80                       /* murawa y 60..140: od krawezników > 10 px (duszek +-10) */
-#define TRAIN_W 112
+#define TRAIN_W 128
 #define TRAIN_H 40
 static UWORD train_shown[2];                /* pokazane czasy (ostatnie, najlepsze) - zmiana = odswiezenie */
 
