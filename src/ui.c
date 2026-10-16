@@ -585,6 +585,20 @@ static COLD void draw_news(UBYTE *b)
     rect_px(b, 8, 44, SCREEN_W - 16, 1, U_SHADOW);
     for (x = 8; x < SCREEN_W - 8; x += 4) rect_px(b, x, 46, 2, 1, U_RAINBOW);   /* raster */
 
+    if (g_tour.team_mode) {
+        /* mecz: kto wygral i wynik, najlepszy zawodnik meczu */
+        UWORD h0 = tournament_team_points(0), a0 = tournament_team_points(1);
+        text_draw_big(b, 16, 52, h0 == a0 ? T("REMIS", "A DRAW") : h0 > a0 ? T("GOSPODARZE", "HOME TEAM") : T("GOŚCIE", "AWAY TEAM"), U_SHADOW, 0);
+        p = text_cat(s, h0 == a0 ? "" : T("WYGRYWAJĄ ", "WINS "));
+        p = text_uint(p, h0 > a0 ? h0 : a0, 1);                      /* zwyciezca pierwszy */
+        p = text_cat(p, ":");
+        text_uint(p, h0 > a0 ? a0 : h0, 1);
+        text_draw_big(b, 16, 74, s, U_RED, 0);
+        p = text_cat(s, T("NAJLEPSZY: ", "TOP SCORER: "));
+        name_trunc(p, n->name[0], NEWS_NAME);
+        text_draw(b, 16, 100, s, U_SHADOW, 0);
+        text_draw(b, 16, 114, T("MECZ PAR NA OWALU, 15 BIEGÓW", "A PAIRS MATCH ON THE OVAL, 15 HEATS"), U_RAINBOW, 0);
+    } else {
     text_draw_big(b, 16, 52, news_head[n->rule][0], U_SHADOW, 0);
     text_draw_big(b, 16, 74, news_head[n->rule][1], U_RED, 0);
     p = name_trunc(s, n->name[0], NEWS_NAME);
@@ -592,6 +606,7 @@ static COLD void draw_news(UBYTE *b)
     text_draw(b, 16, 100, s, U_SHADOW, 0);
     text_draw(b, 16, 114, news_body[n->rule][0], U_RAINBOW, 0);
     text_draw(b, 16, 125, news_body[n->rule][1], U_RAINBOW, 0);
+    }
 
     rect_px(b, 16, 139, SCREEN_W - 32, 1, U_SHADOW);
     text_draw(b, 16, 143, T("MIEJSCE / ZAWODNIK", "PLACE / RIDER"), U_RAINBOW, 0);
@@ -680,6 +695,7 @@ static COLD void draw_setup(UBYTE *b)
     p = text_cat(p, cond_names[g_tour.track_choice]);
     p = text_cat(p, g_tour.night ? T("  NOC", "  NIGHT") : T("  DZIEŃ", "  DAY"));
     if (g_tour.rain_opt) p = text_cat(p, T("  DESZCZ", "  RAIN"));
+    if (g_tour.team_mode) p = text_cat(p, T("  MECZ", "  TEAM"));
     p = text_cat(p, T("  DEFEKTY: ", "  DEFECTS: "));
     p = text_cat(p, yes_no(g_defects_enabled));
     p = text_cat(p, T("  MUZYKA: ", "  MUSIC: "));
@@ -821,46 +837,49 @@ COLD UBYTE ui_setup_update(void)
 
 /* Z ekranu TURNIEJ (wiersz USTAWIENIA): stan toru na start (albo losowy), defekty, muzyka.
  * LEWO/PRAWO zmienia, FIRE zmienia albo wraca (POWROT), ESC wraca do ekranu TURNIEJ. */
-#define OPT_ROWS    6
+#define OPT_ROWS    7
 #define OPT_TRACK   0
 #define OPT_NIGHT   1
 #define OPT_RAIN    2
-#define OPT_DEFECTS 3
-#define OPT_MUSIC   4
-#define OPT_BACK    5
+#define OPT_TEAM    3
+#define OPT_DEFECTS 4
+#define OPT_MUSIC   5
+#define OPT_BACK    6
 static UBYTE opt_row;
 
 void ui_options_enter(void) { opt_row = OPT_TRACK; }
 
-static WORD opt_row_y(UBYTE row) { return (WORD)(50 + row * 20); }
+static WORD opt_row_y(UBYTE row) { return (WORD)(44 + row * 19); }
 
 static COLD void draw_options(UBYTE *b)
 {
-    static const char *const label[5] = { T("STAN TORU:", "TRACK:"), T("PORA:", "TIME:"), T("DESZCZ:", "RAIN:"),
-                                          T("DEFEKTY:", "DEFECTS:"), T("MUZYKA:", "MUSIC:") };
+    static const char *const label[6] = { T("STAN TORU:", "TRACK:"), T("PORA:", "TIME:"), T("DESZCZ:", "RAIN:"),
+                                          T("ZAWODY:", "EVENT:"), T("DEFEKTY:", "DEFECTS:"), T("MUZYKA:", "MUSIC:") };
     static const char *const about[OPT_ROWS] = {
         T("STAN NAWIERZCHNI NA START TURNIEJU", "TRACK CONDITION AT THE START"),
-        T("NOC: TOR W SWIETLE REFLEKTOROW", "NIGHT: TRACK UNDER FLOODLIGHTS"),
-        T("W TRAKCIE TURNIEJU ZACZNIE PADAC", "IT WILL START RAINING MID-EVENT"),
+        T("NOC: TOR W ŚWIETLE REFLEKTORÓW", "NIGHT: TRACK UNDER FLOODLIGHTS"),
+        T("W TRAKCIE TURNIEJU ZACZNIE PADAĆ", "IT WILL START RAINING MID-EVENT"),
+        T("MECZ: CZERWONY+NIEBIESKI NA BIAŁY+ŻÓŁTY", "TEAMS: RED+BLUE V WHITE+YELLOW"),
         T("AWARIE MOTOCYKLI: OK. 1 NA TURNIEJ", "ENGINE FAILURES: ABOUT 1 PER EVENT"),
         T("MUZYKA W MENU", "MUSIC IN THE MENUS"),
         T("POWRÓT DO EKRANU TURNIEJU", "BACK TO THE TOURNAMENT SCREEN") };
-    char s[24], *p;
+    char s[32], *p;
     UBYTE i;
-    text_draw_big_center(b, 12, T("USTAWIENIA", "SETTINGS"), U_RAINBOW, U_SHADOW);
+    text_draw_big_center(b, 10, T("USTAWIENIA", "SETTINGS"), U_RAINBOW, U_SHADOW);
     blit_fill(b, 16, opt_row_y(opt_row) - 4, 288, 17, U_CURSOR);
-    for (i = 0; i < 5; i++) {
+    for (i = 0; i < 6; i++) {
         text_draw(b, 40, opt_row_y(i), label[i], U_WHITE, U_SHADOW);
         p = text_cat(s, "< ");
         p = text_cat(p, i == OPT_TRACK ? cond_names[g_tour.track_choice] :
                         i == OPT_NIGHT ? (g_tour.night ? T("NOC", "NIGHT") : T("DZIEŃ", "DAY")) :
                         i == OPT_RAIN ? yes_no(g_tour.rain_opt) :
+                        i == OPT_TEAM ? (g_tour.team_mode ? T("DRUŻYNOWE", "TEAM") : T("INDYWIDUALNE", "INDIVIDUAL")) :
                         yes_no(i == OPT_DEFECTS ? g_defects_enabled : g_music_enabled));
         text_cat(p, " >");
         text_draw(b, 168, opt_row_y(i), s, U_GOLD, U_SHADOW);
     }
     text_draw_center(b, opt_row_y(OPT_BACK), T("POWRÓT", "BACK"), opt_row == OPT_BACK ? U_RAINBOW : U_WHITE, U_SHADOW);
-    text_draw_center(b, 174, about[opt_row], U_GREY, 0);
+    text_draw_center(b, 184, about[opt_row], U_GREY, 0);
     text_draw_small_center(b, 216, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY);
     text_draw_small_center(b, 227, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY);
     text_draw_small_center(b, 238, T("ESC - POWRÓT", "ESC - BACK"), U_GREY);
@@ -885,6 +904,7 @@ COLD BOOL ui_options_update(void)
         if (opt_row == OPT_TRACK) g_tour.track_choice = (UBYTE)((g_tour.track_choice + 4 + d) % 4);
         else if (opt_row == OPT_NIGHT) g_tour.night = (UBYTE)(!g_tour.night && track_night_available());
         else if (opt_row == OPT_RAIN) g_tour.rain_opt = (UBYTE)!g_tour.rain_opt;
+        else if (opt_row == OPT_TEAM) g_tour.team_mode = (UBYTE)!g_tour.team_mode;
         else if (opt_row == OPT_DEFECTS) g_defects_enabled = (BOOL)!g_defects_enabled;
         else if (opt_row == OPT_MUSIC) g_music_enabled = (BOOL)!g_music_enabled;
     }
@@ -893,6 +913,19 @@ COLD BOOL ui_options_update(void)
 }
 
 /* ===================== PROGRAM / TABELA =========================== */
+
+/* mecz druzynowy: "GOSPODARZE 23 : 19 GOSCIE" */
+static const char *const team_name[2] = { T("GOSPODARZE", "HOME"), T("GOŚCIE", "AWAY") };
+static char *team_score_text(char *s)
+{
+    char *p = text_cat(s, team_name[0]);
+    p = text_cat(p, " ");
+    p = text_uint(p, tournament_team_points(0), 1);
+    p = text_cat(p, " : ");
+    p = text_uint(p, tournament_team_points(1), 1);
+    p = text_cat(p, " ");
+    return text_cat(p, team_name[1]);
+}
 
 /* czas w klatkach -> "41.2" (dziesiate) albo "9.84" (setne) */
 static char *fmt_time(char *p, UWORD frames, BOOL hundredths)
@@ -1018,7 +1051,8 @@ static COLD void draw_table(UBYTE *b)
     if (hn == RUNOFF_HEAT) text_cat(s, T("BIEG DODATKOWY", "RUN-OFF"));
     else { p = text_cat(s, T("BIEG ", "HEAT ")); text_uint(p, (ULONG)(hn + 1), 1); }
     text_draw_big_center(b, 10, s, U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 36, hn == RUNOFF_HEAT ? T("REMIS - O MIEJSCE NA PODIUM", "TIE - RUN-OFF FOR THE PODIUM")
+    if (g_tour.team_mode) text_draw_center(b, 36, team_score_text(s), U_GOLD, 0);      /* mecz: wynik */
+    else text_draw_center(b, 36, hn == RUNOFF_HEAT ? T("REMIS - O MIEJSCE NA PODIUM", "TIE - RUN-OFF FOR THE PODIUM")
                           : hn >= FIXED_HEATS ? T("BIEG NOMINOWANY", "NOMINATED HEAT") : T("PROGRAM ZAWODÓW", "RACE PROGRAMME"), U_GOLD, 0);
 
     panel(b, 48, 52, 224, 64, U_PANEL, U_BORDER);
@@ -1517,9 +1551,33 @@ static COLD void draw_podium(UBYTE *b)
     char s[48], *p;
 
     tournament_sort(order);
+    if (g_tour.team_mode) {
+        /* mecz: dwie tablice druzyn - nazwa, kaski i nazwiska, wynik; zwyciezca w zlotej ramce */
+        UWORD sc[2];
+        UBYTE t, k;
+        sc[0] = tournament_team_points(0);
+        sc[1] = tournament_team_points(1);
+        text_draw_big_center(b, 10, T("KONIEC MECZU", "MATCH OVER"), U_RAINBOW, U_SHADOW);
+        for (t = 0; t < 2; t++) {
+            WORD x = (WORD)(t ? 168 : 24);
+            BOOL won = (BOOL)(sc[t] > sc[1 - t]);
+            panel(b, x, 46, 128, 116, U_PANEL, won ? U_GOLD : U_BORDER);
+            text_draw(b, (WORD)(x + 64 - text_len(team_name[t]) * 4), 54, team_name[t], won ? U_GOLD : U_WHITE, U_SHADOW);
+            for (k = 0; k < 2; k++) {
+                UBYTE r = (UBYTE)(t * 2 + k);
+                helmet_box(b, x + 8, (WORD)(72 + k * 14), r);
+                name_trunc(s, g_tour.riders[r].name, 10);
+                text_draw(b, x + 30, (WORD)(73 + k * 14), s, U_WHITE, U_SHADOW);
+            }
+            p = text_uint(s, sc[t], 1);
+            text_draw_big(b, (WORD)(x + 64 - text_len(s) * 8), 112, s, won ? U_GOLD : U_WHITE, U_SHADOW);
+        }
+        text_draw_center(b, 168, sc[0] == sc[1] ? T("REMIS!", "A DRAW!") : sc[0] > sc[1] ? T("WYGRYWAJĄ GOSPODARZE!", "THE HOME TEAM WINS!")
+                                                                                     : T("WYGRYWAJĄ GOŚCIE!", "THE AWAY TEAM WINS!"), U_GOLD, U_SHADOW);
+    } else
     text_draw_big_center(b, 10, T("KONIEC TURNIEJU", "TOURNAMENT OVER"), U_RAINBOW, U_SHADOW);
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3 && !g_tour.team_mode; i++) {
         Rider *r = &g_tour.riders[order[i]];
         blit_fill(b, bx[i], top[i], 64, 166 - top[i], col[i]);
         s[0] = (char)('1' + i); s[1] = 0;
@@ -1529,7 +1587,7 @@ static COLD void draw_podium(UBYTE *b)
     }
     for (i = 0; i < MAX_RIDERS; i++) {
         Rider *r = &g_tour.riders[order[i]];
-        WORD y = (WORD)(178 + i * 13);
+        WORD y = (WORD)((g_tour.team_mode ? 184 : 178) + i * (g_tour.team_mode ? 12 : 13));
         p = text_uint(s, (ULONG)(i + 1), 1);
         p = text_cat(p, ". ");
         p = name_trunc(p, r->name, NAME_EDIT_MAX);
@@ -1700,7 +1758,19 @@ static COLD void draw_result(UBYTE *b)
                           line == 0 && fin ? U_GOLD : U_WHITE, U_SHADOW);
         }
     }
-    if (h->finished_count) {
+    if (g_tour.team_mode && g_tour.current_heat != RUNOFF_HEAT) {
+        /* mecz: "BIEG 5:1   MECZ 23:19" */
+        UBYTE hn = g_tour.current_heat;
+        p = text_cat(s, T("BIEG ", "HEAT "));
+        p = text_uint(p, tournament_team_heat(0, hn), 1);
+        p = text_cat(p, ":");
+        p = text_uint(p, tournament_team_heat(1, hn), 1);
+        p = text_cat(p, T("   MECZ ", "   MATCH "));
+        p = text_uint(p, tournament_team_points(0), 1);
+        p = text_cat(p, ":");
+        text_uint(p, tournament_team_points(1), 1);
+        text_draw_center(b, PANEL_Y + 84, s, U_GOLD, 0);
+    } else if (h->finished_count) {
         UWORD t = g_tour.bikes[0].finish_frame;
         for (g = 0; g < 4; g++)
             if (g_tour.bikes[g].rider == h->finish_order[0]) t = g_tour.bikes[g].finish_frame;

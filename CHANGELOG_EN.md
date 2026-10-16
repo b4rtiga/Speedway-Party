@@ -7,6 +7,7 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 
 - **Night meetings:** a new TIME: DAY / NIGHT option. At night four floodlight masts light the track – the bends in warm light, the straights in half-darkness.
 - **Machine defects:** at a random moment of a heat an engine coughs, smokes and dies, and the rider rolls onto the infield and waits there until the end of the heat – 0 points (“D”). About one defect per tournament, at most one per rider; they can be switched off.
+- **Team match:** the home team (red and blue helmets) against the away team (white and yellow) – heats end 5:1, 4:2 or 3:3, and the match score is shown in the programme, after each heat, on the final screen and in the newspaper.
 - **Practice:** a new menu item – player 1 alone on the track, unlimited laps, with the lap time, the best lap and the track record on the infield.
 - **Fireworks over the podium** and a **crowd wave** – the stands ripple when the lead changes and at the finish.
 - **Rain:** a new RAIN option – it starts raining at a random heat, the track gets softer heat by heat instead of drying, and you can see the drops.
@@ -14,7 +15,7 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 - **Falls:** hitting the fence at high speed or running hard into a rival sometimes ends in a fall – red flag, the faller is excluded and the heat is rerun from the tape.
 - **Fair chances from every gate:** bots lay the bike down in time before a bend, and each one takes a slightly different line in a heat. Before, with four identical bots gate C won 59% of heats and gate A 1%; now every gate wins between 20 and 34%.
 - **Settings are remembered:** player names and controls, bot skill, track condition, time of day, defects and music – after a restart everything is as it was (`settings.dat` next to the game).
-- **New SETTINGS screen** (from the tournament screen): track condition (dry, damp, wet or random), time of day (day or night), rain, defects and music. A summary of the settings is shown under the list of riders.
+- **New SETTINGS screen** (from the tournament screen): track condition (dry, damp, wet or random), time of day (day or night), rain, an individual or team event, defects and music. A summary of the settings is shown under the list of riders.
 - **Menu:** TOURNAMENT instead of LET'S RACE! and a new PRACTICE item; the riders screen is called TOURNAMENT.
 - **Start girls:** new glossy boards in the helmet colours with sponsor logos (3DPJOY, DEV84), a smooth sway of the whole figure with the board, and kisses with a flying heart.
 - **Bottom bar:** the start lights go off 2 s after the start.

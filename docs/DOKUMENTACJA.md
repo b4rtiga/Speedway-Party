@@ -70,7 +70,7 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ### Turniej: zawodnicy i ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), deszcz (rozdział 6), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Zawodnicy i ustawienia zapisują się przy wyjściu z gry do pliku `settings.dat` obok gry (tylko gdy coś się zmieniło), więc po ponownym uruchomieniu są takie jak ostatnio. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), deszcz (rozdział 6), zawody indywidualne albo drużynowe (rozdział 4), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Zawodnicy i ustawienia zapisują się przy wyjściu z gry do pliku `settings.dat` obok gry (tylko gdy coś się zmieniło), więc po ponownym uruchomieniu są takie jak ostatnio. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
 ![Turniej: zawodnicy](../art/screen_02_setup.png)
 
@@ -98,6 +98,8 @@ Po biegu – wyniki z punktami i czasem. Gdy drugi zawodnik minie metę najwyże
 
 ![Fotofinisz](../art/screen_32_fotofinisz.png)
 
+![Koniec meczu drużynowego](../art/screen_35_mecz.png)
+
 ![Defekt: silnik krztusi się i dymi (żółty motocykl)](../art/screen_27_defekt.png)
 
 ![Upadek: bieg przerwany, upadły wykluczony](../art/screen_31_upadek.png)
@@ -123,6 +125,7 @@ Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zosta
 - **Biegi nominowane (14 i 15):** lider tabeli wybiera pole pierwszy, potem kolejni.
 - **Bieg dodatkowy:** remis punktowy o miejsce na podium rozstrzyga dodatkowy bieg zawodników z remisu, z losowanymi polami. Remis poza podium rozstrzygają zwycięstwa biegów.
 - **Defekty** (w ustawieniach turnieju, domyślnie włączone): przed każdym biegiem punktowanym każdy zawodnik ma 2% szansy na awarię motocykla, najwyżej jedną w turnieju – średnio wypada około jednego defektu na turniej. W losowej chwili biegu silnik zaczyna się krztusić i dymić, po 1,5 s gaśnie, a zawodnik zjeżdża na murawę i stoi tam do końca biegu. Zawodnik dostaje 0 punktów, a w tabeli „D”. Kto zdąży dojechać do mety, zanim silnik zgaśnie, kończy bieg normalnie. W biegu dodatkowym defektów nie ma.
+- **Mecz drużynowy** (ZAWODY: DRUŻYNOWE w ustawieniach turnieju): gospodarze – zawodnicy 1 i 2 w kaskach czerwonym i niebieskim – przeciw gościom – zawodnikom 3 i 4 w kaskach białym i żółtym, jak w lidze. Ten sam program 15 biegów; bieg kończy się wynikiem 5:1, 4:2 albo 3:3, a wynik meczu to suma punktów drużyny – widać go w programie zawodów, po każdym biegu, na ekranie końcowym i w gazecie. W meczu nie ma biegów dodatkowych; możliwy jest remis.
 - **Upadki:** uderzenie w bandę z dużą prędkością albo mocne najechanie z tyłu na rywala kończy się czasem upadkiem. Motocykl przewraca się i sunie po torze, sędzia daje czerwoną flagę, a bieg jest powtarzany spod taśmy bez upadłego – ten zostaje wykluczony („W”). Upadek na ostatnim okrążeniu prowadzącego nie przerywa już biegu – upadły po prostu go nie kończy.
 - **Kolor kasku** jest stały dla zawodnika przez cały turniej (czerwony, niebieski, biały, żółty). Pole startowe zmienia się co bieg.
 - **Boty:** Nowicjusz (spóźnia się pod taśmą, łamie za mocno, trzyma się krawężnika), Profesjonalista (refleks, „zamyka płot” przy próbie wyprzedzania od wewnątrz), Mistrz (czyta przyczepność toru, dawkuje uślizg, potrafi odjechać szeroko).

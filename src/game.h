@@ -277,6 +277,7 @@ typedef struct Tournament {
     UBYTE     track_choice;                /* opcja STAN TORU: 0..2 jak wyzej, TRACK_RANDOM = losowany */
     UBYTE     night;                       /* opcja PORA: 1 = zawody w nocy (track_set_night) */
     UBYTE     rain_opt;                    /* opcja DESZCZ: w ktoryms biegu zaczyna padac */
+    UBYTE     team_mode;                   /* opcja ZAWODY: 1 = mecz druzynowy (gospodarze 1+2, goscie 3+4) */
     UBYTE     rain_from;                   /* bieg (0..), od ktorego pada; 0xFF = nie pada */
     UBYTE     new_records;                 /* REC_HEAT|REC_LAP pobite w ostatnim biegu */
     TourStats stats;                       /* fakty zawodow (gazeta) */
@@ -302,6 +303,8 @@ BOOL tournament_prepare_runoff(void);            /* remis o podium -> bieg dodat
 #define HP_EXCLUDED 0xFE                         /* wykluczony (W) */
 #define HP_DEFECT   0xFD                         /* defekt (D) */
 void tournament_award_points(void);
+UWORD tournament_team_points(UBYTE team);        /* mecz: 0 gospodarze (zawodnicy 0, 1), 1 goscie (2, 3) */
+UBYTE tournament_team_heat(UBYTE team, UBYTE hn); /* punkty druzyny w biegu hn (5:1, 4:2, 3:3) */
 
 /* newspaper.c - gazeta "GLOS OWALU" po zawodach */
 #define NEWS_NAME  13                    /* znakow nazwiska w gazecie */

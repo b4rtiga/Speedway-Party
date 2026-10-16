@@ -85,6 +85,23 @@ void tournament_reset(void)
     g_tour.heat.restarts = 0;
 }
 
+/* Mecz druzynowy: gospodarze to zawodnicy 0 i 1 (kaski czerwony i niebieski), goscie 2 i 3
+ * (bialy i zolty) - jak na zuzlu. W kazdym biegu jada obaj z kazdej druzyny. */
+UWORD tournament_team_points(UBYTE team)
+{
+    return (UWORD)(g_tour.riders[team * 2].points + g_tour.riders[team * 2 + 1].points);
+}
+
+UBYTE tournament_team_heat(UBYTE team, UBYTE hn)
+{
+    UBYTE i, sum = 0;
+    for (i = 0; i < 2; i++) {
+        UBYTE v = g_tour.riders[team * 2 + i].heat_points[hn];
+        if (v <= 3) sum = (UBYTE)(sum + v);          /* wykluczenie, defekt, nie jechal = 0 */
+    }
+    return sum;
+}
+
 void tournament_award_points(void)
 {
     static const UBYTE pts[4] = { 3, 2, 1, 0 };

@@ -205,7 +205,7 @@ static void next_heat(void)
     g_tour.current_heat++;
     if (g_tour.current_heat >= NUM_HEATS) {
         /* remis o podium -> bieg dodatkowy (moze byc kilka po kolei), potem podium */
-        if (tournament_prepare_runoff()) { g_tour.current_heat = RUNOFF_HEAT; enter(GS_TABLE); }
+        if (!g_tour.team_mode && tournament_prepare_runoff()) { g_tour.current_heat = RUNOFF_HEAT; enter(GS_TABLE); }
         else { news_build(); enter(GS_PODIUM); }        /* turniej rozstrzygniety: migawka do gazety */
         return;
     }
