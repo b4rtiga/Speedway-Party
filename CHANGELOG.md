@@ -3,13 +3,6 @@
 Nowości w kolejnych wersjach gry, od najnowszej. Wersja angielska: [CHANGELOG_EN.md](CHANGELOG_EN.md).
 Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i lista zmian – tak, żeby strona gry mogła je pokazywać.
 
-## 0.96 – w przygotowaniu
-
-- **Bez gwizdka:** na żużlu sędzia nie gwiżdże (zapala czerwone światła) – po taśmie i przerwaniu biegu słychać teraz jęk zawodu trybun.
-- **Kaski** całe w kolorze zawodnika (wcześniej ćwierć kasku była szara jak cień).
-- **Poprawki na Amidze:** ramki i kwadraty kasków na ekranach mistrzostw, końca meczu i treningu wyrównane do 16 pikseli (Blitter rysował je przesunięte).
-- **Nowy trailer:** filmowy, 35 s w 16:9 – start spod taśmy, szpryca, noc, deszcz, defekt, upadek, fotofinisz i mistrzostwa, z kamerą za motocyklami.
-
 ## 0.95 – 2026-10-17
 
 - **Zawody w nocy:** nowa opcja PORA: DZIEŃ / NOC. W nocy tor oświetlają cztery maszty z reflektorami – lampy z miękką poświatą, łuki w pełnym ciepłym świetle, środki prostych trochę ciemniejsze.
@@ -32,7 +25,10 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 - **Plansza tytułowa** bez napisu o turnieju; podpowiedzi o klawiszach mniejszą czcionką.
 - **Sterowanie:** szybkie naciśnięcia GÓRA/DÓŁ w menu już nie giną.
 - **Poprawki:** bieg kończy się najpóźniej po minucie (wcześniej mógł trwać bez końca, gdy nikt nie puścił przycisku pod taśmą); w angielskiej tabeli wykluczenie oznaczone X.
-- **Po angielsku:** pełna dokumentacja (PDF) i trailer.
+- **Bez gwizdka:** na żużlu sędzia nie gwiżdże (zapala czerwone światła) – po taśmie i przerwaniu biegu słychać teraz jęk zawodu trybun.
+- **Kaski** całe w kolorze zawodnika (wcześniej ćwierć kasku była szara jak cień).
+- **Nowy trailer** – filmowy, 35 s w 16:9: start spod taśmy, szpryca, noc, deszcz, defekt, upadek, fotofinisz i mistrzostwa, z kamerą za motocyklami (po polsku i po angielsku).
+- **Po angielsku:** pełna dokumentacja (PDF).
 
 ## 0.87 – 2026-10-15
 

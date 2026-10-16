@@ -3,13 +3,6 @@
 What is new in each version of the game, newest first. Polish version: [CHANGELOG.md](CHANGELOG.md).
 Each version is a `## version – date` heading (or “in preparation”) with a list of changes, so the game's website can show them.
 
-## 0.96 – in preparation
-
-- **No whistle:** in speedway the referee doesn't whistle but switches on the red lights – after a tape offence or a stopped heat you now hear a groan from the stands.
-- **Helmets** fully in the rider's colour (a quarter of the helmet used to be grey like a shadow).
-- **Amiga fixes:** frames and helmet squares on the championship, match-over and practice screens aligned to 16 pixels (the Blitter drew them shifted).
-- **New trailer:** cinematic, 35 s in 16:9 – tape start, roost, night, rain, engine failure, crash, photo finish and championship, with a camera following the bikes.
-
 ## 0.95 – 2026-10-17
 
 - **Night meetings:** a new TIME: DAY / NIGHT option. At night four floodlight masts light the track – lamps with a soft glow, the bends in full warm light, the middle of the straights a little darker.
@@ -32,7 +25,10 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 - **Title screen** without the tournament line; key hints in a smaller font.
 - **Controls:** quick UP/DOWN presses in the menus are no longer lost.
 - **Fixes:** a heat now ends after a minute at the latest (before, it could go on forever if nobody let go at the tape); an exclusion is marked X in the English table.
-- **In English:** the full manual (PDF) and the trailer.
+- **No whistle:** in speedway the referee doesn't whistle but switches on the red lights – after a tape offence or a stopped heat you now hear a groan from the stands.
+- **Helmets** fully in the rider's colour (a quarter of the helmet used to be grey like a shadow).
+- **New trailer** – cinematic, 35 s in 16:9: tape start, roost, night, rain, engine failure, crash, photo finish and championship, with a camera following the bikes (Polish and English).
+- **In English:** the full manual (PDF).
 
 ## 0.87 – 2026-10-15
 
