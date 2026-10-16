@@ -48,6 +48,18 @@ static UBYTE decode_joy(UWORD d)
 
 static UBYTE fire2;                      /* drugi przycisk w porcie 0 lub 1 (dziala jak ESC) */
 
+/* Zatrzask joystickow: przerwanie VBL (system.c) co klatke dopisuje wcisniete kierunki i FIRE,
+ * input_update czyta je i zeruje. Gdy petla gry trwa dluzej niz klatka (np. przerysowanie
+ * ekranu menu), krotkie wcisniecie miedzy dwoma odczytami nie ginie - dla wyboru w menu. */
+static volatile UBYTE joy_latch[2];      /* port 1, port 0 */
+
+void input_vbl(void)
+{
+    UBYTE pra = CIAA_PRA;
+    joy_latch[0] |= (UBYTE)(decode_joy(REG16(R_JOY1DAT)) | ((pra & 0x80) ? 0 : BTN_FIRE));
+    joy_latch[1] |= (UBYTE)(decode_joy(REG16(R_JOY0DAT)) | ((pra & 0x40) ? 0 : BTN_FIRE));
+}
+
 static void poll_keyboard(void)
 {
     UBYTE c;
@@ -117,11 +129,13 @@ void input_update(void)
         /* menu: joysticki w obu portach i strzalki; kazde zrodlo ma wlasne wykrywanie wcisniec,
          * wiec stale "wcisniete" bity z portu 0 (pusty port, mysz) nie blokuja tych samych
          * kierunkow ze strzalek i portu 1 */
-        UBYTE k;
+        UBYTE k, latch[2];
+        latch[0] = joy_latch[0]; joy_latch[0] = 0;
+        latch[1] = joy_latch[1]; joy_latch[1] = 0;
         menu_edge = 0;
         for (k = 0; k < 3; k++) {
             UBYTE m = port_state[menu_src[k]];
-            UBYTE e = (UBYTE)(m & ~menu_prev[k]);
+            UBYTE e = (UBYTE)((k < 2 ? m | latch[k] : m) & ~menu_prev[k]);   /* z zatrzaskiem z VBL */
             if (e & BTN_FIRE) menu_fire_src = k;
             menu_edge |= e;
             menu_prev[k] = m;

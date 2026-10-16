@@ -418,8 +418,8 @@ static COLD void draw_name_entry(UBYTE *b)
         text_draw_big(b, x, 140, c, i == entry_pos ? U_RAINBOW : U_WHITE, U_SHADOW);
         rect_px(b, x, 161, 16, 1, U_GREY);   /* kreska pod polem - widac tez spacje */
     }
-    text_draw_center(b, 184, T("GÓRA/DÓŁ - ZNAK, LEWO/PRAWO - POZYCJA", "UP/DOWN - LETTER, LEFT/RIGHT - MOVE"), U_GREY, 0);
-    text_draw_center(b, 198, T("MOŻNA TEŻ PISAĆ Z KLAWIATURY", "OR TYPE ON THE KEYBOARD"), U_GREY, 0);
+    text_draw_small_center(b, 186, T("GÓRA/DÓŁ - ZNAK, LEWO/PRAWO - POZYCJA", "UP/DOWN - LETTER, LEFT/RIGHT - POSITION"), U_GREY);
+    text_draw_small_center(b, 197, T("MOŻNA TEŻ PISAĆ Z KLAWIATURY", "OR TYPE ON THE KEYBOARD"), U_GREY);
     text_draw_center(b, 224, T("FIRE - ZAPISZ", "FIRE - SAVE"), U_WHITE, U_SHADOW);
 }
 
@@ -539,7 +539,7 @@ static COLD void draw_help(UBYTE *b)
     text_draw_center(b, 32, s, U_GOLD, 0);
     if (help_page == 2) draw_help_oval(b);
     for (; *t; t++, y += 11) text_draw_center(b, y, *t, U_WHITE, U_SHADOW);
-    text_draw_center(b, 240, T("LEWO/PRAWO - STRONA   FIRE - POWRÓT", "LEFT/RIGHT - PAGE   FIRE - BACK"), U_GREY, 0);
+    text_draw_small_center(b, 240, T("LEWO/PRAWO - STRONA   FIRE - POWRÓT", "LEFT/RIGHT - PAGE   FIRE - BACK"), U_GREY);
 }
 
 /* ======================== GAZETA PO ZAWODACH ======================= */
@@ -683,11 +683,12 @@ static COLD void draw_setup(UBYTE *b)
     text_cat(p, yes_no(g_music_enabled));
     text_draw_center(b, 182, s, U_GREY, 0);
 
-    text_draw_center(b, 206, editing ? T("PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA", "TYPE ON KEYBOARD / UP-DOWN LETTER")
-                                     : T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY, 0);
-    text_draw_center(b, 222, editing ? T("PRAWO: DODAJ  LEWO: USUŃ  FIRE: OK", "RIGHT: ADD  LEFT: DELETE  FIRE: OK")
-                                     : T("FIRE: NAZWISKO / USTAWIENIA / START", "FIRE: NAME / SETTINGS / START"), U_GREY, 0);
-    text_draw_center(b, 238, T("ESC - POWRÓT DO MENU", "ESC - BACK TO MENU"), U_GREY, 0);
+    /* podpowiedzi o klawiszach malym fontem */
+    text_draw_small_center(b, 216, editing ? T("PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA", "TYPE ON KEYBOARD / UP-DOWN LETTER")
+                                           : T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY);
+    text_draw_small_center(b, 227, editing ? T("PRAWO: DODAJ  LEWO: USUŃ  FIRE: OK", "RIGHT: ADD  LEFT: DELETE  FIRE: OK")
+                                           : T("FIRE: NAZWISKO / USTAWIENIA / START", "FIRE: NAME / SETTINGS / START"), U_GREY);
+    text_draw_small_center(b, 238, T("ESC - POWRÓT DO MENU", "ESC - BACK TO MENU"), U_GREY);
 #ifdef SHOW_LAG
     {
         /* diagnostyka muzyki: wypelnione bufory, obiegi utworu, wolny Chip RAM (KiB) */
@@ -850,9 +851,9 @@ static COLD void draw_options(UBYTE *b)
     }
     text_draw_center(b, opt_row_y(OPT_BACK), T("POWRÓT", "BACK"), opt_row == OPT_BACK ? U_RAINBOW : U_WHITE, U_SHADOW);
     text_draw_center(b, 172, about[opt_row], U_GREY, 0);
-    text_draw_center(b, 206, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY, 0);
-    text_draw_center(b, 222, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY, 0);
-    text_draw_center(b, 238, T("ESC - POWRÓT", "ESC - BACK"), U_GREY, 0);
+    text_draw_small_center(b, 216, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY);
+    text_draw_small_center(b, 227, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY);
+    text_draw_small_center(b, 238, T("ESC - POWRÓT", "ESC - BACK"), U_GREY);
 }
 
 COLD BOOL ui_options_update(void)
@@ -1396,7 +1397,7 @@ static COLD void draw_pick(UBYTE *b)
         name_trunc(p, g_tour.riders[g_tour.pick_order[i]].name, 7);
         text_draw((UBYTE *)b, (WORD)(i * 80), 206, s, i == g_tour.pick_index ? U_RAINBOW : U_WHITE, 0);
     }
-    text_draw_center(b, 234, T("LEWO/PRAWO: POLE   FIRE: WYBIERZ", "LEFT/RIGHT: GATE   FIRE: PICK"), U_GREY, 0);
+    text_draw_small_center(b, 236, T("LEWO/PRAWO: POLE   FIRE: WYBIERZ", "LEFT/RIGHT: GATE   FIRE: PICK"), U_GREY);
 }
 
 COLD void ui_pick_update(void)

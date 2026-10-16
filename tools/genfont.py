@@ -1,5 +1,5 @@
 """Generuje src/font.c: font 8x10 (litery 5x7 w wierszach 1-7, wiersz 0 = akcent,
-wiersze 8-9 = ogonek). Znaki ASCII 32..95 + polskie Ą Ć Ę Ł Ń Ó Ś Ź Ż (kody 0x80..0x88).
+wiersze 8-9 = ogonek) i maly font 5x7 (glify 4x5) do podpowiedzi o klawiszach. Znaki ASCII 32..95 + polskie Ą Ć Ę Ł Ń Ó Ś Ź Ż (kody 0x80..0x88).
 Uruchomienie: python tools/genfont.py"""
 import pathlib
 
@@ -123,11 +123,58 @@ for ch in "abcdefghijklmnopqrstuvwxyz":                 # glify 73..98
 glyphs.append(("(c)", rows_to_bytes(".......", "..###..|.#...#.|#..##.#|#.#...#|#..##.#|.#...#.|..###..",
                                     (".......", "......."))))   # 99
 
+# --- maly font 5x7 (glif 4x5 w wierszach 1-5, wiersz 0 = akcent, wiersz 6 = ogonek):
+# podpowiedzi o klawiszach. Te same indeksy glifow co font 8x10 (male litery = wielkie).
+S = {
+ ' ': "....|....|....|....|....", '!': ".#..|.#..|.#..|....|.#..", '"': "#.#.|#.#.|....|....|....",
+ "'": ".#..|.#..|....|....|....", '(': "..#.|.#..|.#..|.#..|..#.", ')': ".#..|..#.|..#.|..#.|.#..",
+ '+': "....|.#..|###.|.#..|....", ',': "....|....|....|.#..|#...", '-': "....|....|###.|....|....",
+ '.': "....|....|....|....|.#..", '/': "...#|..#.|..#.|.#..|#...", ':': "....|.#..|....|.#..|....",
+ '<': "..#.|.#..|#...|.#..|..#.", '>': "#...|.#..|..#.|.#..|#...", '=': "....|###.|....|###.|....",
+ '0': ".##.|#..#|#..#|#..#|.##.", '1': ".#..|##..|.#..|.#..|###.", '2': "###.|...#|.##.|#...|####",
+ '3': "###.|...#|.##.|...#|###.", '4': "#..#|#..#|####|...#|...#", '5': "####|#...|###.|...#|###.",
+ '6': ".##.|#...|###.|#..#|.##.", '7': "####|...#|..#.|.#..|.#..", '8': ".##.|#..#|.##.|#..#|.##.",
+ '9': ".##.|#..#|.###|...#|.##.",
+ 'A': ".##.|#..#|####|#..#|#..#", 'B': "###.|#..#|###.|#..#|###.", 'C': ".###|#...|#...|#...|.###",
+ 'D': "###.|#..#|#..#|#..#|###.", 'E': "####|#...|###.|#...|####", 'F': "####|#...|###.|#...|#...",
+ 'G': ".###|#...|#.##|#..#|.###", 'H': "#..#|#..#|####|#..#|#..#", 'I': "###.|.#..|.#..|.#..|###.",
+ 'J': "..##|...#|...#|#..#|.##.", 'K': "#..#|#.#.|##..|#.#.|#..#", 'L': "#...|#...|#...|#...|####",
+ 'M': "#..#|####|####|#..#|#..#", 'N': "#..#|##.#|#.##|#..#|#..#", 'O': ".##.|#..#|#..#|#..#|.##.",
+ 'P': "###.|#..#|###.|#...|#...", 'Q': ".##.|#..#|#..#|#.#.|.#.#", 'R': "###.|#..#|###.|#.#.|#..#",
+ 'S': ".###|#...|.##.|...#|###.", 'T': "###.|.#..|.#..|.#..|.#..", 'U': "#..#|#..#|#..#|#..#|.##.",
+ 'V': "#.#.|#.#.|#.#.|#.#.|.#..", 'W': "#..#|#..#|####|####|#..#", 'X': "#..#|#..#|.##.|#..#|#..#",
+ 'Y': "#.#.|#.#.|.#..|.#..|.#..", 'Z': "####|...#|.##.|#...|####",
+}
+# Ą Ć Ę Ł Ń Ó Ś Ź Ż: (akcent, ksztalt, ogonek)
+S_PL = [("....", S['A'], "...#"), ("..#.", S['C'], "...."), ("....", S['E'], "...#"),
+        ("....", ".#..|.##.|##..|.#..|.###", "...."), ("..#.", S['N'], "...."), ("..#.", S['O'], "...."),
+        ("..#.", S['S'], "...."), ("..#.", S['Z'], "...."), (".#..", S['Z'], "....")]
+
+
+def small_rows(acc, body, tail):
+    rows = [acc] + body.split('|') + [tail]
+    return [int(r.replace('.', '0').replace('#', '1'), 2) << 4 for r in rows]
+
+
+small = []
+for code in range(32, 96):
+    small.append((chr(code), small_rows("....", S.get(chr(code), S[' ']), "....")))
+for (acc, body, tail), (base, _, _, _) in zip(S_PL, POLISH):
+    small.append((base + "'", small_rows(acc, body, tail)))
+for ch in "abcdefghijklmnopqrstuvwxyz":
+    small.append((ch, small_rows("....", S[ch.upper()], "....")))
+small.append(("(c)", small_rows("....", ".##.|#.##|#.#.|#.##|.##.", "....")))
+
 def main():
     lines = ["/* font.c - WYGENEROWANE przez tools/genfont.py, nie edytowac recznie. */",
              '#include "text.h"', "",
              "const UBYTE g_font[FONT_GLYPHS][FONT_H] = {"]
     for name, data in glyphs:
+        lines.append("    {" + ",".join("0x%02X" % b for b in data) + "},  /* " + name.replace('*/', '* /') + " */")
+    lines.append("};")
+    lines += ["", "/* maly font: podpowiedzi o klawiszach (text_draw_small) */",
+              "const UBYTE g_font_small[FONT_GLYPHS][FONT_SMALL_H] = {"]
+    for name, data in small:
         lines.append("    {" + ",".join("0x%02X" % b for b in data) + "},  /* " + name.replace('*/', '* /') + " */")
     lines.append("};")
     out = pathlib.Path(__file__).resolve().parent.parent / "src" / "font.c"

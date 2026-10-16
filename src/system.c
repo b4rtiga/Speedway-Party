@@ -49,11 +49,15 @@ static APTR get_vbr(void)
 #define ISR_ATTR __attribute__((interrupt))
 #endif
 
+void input_vbl(void);                   /* input.c: zatrzask joystickow */
+
 static void ISR_ATTR level3_isr(void)
 {
     UWORD req = REG16(R_INTREQR);
-    if (req & INTF_VERTB)
+    if (req & INTF_VERTB) {
         g_frame++;
+        input_vbl();
+    }
     /* podwojny zapis: na szybkich CPU pierwszy moze nie zdazyc skasowac zadania */
     REG16(R_INTREQ) = INTF_VERTB | INTF_COPER;
     REG16(R_INTREQ) = INTF_VERTB | INTF_COPER;

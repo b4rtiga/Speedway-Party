@@ -15,6 +15,9 @@
 #define PL_COUNT     9
 
 extern const UBYTE g_font[FONT_GLYPHS][FONT_H];
+#define FONT_SMALL_W 5             /* maly font: komorka 5x7, glif 4x5 + akcent i ogonek */
+#define FONT_SMALL_H 7
+extern const UBYTE g_font_small[FONT_GLYPHS][FONT_SMALL_H];
 
 /* x musi byc wielokrotnoscia 8. shadow != 0 -> cien o 1 linie nizej w kolorze shadow. */
 void  text_draw(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color, UBYTE shadow);
@@ -23,6 +26,8 @@ WORD  text_len(const char *s);                     /* liczba znakow (UTF-8) */
 WORD  text_center_x(const char *s, UBYTE scale);
 void  text_draw_center(UBYTE *buf, WORD y, const char *s, UBYTE color, UBYTE shadow);
 void  text_draw_big_center(UBYTE *buf, WORD y, const char *s, UBYTE color, UBYTE shadow);
+void  text_draw_small(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color);
+void  text_draw_small_center(UBYTE *buf, WORD y, const char *s, UBYTE color);   /* podpowiedzi o klawiszach */
 
 /* liczba -> tekst (bez sprintf), zwraca wskaznik na koniec */
 char *text_uint(char *dst, ULONG v, UBYTE min_digits);

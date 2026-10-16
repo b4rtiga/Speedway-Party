@@ -120,6 +120,32 @@ void text_draw_big(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color, UBYTE
     draw_big_pass(buf, x, y, s, color);
 }
 
+/* maly font (5 px na znak): podpowiedzi o klawiszach na dole ekranow */
+void text_draw_small(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color)
+{
+    const UBYTE *p = (const UBYTE *)s;
+    hw_wait_blit();
+    while (*p && x <= SCREEN_W - FONT_SMALL_W) {
+        const UBYTE *g = g_font_small[next_glyph(&p)];
+        WORD r;
+        for (r = 0; r < FONT_SMALL_H; r++) {
+            WORD yy = y + r;
+            if (g[r] && yy >= 0 && yy < FULL_H) {
+                UBYTE *d = buf + (LONG)yy * PLAY_STRIDE + (x >> 3);
+                UBYTE sh = (UBYTE)(x & 7);
+                put_byte(d, (UBYTE)(g[r] >> sh), color);
+                if (sh > 4 && (x >> 3) < ROW_BYTES - 1) put_byte(d + 1, (UBYTE)(g[r] << (8 - sh)), color);
+            }
+        }
+        x += FONT_SMALL_W;
+    }
+}
+
+void text_draw_small_center(UBYTE *buf, WORD y, const char *s, UBYTE color)
+{
+    text_draw_small(buf, (WORD)((SCREEN_W - text_len(s) * FONT_SMALL_W) / 2), y, s, color);
+}
+
 void text_draw_center(UBYTE *buf, WORD y, const char *s, UBYTE color, UBYTE shadow)
 {
     text_draw(buf, text_center_x(s, 1), y, s, color, shadow);
