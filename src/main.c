@@ -52,6 +52,7 @@ void prof_add(UBYTE i, UWORD a, UWORD b)
 static UWORD state_timer;
 static UBYTE grading_start_wet;
 static BOOL  surface_pending;           /* losowanie nawierzchni czeka na ekran programu */
+BOOL g_training;                        /* trening: gracz 1 sam na torze */
 static HeatPhase last_phase;
 
 /* ---------------------------- render --------------------------------- */
@@ -111,6 +112,36 @@ static void begin_heat(void)
     track_tick_flush();                 /* reszta przemalowan toru przed startem */
     start_begin();
     g_lag = 0;                          /* diagnostyka: licz zgubione klatki od startu biegu */
+    last_phase = h->phase;
+    enter(GS_HEAT);
+}
+
+/* Trening: gracz 1 sam na polu A, ustawienia turnieju (stan toru, pora), okrazenia bez limitu.
+ * Tasma i upadek - tylko start od nowa. Wyjscie: ESC (pauza) i potwierdzenie. */
+static void player1_port(InputPort p);
+
+static void training_start(void)
+{
+    static const UBYTE start_wet[3] = { 0, 130, 255 };
+    Heat *h = &g_tour.heat;
+    player1_port(input_menu_fire_port());
+    g_training = TRUE;
+    tournament_reset();
+    g_tour.riders[0].control = CTRL_HUMAN;
+    g_tour.riders[0].warnings = 0;
+    g_tour.current_heat = 0;
+    g_tour.rain_from = 0xFF;
+    g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice : (UBYTE)rng_range(0, 2);
+    track_set_night((BOOL)g_tour.night);
+    track_set_wetness(start_wet[g_tour.start_condition]);
+    track_reset_wear();
+    track_random_surface();
+    track_tick_flush();
+    h->number = 1;
+    h->restarts = 0;
+    h->gate_rider[0] = 0;
+    h->gate_rider[1] = h->gate_rider[2] = h->gate_rider[3] = 0xFF;
+    start_begin();
     last_phase = h->phase;
     enter(GS_HEAT);
 }
@@ -257,6 +288,7 @@ static BOOL handle_pause(void)
         if (edge) {
             g_paused = FALSE;
             if (g_pause_quit) enter(GS_QUIT);
+            else if (g_training) { g_training = FALSE; ui_menu_enter(1); enter(GS_MENU); }   /* koniec treningu */
             else enter(GS_SETUP);
         } else if (ui_confirm()) {
             g_paused = FALSE;
@@ -281,7 +313,7 @@ static BOOL handle_pause(void)
     }
     if (edge && (g_tour.state == GS_CREDITS || g_tour.state == GS_HELP || g_tour.state == GS_RECORDS)) {
         /* ESC: powrot do wyboru */
-        ui_menu_enter((UBYTE)(g_tour.state == GS_HELP ? 1 : g_tour.state == GS_RECORDS ? 2 : 3));
+        ui_menu_enter((UBYTE)(g_tour.state == GS_HELP ? 2 : g_tour.state == GS_RECORDS ? 3 : 4));
         enter(GS_MENU);
         return TRUE;
     }
@@ -325,21 +357,22 @@ static void update_state(void)
         if (state_timer > FPS / 4) {
             UBYTE pick = ui_menu_update();
             if (pick == 1) { player1_port(input_menu_fire_port()); enter(GS_SETUP); }
-            else if (pick == 2) { ui_help_enter(0); enter(GS_HELP); }
-            else if (pick == 3) enter(GS_RECORDS);
-            else if (pick == 4) enter(GS_CREDITS);
+            else if (pick == 2) training_start();
+            else if (pick == 3) { ui_help_enter(0); enter(GS_HELP); }
+            else if (pick == 4) enter(GS_RECORDS);
+            else if (pick == 5) enter(GS_CREDITS);
         }
         break;
 
     case GS_CREDITS:                     /* bez limitu czasu: FIRE / Return (albo ESC) wraca */
-        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(3); enter(GS_MENU); }
+        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(4); enter(GS_MENU); }
         break;
 
     case GS_RECORDS:                     /* tabela rekordow: FIRE / Return (albo ESC) wraca */
 #ifdef TEST_HOF
         if (state_timer > 6 * FPS) { enter(GS_SETUP); break; }
 #endif
-        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(2); enter(GS_MENU); }
+        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(3); enter(GS_MENU); }
         break;
 
     case GS_NAME_ENTRY:                    /* wpis imienia; swiezy FIRE po chwili */
@@ -355,7 +388,7 @@ static void update_state(void)
         break;
 
     case GS_HELP:                        /* LEWO/PRAWO - strony, FIRE / Return (albo ESC) wraca */
-        if (state_timer > FPS / 4 && ui_help_update()) { ui_menu_enter(1); enter(GS_MENU); }
+        if (state_timer > FPS / 4 && ui_help_update()) { ui_menu_enter(2); enter(GS_MENU); }
         break;
 
     case GS_SETUP:

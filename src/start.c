@@ -74,7 +74,7 @@ static void call_false_start(UBYTE bike_idx)
     h->stop_fall = 0;
     h->restarts++;
     g_tour.stats.false_starts++;      /* raz na zdarzenie (gazeta) */
-    if (++r->warnings >= MAX_WARNINGS) {
+    if (!g_training && ++r->warnings >= MAX_WARNINGS) {      /* trening: tylko powtorka */
         b->state = BIKE_EXCLUDED;     /* wykluczenie: 0 pkt, powtorka bez niego */
         g_tour.stats.exclusions++;
         g_tour.stats.excluded[b->rider]++;

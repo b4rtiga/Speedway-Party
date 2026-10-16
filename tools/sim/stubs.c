@@ -5,6 +5,7 @@
 #include "blit.h"
 
 Video g_video;
+BOOL  g_training;                                  /* main.c - w symulatorze zawsze turniej */
 
 APTR AllocMem(ULONG size, ULONG flags) { (void)flags; return calloc(1, size); }
 void FreeMem(APTR p, ULONG size) { (void)size; free(p); }

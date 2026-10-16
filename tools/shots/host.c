@@ -17,6 +17,7 @@ struct ExecBase *SysBase;
 Video g_video;
 
 RGB24  cur_play[256], cur_hud[32], cur_menu[256];
+BOOL   g_training;                                 /* main.c - trening (zrzut 34_trening) */
 UWORD  cap_bg[FULL_H], cap_fg[FULL_H];
 const UWORD *cap_spr[8];
 

@@ -112,11 +112,12 @@ void race_init_heat(void)
         b->launch_timer = 0;
         b->defect_timer = 0;
         b->defect_frame = 0;
-        if (g_defects_enabled && !b->empty && g_tour.current_heat != RUNOFF_HEAT && !g_tour.stats.defected[r] &&
+        if (g_defects_enabled && !g_training && !b->empty && g_tour.current_heat != RUNOFF_HEAT && !g_tour.stats.defected[r] &&
             rng_range(0, 999) < DEFECT_CHANCE)
             b->defect_frame = rng_range(DEFECT_FROM, DEFECT_TO);
         b->lap_start = 0;
         b->best_lap = 0;
+        b->last_lap = 0;
         b->position = g;
         h->order[g] = g;
         b->state = (b->empty || g_tour.riders[r].warnings >= 2) ? BIKE_EXCLUDED : BIKE_AT_GATE;
@@ -153,6 +154,7 @@ static BOOL last_lap(void) { return (BOOL)(g_tour.heat.finished_count || race_le
 static void try_fall(Bike *b, UBYTE chance)
 {
     if (fall_bike != 0xFF || b->state != BIKE_RACING || rng_range(0, 99) >= chance) return;
+    if (g_training) { /* trening: upadek, potem start od nowa (race_update) */ }
     b->state = BIKE_FALLEN;
     b->heading = (angle8)(b->heading + 56);          /* motocykl bokiem */
     b->sprite_frame = ANGLE_TO_FRAME(b->heading);
@@ -344,6 +346,7 @@ static void update_bike(Bike *b)
         if (b->lap >= 1) {
             UWORD lap = (UWORD)(now - b->lap_start);
             if (!b->best_lap || lap < b->best_lap) b->best_lap = lap;
+            b->last_lap = lap;
         }
         b->lap_start = now;
         b->lap++;
@@ -351,7 +354,7 @@ static void update_bike(Bike *b)
     else if (prev_s < t->lap_length / 4 && s > t->lap_length * 3 / 4 && b->lap) b->lap--;
     b->race_distance = (LONG)b->lap * t->lap_length + s;
 
-    if (b->state == BIKE_RACING && b->lap > LAPS_PER_HEAT) {
+    if (b->state == BIKE_RACING && b->lap > LAPS_PER_HEAT && !g_training) {      /* trening: bez mety */
         Heat *h = &g_tour.heat;
         b->state = BIKE_FINISHED;
         b->finish_frame = h->race_frames;
@@ -496,7 +499,7 @@ void race_update(void)
 #ifdef SHOW_LAG
     UWORD p0 = hw_vpos(), p1, p2;
 #endif
-    h->race_frames++;
+    if (h->race_frames < 0xFFF0) h->race_frames++;
     if (h->danger_timer) h->danger_timer--;
     for (i = 0; i < MAX_RIDERS; i++) {
         Bike *b = &g_tour.bikes[i];
@@ -522,7 +525,8 @@ void race_update(void)
     if (fall_bike != 0xFF && ++fall_timer >= FALL_STOP) {   /* sedzia przerywa bieg */
         UBYTE f = fall_bike;
         fall_bike = 0xFF;
-        start_stop_fall(f);
+        if (g_training) start_begin();               /* trening: od nowa spod tasmy, bez kary */
+        else start_stop_fall(f);
         return;
     }
     if (h->race_frames % DRY_EVERY == 0) track_dry_step();
@@ -541,7 +545,7 @@ void race_update(void)
     /* ostatni na mecie -> jeszcze 2 s jazdy wybiegu, dopiero potem plansza wynikow */
     if (end_wait) {
         if (--end_wait == 0) h->phase = HEAT_FINISHED;
-    } else if (done == active || (winner_frame && h->race_frames - winner_frame > DNF_FRAMES) ||
-               h->race_frames > HEAT_MAX_FRAMES)
+    } else if (!g_training && (done == active || (winner_frame && h->race_frames - winner_frame > DNF_FRAMES) ||
+               h->race_frames > HEAT_MAX_FRAMES))
         end_wait = END_WAIT_FRAMES;
 }

@@ -28,7 +28,7 @@ enum { U_PANEL = 96, U_PANEL2, U_BORDER, U_WHITE, U_RAINBOW, U_GOLD, U_GREY,
 #define PANEL_H 112
 #define NAME_EDIT_MAX 13
 
-typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE, OV_HOLD, OV_PHOTO } Overlay;
+typedef enum { OV_NONE = 0, OV_FALSE_START, OV_RESULT, OV_GRADING, OV_PAUSE, OV_HOLD, OV_PHOTO, OV_TRAIN } Overlay;
 
 static UBYTE serial = 1, drawn_serial[2];
 static UBYTE panel_ov[2];                /* nakladka narysowana w panelu bufora (OV_NONE = pusty) */
@@ -235,8 +235,8 @@ static COLD void draw_title(UBYTE *b)
 /* ==================== WYBOR PO PLANSZY TYTULOWEJ ==================== */
 
 /* Na tle ilustracji tytulowej: TURNIEJ (dalej do ustawien), INSTRUKCJA, REKORDY albo CREDITS. */
-#define MENU_ITEMS 4
-#define MENU_Y0    146                      /* pierwsza pozycja; kolejne co MENU_DY */
+#define MENU_ITEMS 5
+#define MENU_Y0    136                      /* pierwsza pozycja; kolejne co MENU_DY */
 #define MENU_DY    20
 static UBYTE menu_row;
 
@@ -253,7 +253,8 @@ COLD UBYTE ui_menu_update(void)
 
 static COLD void draw_menu(UBYTE *b)
 {
-    static const char *items[MENU_ITEMS] = { T("TURNIEJ", "TOURNAMENT"), T("INSTRUKCJA", "HOW TO PLAY"), T("REKORDY", "RECORDS"), "CREDITS" };
+    static const char *items[MENU_ITEMS] = { T("TURNIEJ", "TOURNAMENT"), T("TRENING", "PRACTICE"), T("INSTRUKCJA", "HOW TO PLAY"),
+                                             T("REKORDY", "RECORDS"), "CREDITS" };
     UBYTE i;
     if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
     text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
@@ -1564,6 +1565,7 @@ static Overlay current_overlay(void)
     if (not_holding_mask()) return OV_HOLD;
     if (g_tour.state == GS_HEAT && g_tour.heat.phase == HEAT_FALSE_START) return OV_FALSE_START;
     if (g_tour.state == GS_HEAT && g_tour.heat.phase == HEAT_REPLAY) return OV_PHOTO;
+    if (g_tour.state == GS_HEAT && g_training && g_tour.heat.phase == HEAT_RACING) return OV_TRAIN;
     if (g_tour.state == GS_HEAT_RESULT) return OV_RESULT;
     if (g_tour.state == GS_TRACK_GRADING) return OV_GRADING;
     return OV_NONE;
@@ -1614,6 +1616,36 @@ static COLD void draw_false_start(UBYTE *b)
     p = text_uint(p, h->restarts, 1);
     text_cat(p, ")");
     text_draw_center(b, PANEL_Y + 90, s, U_GREY, 0);
+}
+
+/* trening: tabliczka na murawie - ostatnie i najlepsze okrazenie, rekord toru */
+#define TRAIN_X 104
+#define TRAIN_Y 64
+#define TRAIN_W 112
+#define TRAIN_H 40
+static UWORD train_shown[2];                /* pokazane czasy (ostatnie, najlepsze) - zmiana = odswiezenie */
+
+static void lap_line(char *s, const char *label, UWORD frames)
+{
+    char *p = text_cat(s, label);
+    if (frames) { p = fmt_time(p, frames, TRUE); text_cat(p, " S"); }
+    else text_cat(p, "-.--");
+}
+
+static COLD void draw_train(UBYTE *b)
+{
+    const Bike *bk = &g_tour.bikes[0];
+    const HofEntry *rec = g_hof[g_tour.track.type].lap;
+    char s[32];
+    panel(b, TRAIN_X, TRAIN_Y, TRAIN_W, TRAIN_H, U_PANEL, U_BORDER);
+    lap_line(s, T("OKR.  ", "LAP   "), bk->last_lap);
+    text_draw_small(b, TRAIN_X + 10, TRAIN_Y + 7, s, U_WHITE);
+    lap_line(s, T("NAJL. ", "BEST  "), bk->best_lap);
+    text_draw_small(b, TRAIN_X + 10, TRAIN_Y + 17, s, U_GOLD);
+    lap_line(s, T("REKORD ", "RECORD "), rec[0].frames);
+    text_draw_small(b, TRAIN_X + 10, TRAIN_Y + 27, s, U_GREY);
+    train_shown[0] = bk->last_lap;
+    train_shown[1] = bk->best_lap;
 }
 
 /* fotofinisz: pasek u gory panelu - tor z linia mety (dolna prosta) zostaje widoczny */
@@ -1715,6 +1747,7 @@ BOOL ui_panel_covers(WORD x, WORD y, WORD w, WORD h)
     case OV_NONE:     return FALSE;
     case OV_HOLD:     py = PANEL_Y + 10; ph = 76; break;
     case OV_PHOTO:    ph = PHOTO_H; break;
+    case OV_TRAIN:    px = TRAIN_X; py = TRAIN_Y; pw = TRAIN_W; ph = TRAIN_H; break;
     case OV_PAUSE:    py = PANEL_Y + 10; ph = 92; break;
     case OV_GRADING:  px = GRADE_X; py = GRADE_Y; pw = GRADE_W; ph = GRADE_H; break;
     default:          break;                               /* tasma, wynik: caly panel */
@@ -2127,6 +2160,8 @@ void ui_render(void)
             static UBYTE last_ov = OV_NONE, last_mask;
             UBYTE ov = (UBYTE)current_overlay(), mask = not_holding_mask();
             if (ov != last_ov || mask != last_mask) { last_ov = ov; last_mask = mask; ui_invalidate(); }
+            if (ov == OV_TRAIN && (train_shown[0] != g_tour.bikes[0].last_lap || train_shown[1] != g_tour.bikes[0].best_lap))
+                ui_invalidate();                          /* trening: nowy czas okrazenia */
         }
         if (drawn_serial[bi] != serial) {
             /* Panel nakladek (224x112, 8 planow) kopiowany z tla tylko, gdy jest co pokazac albo
@@ -2144,6 +2179,7 @@ void ui_render(void)
             case OV_PAUSE:       draw_pause(b, PANEL_Y + 10); break;
             case OV_HOLD:        draw_hold(b); break;
             case OV_PHOTO:       draw_photo(b); break;
+            case OV_TRAIN:       draw_train(b); break;
             default: break;
             }
         }

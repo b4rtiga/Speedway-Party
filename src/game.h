@@ -132,6 +132,7 @@ typedef struct Bike {
     UBYTE   empty;            /* puste pole startowe (bieg dodatkowy) - motocykla nie ma */
     UWORD   lap_start;        /* klatka przeciecia linii na poczatku biezacego okrazenia */
     UWORD   best_lap;         /* najlepsze okrazenie w tym biegu [klatki], 0 = brak */
+    UWORD   last_lap;         /* ostatnie pelne okrazenie [klatki] (trening), 0 = brak */
 
     /* AI */
     WORD    ai_reaction;      /* klatki od zielonego do puszczenia; <0 = antycypacja (tasma!) */
@@ -283,6 +284,7 @@ typedef struct Tournament {
 } Tournament;
 
 extern Tournament g_tour;
+extern BOOL g_training;           /* trening (main.c): gracz 1 sam, okrazenia bez limitu, bez kar */
 extern BOOL g_paused;             /* ESC: pauza z pytaniem (main.c) */
 extern BOOL g_pause_quit;         /* TRUE: pytanie o wyjscie z gry (menu glowne), FALSE: do menu */
 

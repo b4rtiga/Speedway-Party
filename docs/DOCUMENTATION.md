@@ -57,6 +57,7 @@ Each player has just two controls: **LEFT** and **RIGHT**. The throttle is autom
 Loading from floppy takes several dozen seconds, so the game first shows the title screen with “LOADING…” and reads the rest of the data in the background (the system still runs normally; the game takes over the hardware only once everything is loaded). The title screen waits for FIRE. Then you choose:
 
 - **TOURNAMENT** – riders and tournament settings,
+- **PRACTICE** – player 1 alone on the track (track condition and time of day from the tournament settings): a tape start and unlimited laps; the infield shows the last and best lap and the track record. A tape offence or a fall just restarts from the tape, there are no defects. To finish: ESC and confirm,
 - **HOW TO PLAY** – three pages: tournament rules and flags, start and controls, the racing line with a track diagram (LEFT/RIGHT turns the page),
 - **RECORDS** – the track record tables,
 - **CREDITS** – who made the game.
@@ -64,6 +65,8 @@ Loading from floppy takes several dozen seconds, so the game first shows the tit
 FIRE or ESC takes you back from the manual, the records and the credits.
 
 ![Main menu after the title screen](../art/en/screen_18_menu.png)
+
+![Practice](../art/en/screen_34_trening.png)
 
 ### Tournament: riders and settings
 
@@ -377,7 +380,7 @@ The track geometry lives in two places: `track_defs` in `src/track.c` and `PRESE
 - The 4-player parallel port adapter has not been tested.
 - PAL only.
 
-**To do:** a practice mode, more tracks, a test on a real A1200.
+**To do:** more tracks, a test on a real A1200.
 
 ## 13. How to update this documentation
 

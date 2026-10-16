@@ -19,8 +19,8 @@ UBYTE ui_setup_update(void);       /* SETUP_START = start turnieju, SETUP_OPTION
 void ui_setup_focus_options(void); /* po powrocie z opcji: kursor na OPCJE TURNIEJU */
 void ui_options_enter(void);       /* opcje turnieju: kursor na STAN TORU */
 BOOL ui_options_update(void);      /* TRUE = powrot do ustawien */
-void ui_menu_enter(UBYTE row);     /* ekran wyboru: 0 = TURNIEJ, 1 = INSTRUKCJA, 2 = REKORDY, 3 = CREDITS */
-UBYTE ui_menu_update(void);        /* 1 = TURNIEJ, 2 = INSTRUKCJA, 3 = REKORDY, 4 = CREDITS, 0 = nic */
+void ui_menu_enter(UBYTE row);     /* ekran wyboru: 0 TURNIEJ, 1 TRENING, 2 INSTRUKCJA, 3 REKORDY, 4 CREDITS */
+UBYTE ui_menu_update(void);        /* 1 TURNIEJ, 2 TRENING, 3 INSTRUKCJA, 4 REKORDY, 5 CREDITS, 0 = nic */
 void ui_name_entry_enter(UBYTE rider);   /* wpis imienia do rekordow (domyslne z nazwiska) */
 BOOL ui_name_entry_update(void);         /* TRUE = zatwierdzone */
 const char *ui_name_entry(void);         /* wpisane imie (7 znakow, dopelnione spacjami) */

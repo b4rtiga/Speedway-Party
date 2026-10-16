@@ -57,6 +57,7 @@ Każdy gracz ma tylko dwa przyciski: **LEWO** i **PRAWO**. Gaz jest automatyczny
 Przy starcie z dyskietki wczytywanie trwa kilkadziesiąt sekund, więc gra najpierw pokazuje planszę tytułową z napisem „WCZYTYWANIE…”, a resztę danych doczytuje w tle (system działa jeszcze normalnie, gra przejmuje sprzęt dopiero po wczytaniu). Plansza tytułowa czeka na FIRE. Potem wybierasz:
 
 - **TURNIEJ** – zawodnicy i ustawienia turnieju,
+- **TRENING** – gracz 1 sam na torze (stan toru i pora z ustawień turnieju): start spod taśmy i okrążenia bez limitu; na murawie czas ostatniego i najlepszego okrążenia oraz rekord toru. Taśma czy upadek zaczynają tylko od nowa spod taśmy, defektów nie ma. Koniec: ESC i potwierdzenie,
 - **INSTRUKCJA** – trzy strony: zasady turnieju i flagi, start i sterowanie, linia jazdy ze schematem toru (LEWO/PRAWO zmienia stronę),
 - **REKORDY** – tabele rekordów toru,
 - **CREDITS** – plansza twórców.
@@ -64,6 +65,8 @@ Przy starcie z dyskietki wczytywanie trwa kilkadziesiąt sekund, więc gra najpi
 Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ![Wybór po planszy tytułowej](../art/screen_18_menu.png)
+
+![Trening](../art/screen_34_trening.png)
 
 ### Turniej: zawodnicy i ustawienia
 
@@ -373,7 +376,7 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 - Adapter 4 graczy na porcie równoległym nie był testowany.
 - Tylko PAL.
 
-**Do zrobienia:** tryb treningu, więcej torów, test na prawdziwym A1200.
+**Do zrobienia:** więcej torów, test na prawdziwym A1200.
 
 ## 13. Jak aktualizować tę dokumentację
 

@@ -52,7 +52,7 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
 - LEWO lamie motocykl w luk (do 40 st.), PRAWO to kontra
 - najlepsza linia (ciemniejsza, wyjezdzona sciezka) jest inna na kazdych zawodach;
   na niej uslizg mniej hamuje
-- plansza tytulowa czeka na FIRE / Return, potem TURNIEJ, INSTRUKCJA
+- plansza tytulowa czeka na FIRE / Return, potem TURNIEJ, TRENING, INSTRUKCJA
   (zasady, start, linia jazdy), REKORDY (TOP 5 biegow i okrazen graczy) albo CREDITS
 - gracz w TOP 5 wpisuje imie raz, po turnieju (7 znakow): GORA/DOL znak, LEWO/PRAWO pozycja,
   mozna tez pisac z klawiatury, FIRE zapisz
@@ -103,7 +103,7 @@ CONTROLS (each player: LEFT / RIGHT only, the throttle is automatic)
 - LEFT lays the bike into a slide (up to 40 degrees), RIGHT counter-steers
 - the best racing line (a darker, worn-in groove) is different at every meeting;
   sliding on it costs less speed
-- the title screen waits for FIRE / Return, then TOURNAMENT, HOW TO PLAY
+- the title screen waits for FIRE / Return, then TOURNAMENT, PRACTICE, HOW TO PLAY
   (rules, start, racing line), RECORDS (TOP 5 heats and laps by players) or CREDITS
 - a player in the TOP 5 enters a name once, after the tournament (7 characters):
   UP/DOWN letter, LEFT/RIGHT position, or type on the keyboard, FIRE saves

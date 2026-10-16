@@ -106,6 +106,12 @@ static void draw_order(void)
 
 static void draw_lap(void)
 {
+    if (g_training) {                          /* trening: numer okrazenia (do 99), bez "/4" */
+        hrect(110, HUD_TOP + 9, 36, 16, 0);
+        if (shown.lap >= 10) hglyph(110, HUD_TOP + 9, (UBYTE)(shown.lap / 10), H_WHITE);
+        hglyph(shown.lap >= 10 ? 122 : 116, HUD_TOP + 9, (UBYTE)(shown.lap % 10), H_WHITE);
+        return;
+    }
     hglyph(110, HUD_TOP + 9, shown.lap, H_WHITE);
     hglyph(122, HUD_TOP + 9, 10, H_WHITE);
     hglyph(134, HUD_TOP + 9, LAPS_PER_HEAT, H_WHITE);
@@ -402,7 +408,7 @@ void hud_update(void)
         }
     }
     if (lap < 1) lap = 1;
-    if (lap > LAPS_PER_HEAT) lap = LAPS_PER_HEAT;
+    if (lap > (g_training ? 99 : LAPS_PER_HEAT)) lap = g_training ? 99 : LAPS_PER_HEAT;
 
     /* 1 czerwone, 2 zielone, 3 schowane: 2 s po starcie i po biegu (w biegu juz niepotrzebne) */
     lights = (h->phase == HEAT_FINISHED || h->phase == HEAT_REPLAY || (h->phase == HEAT_RACING && h->race_frames >= 2 * FPS) ||
@@ -415,6 +421,8 @@ void hud_update(void)
         /* czerwona: przerwanie biegu; potem czarna, jesli tasma skonczyla sie wykluczeniem */
         BOOL excl = h->false_starter < MAX_RIDERS && g_tour.bikes[h->false_starter].state == BIKE_EXCLUDED;
         flag = (excl && h->phase_timer > 75) ? FLAG_BLACK : FLAG_RED;
+    } else if (g_training) {
+        if (h->danger_timer) flag = FLAG_YELLOW;     /* trening: bez kosy i szachownicy */
     } else if (h->finished_count ||
                ((h->phase == HEAT_RACING || h->phase == HEAT_FINISHED) && race_leader_distance() >= race_straight_entry(LAPS_PER_HEAT + 1))) {
         flag = FLAG_CHECKERED;                       /* od wjazdu lidera na ostatnia prosta do konca biegu */

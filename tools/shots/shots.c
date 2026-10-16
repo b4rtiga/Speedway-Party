@@ -576,6 +576,18 @@ static int screenshots(void)
         break;
     }
 
+    /* trening: zawodnik sam, tabliczka z czasami okrazen (bot jedzie za gracza) */
+    g_training = TRUE;
+    g_tour.heat.gate_rider[0] = 0;
+    g_tour.heat.gate_rider[1] = g_tour.heat.gate_rider[2] = g_tour.heat.gate_rider[3] = 0xFF;
+    g_tour.heat.restarts = 0;
+    start_begin();
+    g_tour.state = GS_HEAT;
+    while (g_tour.bikes[0].lap < 3) step();
+    for (i = 0; i < 60; i++) step();
+    render(); bike_sprites(); render(); hud_update(); shot("34_trening", TRUE);
+    g_training = FALSE;
+
     /* deszcz: krople w biegu, tor mieknie */
     g_tour.rain_from = 0;
     track_set_wetness(200);
