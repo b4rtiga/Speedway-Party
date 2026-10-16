@@ -1038,7 +1038,7 @@ COLD UBYTE ui_train_update(void)
 
 /* ===================== PROGRAM / TABELA =========================== */
 
-/* mecz druzynowy: "GOSPODARZE 23 : 19 GOSCIE" */
+/* mecz druzynowy: "GOSPODARZE 23 : 19 GOSCIE" do s; zwraca koniec napisu (jak text_cat) */
 static const char *const team_name[2] = { T("GOSPODARZE", "HOME"), T("GOŚCIE", "AWAY") };
 static char *team_score_text(char *s)
 {
@@ -1176,7 +1176,7 @@ static COLD void draw_table(UBYTE *b)
     if (hn == RUNOFF_HEAT) text_cat(s, T("BIEG DODATKOWY", "RUN-OFF"));
     else { p = text_cat(s, T("BIEG ", "HEAT ")); text_uint(p, (ULONG)(hn + 1), 1); }
     text_draw_big_center(b, 10, s, U_RAINBOW, U_SHADOW);
-    if (g_tour.team_mode) text_draw_center(b, 36, team_score_text(s), U_GOLD, 0);      /* mecz: wynik */
+    if (g_tour.team_mode) { team_score_text(s); text_draw_center(b, 36, s, U_GOLD, 0); }   /* mecz: wynik (funkcja zwraca koniec napisu) */
     else if (g_tour.series && hn < FIXED_HEATS) {                                      /* mistrzostwa: runda */
         p = text_cat(s, T("MISTRZOSTWA - RUNDA ", "CHAMPIONSHIP - ROUND "));
         p = text_uint(p, (ULONG)(g_tour.series_round + 1), 1);

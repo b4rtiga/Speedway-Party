@@ -625,6 +625,7 @@ static int screenshots(void)
 
     /* mecz druzynowy: koniec meczu i gazeta (punkty z rozegranego turnieju) */
     g_tour.team_mode = 1;
+    g_tour.state = GS_TABLE;  render(); shot("test_mecz_program", FALSE);   /* wynik meczu pod tytulem biegu */
     g_tour.state = GS_PODIUM; render(); shot("35_mecz", FALSE);
     g_tour.state = GS_NEWS;   render(); shot("test_mecz_gazeta", FALSE);
     g_tour.team_mode = 0;
