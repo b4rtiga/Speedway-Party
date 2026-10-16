@@ -134,8 +134,12 @@ check:
 sim:
 	sh tools/sim/run.sh
 
+# Kontrola pamieci (AddressSanitizer, gcc w WSL/Linuksie): zrzuty PL/EN, trailer, symulator
+asan:
+	sh tools/asan.sh
+
 clean:
 	rm -f $(OBJ) SpeedwayParty
 	rm -rf dist dist-en dist-whd $(WHD_DIR) $(EN_DIR) data/music.raw .music-*
 
-.PHONY: clean dist dist-en release whdload assets check sim
+.PHONY: clean dist dist-en release asan whdload assets check sim

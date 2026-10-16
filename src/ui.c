@@ -383,7 +383,7 @@ COLD BOOL ui_name_entry_update(void)
 static COLD void entry_place(UBYTE *b, WORD y, const char *what, const HofEntry *list)
 {
     UBYTE i;
-    char s[32], *p;
+    char s[48], *p;                      /* "OKRĄŻENIE - 1. MIEJSCE  5.30 S" = 33 bajty */
     for (i = 0; i < HOF_N; i++)
         if (list[i].frames && (UBYTE)list[i].name[HOF_NAME] == (UBYTE)(entry_rider + 1)) {
             p = text_cat(s, what);

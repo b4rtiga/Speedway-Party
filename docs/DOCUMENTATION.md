@@ -203,6 +203,7 @@ NDK 3.9 and libnix come with the toolchain. Check: `m68k-amigaos-gcc --version`.
 | `make whdload` | a WHDLoad version in preparation (`dist-whd/`), not tested and not released yet |
 | `make check` | syntax and type check of all the code with Clang for the 68020 (both languages) |
 | `make sim` | a bot tournament simulator using the same game logic |
+| `make asan` | memory check (AddressSanitizer, gcc in WSL): Polish and English screenshots, the trailer and the simulator – catches e.g. too-short text buffers that silently corrupt the stack on the Amiga |
 
 Compiler flags: `-m68020 -mtune=68020 -O2 -fbbb=- -fomit-frame-pointer -noixemul`. The `-fbbb=-` option turns off Bebbo's extra optimizer, which lost a needed register reload in `switch` jump tables.
 

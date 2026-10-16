@@ -203,6 +203,7 @@ NDK 3.9 i libnix są w toolchainie. Sprawdzenie: `m68k-amigaos-gcc --version`.
 | `make whdload` | wersja WHDLoad w przygotowaniu (`dist-whd/`), jeszcze nieprzetestowana i niewydana |
 | `make check` | kontrola składni i typów całego kodu Clangiem dla 68020 |
 | `make sim` | symulator turnieju botów z tą samą logiką gry |
+| `make asan` | kontrola pamięci (AddressSanitizer, gcc w WSL): zrzuty PL i EN, trailer i symulator – wyłapuje m.in. za krótkie bufory napisów, które na Amidze po cichu psują stos |
 
 Flagi kompilatora: `-m68020 -mtune=68020 -O2 -fbbb=- -fomit-frame-pointer -noixemul`. Opcja `-fbbb=-` wyłącza dodatkowy optymalizator Bebbo, który w skokach przez tablice `switch` gubił potrzebne przepisanie rejestru.
 

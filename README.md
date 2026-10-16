@@ -279,6 +279,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png`: cztery postacie 48×96, wspólna paleta 31 kolorów dobrana z obrazu, kolory pól z UI, lekki dithering (`data/girls.bin`; wymaga ffmpeg) |
 | `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |
 | `make sim` | symulator: te same pliki logiki gry rozgrywają turniej botów bez grafiki |
+| `make asan` | kontrola pamięci w WSL (AddressSanitizer): zrzuty PL i EN, trailer i symulator – wyłapuje za krótkie bufory i złe wskaźniki, które na Amidze po cichu psują stos |
 | `sh tools/sim/news_test.sh` | test gazety: wybór nagłówka na scenariuszach, podsumowanie turnieju, zerowanie faktów, długie nazwiska |
 | `sh tools/sim/records_test.sh` | test tabel rekordów: TOP 5, remisy, imiona, plik `halloffame.dat` (także uszkodzony i starsza wersja) |
 | `sh tools/sim/sprites_test.sh` | test klatek motocykli: jeden komplet + kolor kasku nadany przy kopiowaniu = dawne 4 komplety z `v0.84`, bit w bit |
