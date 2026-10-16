@@ -73,7 +73,7 @@ Number of players (0–4), each player's controls and name, bot skill, track con
 
 ### Race programme and rider presentation
 
-Before each heat the programme shows who starts from which gate, the points table for all heats and the track records. Then the start girls stand at gates A–D holding boards in the helmet colours of the riders starting there (3 seconds or FIRE). They sway to the beat, and every now and then one of them winks, smiles or blows a kiss.
+Before each heat the programme shows who starts from which gate, the points table for all heats and the track records. Then the start girls stand at gates A–D holding boards in the helmet colours of the riders starting there (3 seconds or FIRE). They sway to the beat, and every now and then one of them blows a kiss.
 
 ![Race programme](../art/en/screen_03_table.png)
 

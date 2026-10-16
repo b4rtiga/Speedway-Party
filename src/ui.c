@@ -978,33 +978,33 @@ static COLD void draw_table(UBYTE *b)
  * Postac i tablica maja kolor kasku zawodnika; kazda stoi na polu, z ktorego startuje jej
  * zawodnik, i kolysze sie: cala gora (tablica, rece, glowa, tulow, biodra) przesuwa sie razem
  * o -2..2 px, uda o polowe, lydki i stopy stoja - kazda w innej fazie; cykl 1 s, 5 wychylen jak
- * klatki animacji (sway_tab, sway_dx). Co chwile jedna z nich puszcza oko (blysk przy glowie),
- * daje buziaka (usta w dziobek i odlatujace serduszko) albo sie usmiecha (biale zeby).
- * Gora postaci jest przerysowywana tylko wtedy, gdy zmieni sie jej wychylenie albo mina. */
+ * klatki animacji (sway_tab, sway_dx). Dwa razy jedna z nich posyla buziaka (usta w dziobek
+ * i odlatujace serduszko). Gora postaci z tablica jest zapamietywana (pres_cache) przy rysowaniu
+ * ekranu, a przy ruchu tylko kopiowana wierszami z przesunieciem - bez czyszczenia i rysowania
+ * tablicy od nowa (to na A1200 gubilo klatki i kolysanie zwalnialo). */
 #define PRES_Y      72                      /* gora postaci */
 #define PRES_TIME   (3 * FPS)               /* prezentacja: 3 s albo FIRE */
-#define SWAY_PHASES 50                      /* cykl kolysania: 1 s */
+#define SWAY_PHASES 36                      /* cykl kolysania: 0,72 s */
 #define UPPER_ROWS  75                      /* wiersze postaci przerysowywane przy ruchu (do kolan) */
 static UWORD present_t;                     /* klatki od wejscia na ekran prezentacji */
 static UWORD present_drawn[2][4];           /* narysowane w buforze: wychylenie + mina (0xFFFF = brak) */
 /* Wychylenie w pikselach (-2..2) w kolejnych klatkach cyklu: 5 faz jak klatki animacji,
  * w skrajnych dluzej. Gora przesuwa sie razem, wiec sylwetka nie "faluje" wiersz po wierszu. */
 static const BYTE sway_tab[SWAY_PHASES] = {
-    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1 };
+    0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 0, 0, 0, -1, -1, -1, -1, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1 };
 static WORD gate_x(UBYTE g) { return (WORD)(16 + g * 80); }
 /* faza podprowadzajacej g: kazda w innym miejscu cyklu */
-static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t + g * 13) % SWAY_PHASES); }
+static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t + g * 9) % SWAY_PHASES); }
 
-/* Miny: jedna naraz, w klatkach EX_AT prezentacji, losowo (wlasny generator - bez ruszania g_rng,
- * zeby trailer i zrzuty mialy ten sam bieg). Usta postaci (data/girls.bin): wiersz 24. */
-enum { EX_NONE = 0, EX_WINK, EX_SMILE, EX_KISS };
-#define EX_LEN      40                      /* czas miny w klatkach */
+/* Buziak: dwa razy w czasie prezentacji, u dwoch roznych podprowadzajacych, losowo (wlasny
+ * generator - bez ruszania g_rng, zeby trailer i zrzuty mialy ten sam bieg). Usta postaci
+ * (data/girls.bin): wiersz 24. */
+#define KISS_LEN    40                      /* czas buziaka w klatkach */
 #define MOUTH_Y     24
 static const UBYTE mouth_x[4] = { 24, 22, 24, 24 };          /* lewy piksel ust kazdej postaci */
-static const UWORD ex_at[3] = { 15, 65, 115 };
-static UBYTE ex_girl = 0xFF, ex_type;       /* pole A..D i rodzaj miny */
-static UBYTE ex_used, ex_first;            /* pola, ktore juz mialy mine; rodzaj pierwszej miny */
-static UWORD ex_t0;
+static const UWORD kiss_at[2] = { 20, 85 };
+static UBYTE kiss_girl = 0xFF, kiss_used;   /* pole A..D z buziakiem; pola, ktore juz go daly */
+static UWORD kiss_t0;
 static ULONG ex_seed;
 
 static UBYTE ex_rand(UBYTE n)
@@ -1017,10 +1017,9 @@ void ui_present_start(void)
 {
     UBYTE i, g;
     present_t = 0;
-    ex_girl = 0xFF;
-    ex_used = 0;
+    kiss_girl = 0xFF;
+    kiss_used = 0;
     ex_seed = g_rng ^ 0x5EED;
-    ex_first = ex_rand(3);
     for (i = 0; i < 2; i++) for (g = 0; g < 4; g++) present_drawn[i][g] = 0xFFFF;
 }
 
@@ -1029,16 +1028,14 @@ BOOL ui_present_update(void)
 {
     UBYTE i;
     if (present_t < 0xFFF0) present_t++;
-    if (ex_girl != 0xFF && present_t - ex_t0 >= EX_LEN) ex_girl = 0xFF;
-    for (i = 0; i < 3; i++)
-        if (present_t == ex_at[i]) {
+    if (kiss_girl != 0xFF && present_t - kiss_t0 >= KISS_LEN) kiss_girl = 0xFF;
+    for (i = 0; i < 2; i++)
+        if (present_t == kiss_at[i]) {
             UBYTE hn = g_tour.current_heat, g = ex_rand(4), k;
-            /* kazda mina u innej podprowadzajacej i kazda inna: mrugniecie, usmiech, buziak */
-            for (k = 0; k < 4 && (g_tour.heat_table[hn][g] == 0xFF || (ex_used & (1 << g))); k++) g = (UBYTE)((g + 1) & 3);
-            ex_used |= (UBYTE)(1 << g);
-            ex_girl = g;
-            ex_type = (UBYTE)(EX_WINK + (ex_first + i) % 3);
-            ex_t0 = present_t;
+            for (k = 0; k < 4 && (g_tour.heat_table[hn][g] == 0xFF || (kiss_used & (1 << g))); k++) g = (UBYTE)((g + 1) & 3);
+            kiss_used |= (UBYTE)(1 << g);
+            kiss_girl = g;
+            kiss_t0 = present_t;
         }
     return (BOOL)(present_t >= PRES_TIME);
 }
@@ -1143,75 +1140,98 @@ static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color)
 /* serduszko 5x4 (buziak): wiersze bitowo, bit 4 = lewy piksel */
 static const UBYTE heart_rows[4] = { 0x0A, 0x1F, 0x0E, 0x04 };
 
-/* mina postaci w klatce t miny; x0 juz z wychyleniem gory */
-static void draw_expression(UBYTE *b, WORD x0, UBYTE girl, UBYTE type, UWORD t)
+/* buziak w klatce t: usta w dziobek, po chwili serduszko odlatuje w gore; x0 z wychyleniem gory */
+static void draw_kiss(UBYTE *b, WORD x0, UBYTE girl, UWORD t)
 {
     WORD mx = (WORD)(x0 + mouth_x[girl]), my = (WORD)(PRES_Y + MOUTH_Y);
-    if (type == EX_SMILE) {
-        rect_px(b, mx, my, 2, 1, U_WHITE);                           /* zeby */
-    } else if (type == EX_KISS) {
-        rect_px(b, mx, my, 2, 1, U_RED);                             /* usta w dziobek */
-        if (t >= 6) {
-            WORD s = (WORD)(t - 6), hx = (WORD)(mx + 3 + s / 3), hy = (WORD)(my - 4 - s / 2), r, c;
-            for (r = 0; r < 4; r++)
-                for (c = 0; c < 5; c++)
-                    if (heart_rows[r] & (0x10 >> c)) rect_px(b, hx + c, hy + r, 1, 1, r == 1 && c == 1 ? U_WHITE : U_RED);
-        }
-    } else if (type == EX_WINK) {
-        /* blysk przy oku: krzyzyk 3 albo 5 px, srodek bialy */
-        WORD sx = (WORD)(x0 + 31), sy = (WORD)(PRES_Y + 18), n = (t >= 10 && t < 30) ? 2 : 1;
-        rect_px(b, sx - n, sy, 2 * n + 1, 1, U_GOLD);
-        rect_px(b, sx, sy - n, 1, 2 * n + 1, U_GOLD);
-        rect_px(b, sx, sy, 1, 1, U_WHITE);
+    rect_px(b, mx, my, 2, 1, U_RED);
+    if (t >= 6) {
+        WORD s = (WORD)(t - 6), hx = (WORD)(mx + 3 + s / 3), hy = (WORD)(my - 4 - s / 2), r, c;
+        for (r = 0; r < 4; r++)
+            for (c = 0; c < 5; c++)
+                if (heart_rows[r] & (0x10 >> c)) rect_px(b, hx + c, hy + r, 1, 1, r == 1 && c == 1 ? U_WHITE : U_RED);
     }
 }
 
-/* stan gory postaci na polu g: wychylenie (0..4) i klatka miny - zmiana = przerysowanie */
-static UWORD girl_key(UBYTE g, UBYTE *type, UWORD *t)
+/* stan gory postaci na polu g: wychylenie (0..4) i klatka buziaka - zmiana = przerysowanie */
+static UWORD girl_key(UBYTE g, UWORD *t)
 {
     UWORD k = (UWORD)(sway_tab[sway_phase(g)] + 2);
-    *type = EX_NONE;
-    *t = 0;
-    if (ex_girl == g) {
-        *type = ex_type;
-        *t = (UWORD)(present_t - ex_t0);
-        k |= (UWORD)(ex_type << 3);
-        if (ex_type == EX_KISS) k |= (UWORD)((*t < 6 ? 0 : *t - 5) << 5);   /* serduszko leci co klatke */
-        else if (ex_type == EX_WINK) k |= (UWORD)(((*t >= 10 && *t < 30) ? 2 : 1) << 5);
+    *t = 0xFFFF;
+    if (kiss_girl == g) {
+        *t = (UWORD)(present_t - kiss_t0);
+        k |= (UWORD)((*t < 6 ? 1 : *t - 4) << 3);     /* serduszko leci co klatke */
     }
     return k;
 }
 
-/* gora postaci (do kolan) z tablica i mina: czyszczenie, tablica, postac z maska, mina */
-static void draw_girl_upper(UBYTE *b, UBYTE g, UBYTE color, UBYTE type, UWORD t)
+/* Pamiec gory postaci: wiersze od gory tablicy (PRES_Y - CACHE_TOP) do kolan, 8 bajtow (64 px od
+ * x0 - 8) na plan, narysowane bez wychylenia. Tlo pod postaciami to kolor 0 (Copper), wiec wiersz
+ * mozna zapisac w calosci, bez maski i bez czyszczenia. */
+#define CACHE_TOP   (BOARD_H - 2)
+#define CACHE_ROWS  (CACHE_TOP + UPPER_ROWS)
+static UBYTE pres_cache[4][CACHE_ROWS][PLAY_DEPTH][8];
+
+/* gora postaci (do kolan) z tablica - wolno, rect_px i kopia z maska (rysowanie ekranu) */
+static void draw_girl_upper(UBYTE *b, UBYTE g, UBYTE color, BYTE amp)
 {
     WORD x0 = gate_x(g);
-    BYTE amp = sway_tab[sway_phase(g)];
-    rect_px(b, x0 - 8, PRES_Y + 2 - BOARD_H, 64, BOARD_H - 2 + UPPER_ROWS, 0);
+    rect_px(b, x0 - 8, PRES_Y - CACHE_TOP, 64, CACHE_ROWS, 0);
     draw_board(b, (WORD)(x0 + amp), PRES_Y, color);
     if (girls_img) draw_girl_rows(b, x0, PRES_Y, color, 0, UPPER_ROWS, amp);
-    if (type != EX_NONE) draw_expression(b, (WORD)(x0 + amp), color, type, t);
 }
 
-/* kolysanie i miny: gora postaci przerysowana przy zmianie (w kazdym buforze osobno) */
+static void cache_girl_upper(const UBYTE *b, UBYTE g)
+{
+    WORD r;
+    UBYTE pl, k;
+    const UBYTE *s = b + (LONG)(PRES_Y - CACHE_TOP) * PLAY_STRIDE + ((gate_x(g) - 8) >> 3);
+    hw_wait_blit();
+    for (r = 0; r < CACHE_ROWS; r++, s += PLAY_STRIDE)
+        for (pl = 0; pl < PLAY_DEPTH; pl++)
+            for (k = 0; k < 8; k++) pres_cache[g][r][pl][k] = s[pl * ROW_BYTES + k];
+}
+
+/* gora postaci z pamieci: kazdy wiersz przesuniety o wychylenie (tablica i rece jak glowa) */
+static void fast_girl_upper(UBYTE *b, UBYTE g, BYTE amp)
+{
+    WORD r;
+    UBYTE pl, k;
+    UBYTE *d = b + (LONG)(PRES_Y - CACHE_TOP) * PLAY_STRIDE + ((gate_x(g) - 8) >> 3);
+    hw_wait_blit();
+    for (r = 0; r < CACHE_ROWS; r++, d += PLAY_STRIDE) {
+        WORD dx = r < CACHE_TOP ? amp : sway_dx((WORD)(r - CACHE_TOP), amp);
+        UBYTE n = (UBYTE)(dx < 0 ? -dx : dx);
+        for (pl = 0; pl < PLAY_DEPTH; pl++) {
+            const UBYTE *s = pres_cache[g][r][pl];
+            UBYTE *o = d + pl * ROW_BYTES;
+            if (!n) for (k = 0; k < 8; k++) o[k] = s[k];
+            else if (dx > 0) for (k = 0; k < 8; k++) o[k] = (UBYTE)((s[k] >> n) | (k ? s[k - 1] << (8 - n) : 0));
+            else for (k = 0; k < 8; k++) o[k] = (UBYTE)((s[k] << n) | (k < 7 ? s[k + 1] >> (8 - n) : 0));
+        }
+    }
+}
+
+/* kolysanie i buziak: gora postaci przerysowana przy zmianie (w kazdym buforze osobno) */
 static void present_girls(UBYTE *b, UBYTE bi)
 {
-    UBYTE hn = g_tour.current_heat, g, type;
+    UBYTE hn = g_tour.current_heat, g;
     UWORD t, k;
     for (g = 0; g < 4; g++) {
         UBYTE r = g_tour.heat_table[hn][g];
+        BYTE amp = sway_tab[sway_phase(g)];
         if (r == 0xFF) continue;
-        k = girl_key(g, &type, &t);
+        k = girl_key(g, &t);
         if (present_drawn[bi][g] == k) continue;
-        draw_girl_upper(b, g, r, type, t);
+        fast_girl_upper(b, g, amp);
+        if (t != 0xFFFF) draw_kiss(b, (WORD)(gate_x(g) + amp), r, t);
         present_drawn[bi][g] = k;
     }
 }
 
 static COLD void draw_present(UBYTE *b, UBYTE bi)
 {
-    UBYTE hn = g_tour.current_heat, g, type;
-    UWORD t;
+    UBYTE hn = g_tour.current_heat, g;
     char s[48], *p;
     if (hn == RUNOFF_HEAT) text_cat(s, T("BIEG DODATKOWY", "RUN-OFF"));
     else { p = text_cat(s, T("BIEG ", "HEAT ")); text_uint(p, (ULONG)(hn + 1), 1); }
@@ -1220,8 +1240,9 @@ static COLD void draw_present(UBYTE *b, UBYTE bi)
         WORD cx = (WORD)(gate_x(g) + GIRL_W / 2);
         UBYTE r = g_tour.heat_table[hn][g];
         if (r == 0xFF) continue;                         /* puste pole (bieg dodatkowy) */
-        present_drawn[bi][g] = girl_key(g, &type, &t);
-        draw_girl_upper(b, g, r, type, t);
+        draw_girl_upper(b, g, r, 0);                    /* bez wychylenia - do pamieci */
+        cache_girl_upper(b, g);
+        present_drawn[bi][g] = 2;                        /* wychylenie 0, bez buziaka */
         if (girls_img) draw_girl_rows(b, gate_x(g), PRES_Y, r, UPPER_ROWS, GIRL_H, 0);   /* lydki i stopy */
         name_trunc(s, g_tour.riders[r].name, 9);
         text_draw(b, (WORD)(cx - text_len(s) * 4), PRES_Y + GIRL_H + 8, s, U_WHITE, U_SHADOW);
