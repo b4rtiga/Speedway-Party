@@ -1,4 +1,4 @@
-"""gennight.py - zawody w nocy: paleta nocna i mapa swiatla dla toru 0 (data/track0n.pal, data/track0n.map).
+"""gennight.py - zawody w nocy: paleta nocna i mapa swiatla kazdego toru (data/trackNn.pal, data/trackNn.map).
 
     python tools/gennight.py
 
@@ -14,9 +14,10 @@ Kolor nocny = kolor dzienny x (noc chlodna ... swiatlo cieple). Paleta: 206 woln
 (poza 0, 1 - biala tasma, 96..127 - napisy i tablice, 240..255 - duszki), dobrana k-srednimi
 z par (kolor, jasnosc) w 6 wymiarach: RGB sucho + RGB mokro (polewanie dziala tez w nocy).
 
-track0n.pal: 256 RGB sucho + 256 RGB mokro (jak track0.pal).
-track0n.map: night_map 16 x 256 bajtow, potem siatka swiatla 27 x 41 bajtow (0..15), potem
-3 indeksy poswiaty masztow (srodek, pierscien, poswiata). Podglad: build/preview/noc_gra.png.
+trackNn.pal: 256 RGB sucho + 256 RGB mokro (jak trackN.pal).
+trackNn.map: night_map 16 x 256 bajtow, potem siatka swiatla 27 x 41 bajtow (0..15), potem
+3 indeksy poswiaty masztow (srodek, pierscien, poswiata). Plamy swiatla na lukach wg geometrii toru
+(tools/genart.py: PRESETS). Podglad: build/preview/noc_<tor>.png.
 Wymaga numpy."""
 import sys
 from pathlib import Path
@@ -33,7 +34,18 @@ GW, GH = W // CELL + 1, H // CELL + 1          # siatka swiatla w rogach komorek
 LEVELS = 16
 
 MASTS = [(28, 22), (292, 22), (28, 190), (292, 190)]
-POOLS = [(52, 48, 52, 40), (268, 48, 52, 40), (52, 162, 52, 40), (268, 162, 52, 40)]   # x, y, rx, ry
+POOLS = [(52, 48, 52, 40), (268, 48, 52, 40), (52, 162, 52, 40), (268, 162, 52, 40)]   # x, y, rx, ry (owal)
+CX, CY = 160, 100
+
+
+def pools_for(half_l, r_in, r_out):
+    """plamy na lukach: dla owalu dokladnie POOLS, dla innych torow z jego proporcji"""
+    if (half_l, r_in, r_out) == (60, 40, 96):
+        return POOLS
+    r_mid = (r_in + r_out) / 2
+    dx, up, down = half_l + r_mid * 48 / 68, r_mid * 52 / 68, r_mid * 62 / 68
+    rx, ry = 52 * r_mid / 68, 40 * r_mid / 68
+    return [(CX - dx, CY - up, rx, ry), (CX + dx, CY - up, rx, ry), (CX - dx, CY + down, rx, ry), (CX + dx, CY + down, rx, ry)]
 AMB = np.array([0.20, 0.23, 0.40])             # noc: ciemno i chlodno
 LIT = np.array([1.22, 1.12, 0.92])             # swiatlo reflektorow: cieple
 GLOW = [(255, 250, 225), (250, 222, 150), (120, 104, 80)]   # maszt: srodek, pierscien, poswiata
@@ -41,17 +53,17 @@ FIXED = [0, 1] + list(range(96, 128)) + list(range(240, 256))
 SLOTS = [i for i in range(256) if i not in FIXED]
 
 
-def light(x, y):
+def light(x, y, pools):
     v = 0.0
-    for cx, cy, rx, ry in POOLS:
+    for cx, cy, rx, ry in pools:
         d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
         v += np.exp(-(d ** 2) * 1.2)
     return np.clip(v, 0, 1)
 
 
-def light_grid():
+def light_grid(pools):
     gy, gx = np.mgrid[0:GH, 0:GW]
-    return np.rint(light(gx * CELL, gy * CELL) * (LEVELS - 1)).astype(np.int32)
+    return np.rint(light(gx * CELL, gy * CELL, pools) * (LEVELS - 1)).astype(np.int32)
 
 
 def level_map(grid):
@@ -68,8 +80,8 @@ def factor(lv):
     return AMB * (1 - k) + LIT * k
 
 
-def read_indices():
-    a = np.frombuffer((ROOT / "data/track0.bpl").read_bytes(), np.uint8).reshape(H, P, W // 8)
+def read_indices(t):
+    a = np.frombuffer((ROOT / f"data/track{t}.bpl").read_bytes(), np.uint8).reshape(H, P, W // 8)
     bits = np.unpackbits(a, axis=2)
     idx = np.zeros((H, W), np.int32)
     for p in range(P):
@@ -93,11 +105,11 @@ def kmeans(x, w, k, iters=40, seed=7):
     return cent
 
 
-def main():
-    pal = np.frombuffer((ROOT / "data/track0.pal").read_bytes(), np.uint8).reshape(2, 256, 3).astype(np.float64)
+def build(tn, name, half_l, r_in, r_out):
+    pal = np.frombuffer((ROOT / f"data/track{tn}.pal").read_bytes(), np.uint8).reshape(2, 256, 3).astype(np.float64)
     dry, wet = pal[0], pal[1]
-    idx = read_indices()
-    grid = light_grid()
+    idx = read_indices(tn)
+    grid = light_grid(pools_for(half_l, r_in, r_out))
     lv = level_map(grid)
 
     # probki (kolor, jasnosc) z wagami: piksele toru, mozliwe odcienie nawierzchni po ubiciu,
@@ -136,9 +148,9 @@ def main():
         d = ((t[:, None, :] - cand[None, :, :]) ** 2).sum(2)
         nm[l] = np.array(SLOTS)[d.argmin(1)]
 
-    (ROOT / "data/track0n.pal").write_bytes(bytes(np.clip(night, 0, 255).astype(np.uint8).ravel()))
-    (ROOT / "data/track0n.map").write_bytes(bytes(nm.ravel()) + bytes(grid.astype(np.uint8).ravel())
-                                            + bytes(glow_idx))
+    (ROOT / f"data/track{tn}n.pal").write_bytes(bytes(np.clip(night, 0, 255).astype(np.uint8).ravel()))
+    (ROOT / f"data/track{tn}n.map").write_bytes(bytes(nm.ravel()) + bytes(grid.astype(np.uint8).ravel())
+                                               + bytes(glow_idx))
 
     # podglad: tak jak policzy gra (bez duszkow), z poswiata masztow
     out = nm[lv, idx]
@@ -150,8 +162,14 @@ def main():
                 if g >= 0 and 0 <= mx + dx < W and 0 <= my + dy < H:
                     out[my + dy, mx + dx] = glow_idx[g]
     (ROOT / "build/preview").mkdir(parents=True, exist_ok=True)
-    write_png(ROOT / "build/preview/noc_gra.png", np.repeat(np.repeat(night[0][out], 3, 0), 3, 1))
-    print("data/track0n.pal, data/track0n.map (%d B), build/preview/noc_gra.png" % (LEVELS * 256 + GW * GH + 3))
+    write_png(ROOT / f"build/preview/noc_{name}.png", np.repeat(np.repeat(night[0][out], 3, 0), 3, 1))
+    print(f"data/track{tn}n.pal, data/track{tn}n.map, build/preview/noc_{name}.png")
+
+
+def main():
+    from genart import PRESETS                  # geometria torow (ta sama co w track.c)
+    for t, (name, half_l, r_in, r_out, _surface) in enumerate(PRESETS):
+        build(t, name, half_l, r_in, r_out)
 
 
 if __name__ == "__main__":

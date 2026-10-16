@@ -34,6 +34,8 @@ VEH_SCALE = 0.85
 #   name, half_l (pol prostej), r_in (kraweznik), r_out (banda), nawierzchnia
 PRESETS = [
     ("owal",    60, 40, 96, "bakalar"),   # klasyczny owal z bakalaru
+    ("szeroki", 60, 32, 96, "bakalar"),   # szerszy tor (64 px): wiecej miejsca na mijanki
+    ("dlugi",   66, 38, 90, "bakalar"),   # dluzsze proste (+10%), wezszy tor (52 px)
 ]
 
 

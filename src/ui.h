@@ -17,7 +17,9 @@ UBYTE ui_setup_update(void);       /* SETUP_START = start turnieju, SETUP_OPTION
 #define SETUP_START   1
 #define SETUP_OPTIONS 2
 void ui_setup_focus_options(void); /* po powrocie z opcji: kursor na OPCJE TURNIEJU */
-void ui_options_enter(void);       /* opcje turnieju: kursor na STAN TORU */
+void ui_options_enter(void);
+void ui_records_enter(void);       /* rekordy: od toru z ustawien */
+BOOL ui_records_update(void);      /* TRUE = powrot; LEWO/PRAWO - tor */       /* opcje turnieju: kursor na STAN TORU */
 BOOL ui_options_update(void);      /* TRUE = powrot do ustawien */
 void ui_menu_enter(UBYTE row);     /* ekran wyboru: 0 TURNIEJ, 1 TRENING, 2 INSTRUKCJA, 3 REKORDY, 4 CREDITS */
 UBYTE ui_menu_update(void);        /* 1 TURNIEJ, 2 TRENING, 3 INSTRUKCJA, 4 REKORDY, 5 CREDITS, 0 = nic */

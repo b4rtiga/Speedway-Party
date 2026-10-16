@@ -60,7 +60,8 @@ int main(void)
     CHECK(!hof_pending(2) && name_is(&lap[0], "ZUZA   "), "przed zapisem zostaje domyslne imie");
 
     len = hof_serialize(buf);
-    CHECK(len == HOF_FILE_LEN && len == 6 + 2 * 5 * 9 + 2 && memcmp(buf, "SPHF", 4) == 0 && buf[4] == 3, "dlugosc, naglowek i wersja 3");
+    CHECK(len == HOF_FILE_LEN && len == 6 + NUM_TRACKS * 2 * 5 * 9 + 2 && memcmp(buf, "SPHF", 4) == 0 && buf[4] == 3 && buf[5] == NUM_TRACKS,
+          "dlugosc, naglowek, wersja 3 i liczba torow");
     saved = g_hof[0];
     hof_clear();
     CHECK(hof_deserialize(buf, len) && same(&saved, &g_hof[0]), "zapis i odczyt bez zmian");
@@ -87,8 +88,27 @@ int main(void)
             }
         for (k = 0; k < q - v2; k++) sum = (UWORD)(((sum << 1) | (sum >> 15)) + v2[k]);
         *q++ = (UBYTE)(sum >> 8); *q++ = (UBYTE)sum;
-        CHECK(hof_deserialize(v2, (LONG)sizeof(v2)) && heat[0].frames == 1160 && name_is(&heat[0], "ADAM   ")
+        CHECK(hof_deserialize(v2, (LONG)(q - v2)) && heat[0].frames == 1160 && name_is(&heat[0], "ADAM   ")
               && lap[0].frames == 270 && name_is(&lap[0], "OLA    ") && !heat[1].frames, "plik wersji 2 wczytany (imie + spacja)");
+        CHECK(NUM_TRACKS < 2 || (!g_hof[1].heat[0].frames && !g_hof[NUM_TRACKS - 1].lap[0].frames),
+              "stary plik z 1 torem: pozostale tory puste");
+    }
+    {
+        /* plik wersji 3 z jednym torem (gra przed dodaniem torow): tor 0 wczytany, reszta pusta */
+        UBYTE one[6 + 2 * HOF_N * 9 + 2], *q = one;
+        UWORD sum = 0x5350;
+        int c, i, k;
+        memcpy(q, "SPHF", 4); q += 4; *q++ = 3; *q++ = 1;
+        for (c = 0; c < 2; c++)
+            for (i = 0; i < HOF_N; i++) {
+                UWORD f = (UWORD)(i == 0 ? (c ? 280 : 1200) : 0);
+                *q++ = (UBYTE)(f >> 8); *q++ = (UBYTE)f;
+                for (k = 0; k < 7; k++) *q++ = (UBYTE)(i == 0 ? "KUBA   "[k] : ' ');
+            }
+        for (k = 0; k < q - one; k++) sum = (UWORD)(((sum << 1) | (sum >> 15)) + one[k]);
+        *q++ = (UBYTE)(sum >> 8); *q++ = (UBYTE)sum;
+        CHECK(hof_deserialize(one, (LONG)(q - one)) && g_hof[0].heat[0].frames == 1200 && g_hof[0].lap[0].frames == 280
+              && (NUM_TRACKS < 2 || !g_hof[1].heat[0].frames), "plik wersji 3 z 1 torem: tor 0 wczytany, reszta pusta");
     }
 
     printf(fails ? "\n%d BLEDOW\n" : "\nOK: wszystkie testy rekordow\n", fails);

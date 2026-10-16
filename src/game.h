@@ -156,7 +156,7 @@ typedef struct Particle {
 /* ------------------------------ TOR -------------------------------- */
 typedef enum { GRIP_INNER = 0, GRIP_MIDDLE, GRIP_OUTER, GRIP_DEEP_OUTER, GRIP_WALL } GripZone;
 
-#define NUM_TRACKS     1                  /* jeden owal z bakalaru (track.c, genart.py) */
+#define NUM_TRACKS     3                  /* owal, szeroki, dlugi (track.c: track_defs, genart.py: PRESETS) */
 #define GRIP_CELL      8                  /* komorka mapy przyczepnosci 8x8 px */
 #define GRIP_W         (320 / GRIP_CELL)
 #define GRIP_H         (208 / GRIP_CELL)
@@ -278,6 +278,7 @@ typedef struct Tournament {
     UBYTE     night;                       /* opcja PORA: 1 = zawody w nocy (track_set_night) */
     UBYTE     rain_opt;                    /* opcja DESZCZ: w ktoryms biegu zaczyna padac */
     UBYTE     team_mode;                   /* opcja ZAWODY: 1 = mecz druzynowy (gospodarze 1+2, goscie 3+4) */
+    UBYTE     track_pick;                  /* opcja TOR: 0..NUM_TRACKS-1 */
     UBYTE     rain_from;                   /* bieg (0..), od ktorego pada; 0xFF = nie pada */
     UBYTE     new_records;                 /* REC_HEAT|REC_LAP pobite w ostatnim biegu */
     TourStats stats;                       /* fakty zawodow (gazeta) */

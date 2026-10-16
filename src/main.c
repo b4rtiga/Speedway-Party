@@ -131,6 +131,7 @@ static void training_start(void)
     g_tour.riders[0].warnings = 0;
     g_tour.current_heat = 0;
     g_tour.rain_from = 0xFF;
+    track_select(g_tour.track_pick);
     g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice : (UBYTE)rng_range(0, 2);
     track_set_night((BOOL)g_tour.night);
     track_set_wetness(start_wet[g_tour.start_condition]);
@@ -359,7 +360,7 @@ static void update_state(void)
             if (pick == 1) { player1_port(input_menu_fire_port()); enter(GS_SETUP); }
             else if (pick == 2) training_start();
             else if (pick == 3) { ui_help_enter(0); enter(GS_HELP); }
-            else if (pick == 4) enter(GS_RECORDS);
+            else if (pick == 4) { ui_records_enter(); enter(GS_RECORDS); }
             else if (pick == 5) enter(GS_CREDITS);
         }
         break;
@@ -372,7 +373,7 @@ static void update_state(void)
 #ifdef TEST_HOF
         if (state_timer > 6 * FPS) { enter(GS_SETUP); break; }
 #endif
-        if (state_timer > FPS / 4 && ui_confirm()) { ui_menu_enter(3); enter(GS_MENU); }
+        if (state_timer > FPS / 4 && ui_records_update()) { ui_menu_enter(3); enter(GS_MENU); }
         break;
 
     case GS_NAME_ENTRY:                    /* wpis imienia; swiezy FIRE po chwili */
@@ -402,6 +403,7 @@ static void update_state(void)
             records_resolve_pending();           /* przerwany turniej: jego miejsca z imieniem z nazwiska */
             tournament_reset();
             g_tour.current_heat = 0;
+            track_select(g_tour.track_pick);   /* tor z ustawien (geometria, tlo, palety) */
             g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice
                                                                          : (UBYTE)rng_range(0, 2);
             g_tour.rain_from = g_tour.rain_opt ? (UBYTE)rng_range(2, 8) : 0xFF;   /* deszcz od biegu 3..9 */
@@ -549,6 +551,7 @@ static int game_main(void)
     records_load();
     settings_load();                            /* zawodnicy i opcje z poprzedniej sesji */
     if (!track_init()) { rc = 20; goto out; }   /* wszystkie tory (przed przejeciem) */
+    if (g_tour.track_pick >= NUM_TRACKS) g_tour.track_pick = 0;
     if (!track_night_available()) g_tour.night = 0;
     ui_init();
 #ifdef SHOW_LAG

@@ -59,7 +59,7 @@ Loading from floppy takes several dozen seconds, so the game first shows the tit
 - **TOURNAMENT** – riders and tournament settings,
 - **PRACTICE** – player 1 alone on the track (track condition and time of day from the tournament settings): a tape start and unlimited laps; the infield shows the last and best lap and the track record. A tape offence or a fall just restarts from the tape, there are no defects. To finish: ESC and confirm,
 - **HOW TO PLAY** – three pages: tournament rules and flags, start and controls, the racing line with a track diagram (LEFT/RIGHT turns the page),
-- **RECORDS** – the track record tables,
+- **RECORDS** – the track record tables (LEFT/RIGHT switches the track),
 - **CREDITS** – who made the game.
 
 FIRE or ESC takes you back from the manual, the records and the credits.
@@ -70,7 +70,7 @@ FIRE or ESC takes you back from the manual, the records and the credits.
 
 ### Tournament: riders and settings
 
-Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: track condition at the start (dry, damp, wet or random – the default), time of day (day or night – chapter 6), rain (chapter 6), an individual or team event (chapter 4), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. Riders and settings are saved when you quit the game, to `settings.dat` next to the game (only if something changed), so after a restart they are as you left them. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
+Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: the track (OVAL, WIDE or LONG – chapter 6), track condition at the start (dry, damp, wet or random – the default), time of day (day or night – chapter 6), rain (chapter 6), an individual or team event (chapter 4), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. Riders and settings are saved when you quit the game, to `settings.dat` next to the game (only if something changed), so after a restart they are as you left them. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
 
 ![Tournament: riders](../art/en/screen_02_setup.png)
 
@@ -108,7 +108,7 @@ After each heat – results with points and the time. When the runner-up crosses
 
 ### Track records
 
-The track has two tables: **the 5 best heats** (time of all 4 laps) and **the 5 best laps**. After every heat, every player who finished with a good enough time gets in. Bots never enter the tables, so a bots-only demo (0 players) saves nothing. On an equal time the earlier entry stays higher.
+Each track has its own two tables: **the 5 best heats** (time of all 4 laps) and **the 5 best laps**. After every heat, every player who finished with a good enough time gets in. Bots never enter the tables, so a bots-only demo (0 players) saves nothing. On an equal time the earlier entry stays higher.
 
 A player who made the top five during the tournament enters – once, for all their places, after the meeting (after the newspaper); the game does not stop between heats – a **name of up to 7 characters** (by default the first word of the rider's name): UP/DOWN changes the character (space, A–Z, Polish letters, 0–9, `-`), LEFT/RIGHT the position; you can also type on the keyboard (Alt + letter = Polish letter, Backspace deletes). FIRE or Return saves, ESC keeps what is on the screen. When several players made the top five, they take turns. If the tournament is abandoned (ESC), its players' places get names taken from their rider names.
 
@@ -168,6 +168,14 @@ At the start of each tournament the track gets 1–2 worn-in, packed grooves at 
 - **sliding costs less speed** – up to 40% less in the middle of the groove; the further from it, the higher the penalty.
 
 The track also wears in from heat to heat: the line the whole field rides gets darker and grips better, while the roost next to it loosens it. The grader wipes the grooves out during a track break.
+
+### Three tracks
+
+In the tournament settings you pick the track: **OVAL** – the classic one, 56 px wide; **WIDE** – the same straights and bends but 64 px wide, more room for passing on the outside; **LONG** – straights 10% longer and narrower (52 px), so passes mostly happen on the exit of a bend. The surface character (where it grips, where it bogs down) is random for every meeting anyway. Each track has its own records and its own night version. The start gates have slightly different chances on each track – that is the track's character.
+
+![WIDE track](../art/en/screen_36_szeroki.png)
+
+![LONG track](../art/en/screen_37_dlugi.png)
 
 ### Loose dirt and “going wide”
 
@@ -293,7 +301,7 @@ Four channels: two engines (the two highest-placed riders still racing; in the m
 | `race.c` | riding model: throttle, slide, fence, contact, laps |
 | `ai.c` | bots |
 | `roost.c` | roost and water from the bowser |
-| `track.c` | oval geometry, grip, moisture, worn-in grooves |
+| `track.c` | geometry of the three tracks, grip, moisture, worn-in grooves |
 | `tractors.c` | track break |
 | `tournament.c` | 15-heat programme, points, nominated heats and run-offs, facts for the newspaper |
 | `newspaper.c` | newspaper after the meeting: summary and headline choice |
@@ -305,7 +313,7 @@ Four channels: two engines (the two highest-placed riders still racing; in the m
 
 ### Data (the data/ directory)
 
-All files are made by the tools in `tools/` and are in the repository: track (`track0.bpl`, `track0.pal`), title screen (`title.bpl`, `title.pal`), bikes (`bikes.spr`: one set of frames, the game applies the helmet colour), tractors (`tractors.spr`), HUD (`hud.pal`, `referee.bin`, `refarm.bin`), start girls (`girls.bin`), sounds (`engine.raw`, `crowd.raw`, `buzzer.raw`, `whistle.raw`, `cheer.raw`) and music (`music.raw`, copied at build time).
+All files are made by the tools in `tools/` and are in the repository: tracks (`track0.bpl`, `track0.pal` – OVAL, `track1.*` – WIDE, `track2.*` – LONG), title screen (`title.bpl`, `title.pal`), bikes (`bikes.spr`: one set of frames, the game applies the helmet colour), tractors (`tractors.spr`), HUD (`hud.pal`, `referee.bin`, `refarm.bin`), start girls (`girls.bin`), sounds (`engine.raw`, `crowd.raw`, `buzzer.raw`, `whistle.raw`, `cheer.raw`) and music (`music.raw`, copied at build time).
 
 ## 9. Running in WinUAE
 
@@ -338,7 +346,7 @@ They need Python 3 with `numpy`, ffmpeg in PATH, and for the code check and the 
 |---|---|
 | `make assets` | regenerates graphics, sound and the font (`genart`, `gentitle`, `gengirls`, `genaudio`, `genfont`) |
 | `python tools/gentitle.py` | the title screen from the illustration `src/title.png` |
-| `python tools/gennight.py` | night meetings: the night palette and the floodlight map (`data/track0n.pal`, `data/track0n.map`); the game turns the day track into the night one when a tournament starts |
+| `python tools/gennight.py` | night meetings: the night palette and the floodlight map (`data/trackNn.pal`, `data/trackNn.map` for each track); the game turns the day track into the night one when a tournament starts |
 | `python tools/genreferee.py` | the referee's portrait and painted hand from `src/referee.png` |
 | `python tools/gengirls.py` | the start girls from `src/girls.png` |
 | `python tools/import_engine.py file.wav` | the engine loop from a recording (currently `src/speedway_500cc_10000rpm_loop.wav`) |
@@ -377,13 +385,13 @@ The track geometry lives in two places: `track_defs` in `src/track.c` and `PRESE
 
 - The game runs in WinUAE at 50 FPS; over a whole heat single frames are dropped (a few when the tape flies up and when the flag changes).
 - **It has not been tested on a real A1200 yet**, nor with an original Kickstart 3.1.
-- It uses about 1.05–1.25 MB of Chip RAM, so it needs 2 MB Chip.
+- It uses about 1.2–1.4 MB of Chip RAM, so it needs 2 MB Chip.
 - Only two engines can be heard at once (Paula has 4 channels): the two highest-placed riders still racing.
 - The engine sound comes from an AI-generated recording (500 cc, 10,000 rpm), looped with `tools/import_engine.py`.
 - The 4-player parallel port adapter has not been tested.
 - PAL only.
 
-**To do:** more tracks, a test on a real A1200.
+**To do:** a test on a real A1200.
 
 ## 13. How to update this documentation
 

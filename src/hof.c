@@ -125,16 +125,19 @@ BOOL hof_deserialize(const UBYTE *buf, LONG len)
 {
     static HofTrack tmp[NUM_TRACKS];
     const UBYTE *p = buf;
-    UBYTE t, i, k, c, n;
+    UBYTE t, i, k, c, n, tracks;
     if (len < 6) return FALSE;
     for (k = 0; k < 4; k++) if (buf[k] != (UBYTE)HOF_MAGIC[k]) return FALSE;
-    if (buf[4] == HOF_VERSION && len == HOF_FILE_LEN) n = HOF_NAME;
-    else if (buf[4] == 2 && len == HOF_FILE_LEN_V2) n = 6;     /* starszy plik: imie dopelnione spacja */
+    tracks = buf[5];                              /* starszy plik moze miec mniej torow (dawniej 1) */
+    if (tracks < 1 || tracks > NUM_TRACKS) return FALSE;
+    if (buf[4] == HOF_VERSION && len == 6 + tracks * 2 * HOF_N * (2 + HOF_NAME) + 2) n = HOF_NAME;
+    else if (buf[4] == 2 && len == 6 + tracks * 2 * HOF_N * (2 + 6) + 2) n = 6;   /* imie dopelnione spacja */
     else return FALSE;
-    if (buf[5] != NUM_TRACKS) return FALSE;
     if (checksum(buf, (UWORD)(len - 2)) != (UWORD)((buf[len - 2] << 8) | buf[len - 1])) return FALSE;
     p += 6;
-    for (t = 0; t < NUM_TRACKS; t++)
+    for (t = 0; t < NUM_TRACKS; t++)                  /* tory spoza pliku - puste tabele */
+        for (i = 0; i < HOF_N; i++) { tmp[t].heat[i].frames = tmp[t].lap[i].frames = 0; }
+    for (t = 0; t < tracks; t++)
         for (c = 0; c < 2; c++) {
             UWORD prev = 0;
             BOOL empty = FALSE;

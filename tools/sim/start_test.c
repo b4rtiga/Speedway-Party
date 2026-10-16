@@ -15,17 +15,20 @@ int main(int argc, char **argv)
     double v1s[4] = {0};
     long roost[4] = {0}, kerb[4] = {0}, frames_race[4] = {0}, latsum[4] = {0}, spd[4] = {0};
     int t, h, g;
+    long falls = 0;
 
     stubs_init();
     fixmath_init();
     g_defects_enabled = FALSE;           /* uczciwosc startu bez losowych defektow */
     for (t = 0; t < tours; t++) {
+        if (t) falls += g_tour.stats.falls;            /* poprzedni turniej */
         g_rng = (ULONG)(1000 + t * 7919);
         tournament_defaults();
         g_tour.num_humans = 0;
         tournament_reset();
         for (g = 0; g < 4; g++) g_tour.riders[g].ai_level = AI_MASTER;
         track_init();
+        if (getenv("TRACK")) track_select((UBYTE)atoi(getenv("TRACK")));   /* TRACK=1/2: inny tor */
         track_random_surface();
         for (h = 0; h < FIXED_HEATS; h++) {
             Heat *ht = &g_tour.heat;
@@ -90,7 +93,7 @@ int main(int argc, char **argv)
             (void)i;
         }
     }
-    printf("%ld biegow (4 x MISTRZ, %d turniejow, losowe nawierzchnie)\n", heats, tours);
+    printf("%ld biegow (4 x MISTRZ, %d turniejow, losowe nawierzchnie), upadki: %ld\n", heats, tours, falls);
     printf("pole  v po 1 s   miejsce w 1. luku   miejsce na mecie   zwyciestwa\n");
     for (g = 0; g < 4; g++)
         printf("  %c    %5.1f%%        %4.2f               %4.2f          %5.1f%%\n", 'A' + g,

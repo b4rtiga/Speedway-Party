@@ -100,7 +100,7 @@ int main(void)
     g_tour.riders[3].ai_level = AI_MASTER;
     settings_save();
     f = find("PROGDIR:settings.dat");
-    CHECK(f >= 0 && disk[f].len == 11 + MAX_RIDERS * (NAME_LEN + 3) && !memcmp(disk[f].data, "SPS1", 4), "zapis: plik i naglowek");
+    CHECK(f >= 0 && disk[f].len == 12 + MAX_RIDERS * (NAME_LEN + 3) && !memcmp(disk[f].data, "SPS1", 4), "zapis: plik i naglowek");
     CHECK(find("PROGDIR:settings.tmp") < 0, "plik tymczasowy usuniety");
 
     memset(&g_tour, 0, sizeof(g_tour));               /* "nowe uruchomienie gry" */
