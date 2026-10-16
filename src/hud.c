@@ -173,7 +173,7 @@ static BOOL kosa_shown(void)
     }
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
-        if (b->state != BIKE_EXCLUDED && !b->empty && b->lap < LAPS_PER_HEAT) all_in = FALSE;
+        if (b->state != BIKE_EXCLUDED && b->state != BIKE_DEFECT && !b->empty && b->lap < LAPS_PER_HEAT) all_in = FALSE;
     }
     if (!all_in) { all_in_frame = 0; return TRUE; }
     if (!all_in_frame) all_in_frame = (UWORD)(h->race_frames ? h->race_frames : 1);
@@ -392,7 +392,7 @@ void hud_update(void)
         UBYTE pos, n = 0;
         for (pos = 0; pos < MAX_RIDERS; pos++) {
             const Bike *b = &g_tour.bikes[h->order[pos]];
-            if (b->state == BIKE_EXCLUDED || b->empty) continue;
+            if (b->state == BIKE_EXCLUDED || b->state == BIKE_DEFECT || b->empty) continue;
             if (n == 0) lap = b->lap;
             order[n++] = (UBYTE)(b->rider | (b->rider << 4));      /* kolor kasku = zawodnik */
         }

@@ -47,8 +47,9 @@ void news_build(void)
 
     /* najwyzej dwa fakty w kolejnosci, pomijajac zerowe */
     summary.facts[0] = summary.facts[1] = NEWS_FACT_NONE;
-    if (st->false_starts) { summary.facts[n] = NEWS_FACT_FALSE_STARTS; summary.fact_value[n++] = st->false_starts; }
-    if (st->exclusions)   { summary.facts[n] = NEWS_FACT_EXCLUSIONS;   summary.fact_value[n++] = st->exclusions; }
+    if (st->defects)      { summary.facts[n] = NEWS_FACT_DEFECTS;      summary.fact_value[n++] = st->defects; }
+    if (st->false_starts && n < 2) { summary.facts[n] = NEWS_FACT_FALSE_STARTS; summary.fact_value[n++] = st->false_starts; }
+    if (st->exclusions && n < 2) { summary.facts[n] = NEWS_FACT_EXCLUSIONS; summary.fact_value[n++] = st->exclusions; }
     if (n < 2)            { summary.facts[n] = NEWS_FACT_WINNER_WINS;  summary.fact_value[n++] = summary.wins[0]; }
     if (n < 2)            { summary.facts[n] = NEWS_FACT_HUMANS;       summary.fact_value[n++] = g_tour.num_humans; }
 }

@@ -77,8 +77,25 @@ static void emit(UBYTE owner, const Bike *b, BOOL spin)
     p->owner = owner;
 }
 
-#define OWNER_WATER 0xFF
+#define OWNER_WATER 0xFF            /* woda i dym: nikogo nie spowalniaja, nie spulchniaja toru */
 static const UBYTE water_colors[2] = { 214, 215 };
+static const UBYTE smoke_colors[3] = { 133, 134, 135 };   /* szarosci palety toru */
+
+/* dym z krztuszacego sie silnika (defekt): w gore i do tylu, wolno */
+static void emit_smoke(const Bike *b)
+{
+    Particle *p = &g_tour.particles[g_tour.particle_head];
+    WORD fc = COS(b->heading), fs = SIN(b->heading);
+    g_tour.particle_head = (UBYTE)((g_tour.particle_head + 1) % MAX_PARTICLES);
+    p->x = b->x - (fix16)fc * (REAR_OFFSET << 2);
+    p->y = b->y - (fix16)fs * (REAR_OFFSET << 2);
+    p->dx = jitter(FIX_ONE) - (fix16)fc * 16;
+    p->dy = jitter(FIX_ONE) - (fix16)fs * 16 - FIX_ONE;
+    p->life = (UBYTE)(14 + rng_range(0, 10));
+    p->color = smoke_colors[rng_range(0, 2)];
+    p->big = 1;
+    p->owner = OWNER_WATER;
+}
 
 /* Woda z rampy: na boki (obie strony) i lekko do tylu, krotkie zycie.
  * Drobiny wody nie spowalniaja nikogo (owner = OWNER_WATER). */
@@ -126,6 +143,8 @@ void roost_update(BOOL bikes)
         if (b->state == BIKE_WHEELSPIN) {
             emit(i, b, TRUE);
             emit(i, b, TRUE);
+        } else if (b->defect_timer && (b->state == BIKE_RACING || b->defect_timer < FPS)) {
+            emit_smoke(b);                                            /* defekt: dym z silnika */
         } else if (b->state == BIKE_RACING && b->drift > ROOST_DRIFT && b->speed > SPEED_MIN) {
             UBYTE n = (UBYTE)(1 + (b->drift - ROOST_DRIFT) / 8);      /* 1..3 na klatke */
             while (n--) emit(i, b, FALSE);
@@ -142,7 +161,7 @@ UBYTE roost_hits(const Bike *b)
     for (i = 0; i < MAX_PARTICLES; i++) {
         const Particle *p = &g_tour.particles[i];
         WORD dx, dy;
-        if (p->life < HIT_MIN_LIFE || p->owner == me) continue;
+        if (p->life < HIT_MIN_LIFE || p->owner == me || p->owner == OWNER_WATER) continue;
         dx = (WORD)(FIX2INT(p->x) - fx);
         if (dx > 6 || dx < -6) continue;               /* szybkie odrzucenie bez mnozenia */
         dy = (WORD)(FIX2INT(p->y) - fy);

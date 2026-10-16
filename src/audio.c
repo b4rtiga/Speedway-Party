@@ -272,7 +272,7 @@ static void update_music(void)
 static UWORD bike_rpm(const Bike *b)
 {
     HeatPhase ph = g_tour.heat.phase;
-    if (b->state == BIKE_EXCLUDED) return 0;
+    if (b->state == BIKE_EXCLUDED || b->state == BIKE_DEFECT) return 0;
     if (b->state == BIKE_WHEELSPIN) return (UWORD)(13000 + (rng_next() & 1023));
     if (b->state == BIKE_AT_GATE) {
         if (ph == HEAT_PRE) return 5000;
@@ -285,6 +285,7 @@ static UWORD bike_rpm(const Bike *b)
         UWORD rpm = (UWORD)(6000 + (frac > 8000 ? 8000 : frac));
         rpm += (UWORD)((b->drift > 0 ? b->drift : 0) * 30);
         if (b->state == BIKE_FINISHED) rpm = (UWORD)(rpm * 3 / 4);
+        if (b->defect_timer && (rng_next() & 3) == 0) rpm = 2500;   /* defekt: przerwy w zaplonie */
         return rpm;
     }
 }
@@ -304,7 +305,7 @@ static void pick_engines(UBYTE out[2])
             for (i = 0; i < MAX_RIDERS && n < 2; i++) {
                 UBYTE k = g_tour.heat.order[i];
                 const Bike *b = &g_tour.bikes[k];
-                if (b->state == BIKE_EXCLUDED || b->empty) continue;
+                if (b->state == BIKE_EXCLUDED || b->state == BIKE_DEFECT || b->empty) continue;
                 if ((b->state == BIKE_FINISHED) != (pass == 1)) continue;
                 out[n++] = k;
             }

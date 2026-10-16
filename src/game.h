@@ -83,7 +83,8 @@ typedef enum {
     BIKE_WHEELSPIN,     /* trzymal za dlugo po zielonym - mieli w miejscu */
     BIKE_RACING,
     BIKE_FINISHED,
-    BIKE_EXCLUDED       /* wykluczony (np. druga tasma) */
+    BIKE_EXCLUDED,      /* wykluczony (np. druga tasma) */
+    BIKE_DEFECT         /* defekt: silnik zgasl, zawodnik nie konczy biegu (0 pkt, "D") */
 } BikeState;
 
 typedef struct Bike {
@@ -113,6 +114,10 @@ typedef struct Bike {
     UWORD   reaction_frames;  /* klatki od zielonego do puszczenia */
     UBYTE   launch_quality;   /* 0..255 -> bonus przyspieszenia na starcie */
     UBYTE   launch_timer;     /* klatki pozostalego bonusu startowego */
+
+    /* defekt (race.c): wylosowana chwila awarii i licznik krztuszenia sie / postoju */
+    UWORD   defect_frame;     /* klatka biegu, w ktorej silnik zaczyna sie krztusic; 0 = bez defektu */
+    UBYTE   defect_timer;     /* 0 = sprawny; krztuszenie: 1..DEFECT_SPUTTER, potem (BIKE_DEFECT) postoj */
 
     /* efekty */
     UBYTE   in_roost;         /* jedzie w szprycy innego motocykla */
@@ -237,6 +242,8 @@ typedef enum {
 typedef struct TourStats {
     UBYTE false_starts;                    /* tasmy (falstarty) w calym turnieju */
     UBYTE exclusions;                      /* wykluczenia za druga tasme */
+    UBYTE defects;                         /* defekty (awarie motocykli) w calym turnieju */
+    UBYTE defected[MAX_RIDERS];            /* zawodnik mial juz defekt - najwyzej jeden na turniej */
     UBYTE starts[MAX_RIDERS];              /* starty w biegach punktowanych */
     UBYTE excluded[MAX_RIDERS];            /* wykluczenia zawodnika */
     UBYTE records;                         /* pobite rekordy toru (bieg + okrazenie) */
@@ -276,6 +283,7 @@ void tournament_sort(UBYTE order[MAX_RIDERS]);   /* wg punktow, biegu dodatkoweg
 BOOL tournament_prepare_runoff(void);            /* remis o podium -> bieg dodatkowy (TRUE) */
 #define HP_NONE     0xFF                         /* bieg jeszcze nie jechany */
 #define HP_EXCLUDED 0xFE                         /* wykluczony (W) */
+#define HP_DEFECT   0xFD                         /* defekt (D) */
 void tournament_award_points(void);
 
 /* newspaper.c - gazeta "GLOS OWALU" po zawodach */
@@ -294,7 +302,8 @@ typedef struct NewsSummary {             /* niezmienna migawka zakonczonego turn
     NewsRule rule;
     UBYTE    facts[2], fact_value[2];    /* NEWS_FACT_* i wartosc; 0xFF = brak */
 } NewsSummary;
-enum { NEWS_FACT_FALSE_STARTS = 0, NEWS_FACT_EXCLUSIONS, NEWS_FACT_WINNER_WINS, NEWS_FACT_HUMANS, NEWS_FACT_NONE = 0xFF };
+enum { NEWS_FACT_FALSE_STARTS = 0, NEWS_FACT_EXCLUSIONS, NEWS_FACT_WINNER_WINS, NEWS_FACT_HUMANS, NEWS_FACT_DEFECTS,
+       NEWS_FACT_NONE = 0xFF };
 NewsRule news_pick_rule(const NewsFacts *f);   /* pierwsza spelniona regula wg priorytetu */
 void     news_build(void);                     /* migawka po ostatnim rozstrzygnietym biegu */
 const NewsSummary *news_summary(void);
@@ -308,6 +317,9 @@ void start_begin(void);
 void start_update(void);   /* wywolywane co klatke w fazach przed HEAT_RACING */
 
 /* race.c */
+extern BOOL g_defects_enabled;                   /* opcja DEFEKTY w ustawieniach */
+#define DEFECT_SPUTTER  (3 * FPS / 2)            /* silnik krztusi sie 1,5 s, zanim zgasnie */
+#define DEFECT_HIDE     (2 * FPS)                /* po 2 s postoju motocykl znika z toru (zjechal na murawe) */
 void race_init_heat(void);
 void race_update(void);
 LONG race_leader_distance(void);                 /* dystans najdalej jadacego */

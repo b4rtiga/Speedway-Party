@@ -67,7 +67,7 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ### Ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy, poziom botów, stan toru (suchy, wilgotny, mokry – na start losowany) i muzyka. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz JEDZIEMY!: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy, poziom botów, stan toru (suchy, wilgotny, mokry – na start losowany), muzyka i defekty (rozdział 4). Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz JEDZIEMY!: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
 ![Ustawienia](../art/screen_02_setup.png)
 
@@ -91,6 +91,8 @@ Po biegu – wyniki z punktami i czasem. Po biegach 4, 7, 11 i 13 traktory równ
 
 ![Wyniki biegu](../art/screen_07_result.png)
 
+![Defekt: silnik krztusi się i dymi (żółty motocykl)](../art/screen_27_defekt.png)
+
 ![Gazeta po zawodach](../art/screen_23_gazeta.png)
 
 ### Rekordy toru
@@ -111,6 +113,7 @@ Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zosta
 - **Każdy startuje z każdego pola** – program biegów 1–13 jest tak ułożony.
 - **Biegi nominowane (14 i 15):** lider tabeli wybiera pole pierwszy, potem kolejni.
 - **Bieg dodatkowy:** remis punktowy o miejsce na podium rozstrzyga dodatkowy bieg zawodników z remisu, z losowanymi polami. Remis poza podium rozstrzygają zwycięstwa biegów.
+- **Defekty** (opcja w ustawieniach, domyślnie włączona): przed każdym biegiem punktowanym każdy zawodnik ma 2% szansy na awarię motocykla, najwyżej jedną w turnieju – średnio wypada około jednego defektu na turniej. W losowej chwili biegu silnik zaczyna się krztusić i dymić, po 1,5 s gaśnie, motocykl toczy się do zatrzymania i zjeżdża z toru. Zawodnik dostaje 0 punktów, a w tabeli „D”. Kto zdąży dojechać do mety, zanim silnik zgaśnie, kończy bieg normalnie. W biegu dodatkowym defektów nie ma.
 - **Kolor kasku** jest stały dla zawodnika przez cały turniej (czerwony, niebieski, biały, żółty). Pole startowe zmienia się co bieg.
 - **Boty:** Nowicjusz (spóźnia się pod taśmą, łamie za mocno, trzyma się krawężnika), Profesjonalista (refleks, „zamyka płot” przy próbie wyprzedzania od wewnątrz), Mistrz (czyta przyczepność toru, dawkuje uślizg, potrafi odjechać szeroko).
 

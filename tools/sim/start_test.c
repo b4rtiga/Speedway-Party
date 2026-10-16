@@ -18,6 +18,7 @@ int main(int argc, char **argv)
 
     stubs_init();
     fixmath_init();
+    g_defects_enabled = FALSE;           /* uczciwosc startu bez losowych defektow */
     for (t = 0; t < tours; t++) {
         g_rng = (ULONG)(1000 + t * 7919);
         tournament_defaults();

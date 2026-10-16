@@ -29,6 +29,15 @@ void prof_add(UBYTE i, UWORD a, UWORD b);
 #define OUTER_LIMIT     (TRACK_HALF_WIDTH - 3)
 #define INNER_LIMIT     (-TRACK_HALF_WIDTH + 2)
 #define DNF_FRAMES      (15 * FPS)   /* po zwyciezcy reszta ma 15 s */
+#define HEAT_MAX_FRAMES (60 * FPS)   /* bieg konczy sie najpozniej po minucie (np. nikt nie puscil pod tasma) */
+/* Defekt: przed biegiem kazdy zawodnik ma DEFECT_CHANCE/1000 szansy na awarie (najwyzej jedna
+ * na turniej, bez biegu dodatkowego) w losowej chwili miedzy DEFECT_FROM a DEFECT_TO.
+ * 2% x 60 startow w turnieju = srednio ok. 1 defekt na turniej. */
+#define DEFECT_CHANCE   20
+#define DEFECT_FROM     (3 * FPS)
+#define DEFECT_TO       (20 * FPS)
+
+BOOL g_defects_enabled = TRUE;
 #define DRY_EVERY       (10 * FPS)
 
 static UWORD winner_frame;
@@ -71,6 +80,11 @@ void race_init_heat(void)
         b->in_roost = 0;
         b->ai_timer = 0;
         b->launch_timer = 0;
+        b->defect_timer = 0;
+        b->defect_frame = 0;
+        if (g_defects_enabled && !b->empty && g_tour.current_heat != RUNOFF_HEAT && !g_tour.stats.defected[r] &&
+            rng_range(0, 999) < DEFECT_CHANCE)
+            b->defect_frame = rng_range(DEFECT_FROM, DEFECT_TO);
         b->lap_start = 0;
         b->best_lap = 0;
         b->position = g;
@@ -87,7 +101,7 @@ LONG race_leader_distance(void)
     UBYTE i;
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
-        if (b->state == BIKE_EXCLUDED || b->empty) continue;
+        if (b->state == BIKE_EXCLUDED || b->state == BIKE_DEFECT || b->empty) continue;
         if (b->race_distance > lead) lead = b->race_distance;
     }
     return lead;
@@ -138,6 +152,14 @@ static void update_bike(Bike *b)
     }
 
     in = (g_tour.riders[b->rider].control == CTRL_AI) ? ai_steer(b) : b->input;
+    if (b->state == BIKE_DEFECT) {
+        in = 0;                             /* silnik zgasl: motocykl sie toczy i staje */
+        cap = 0;
+    } else if (b->defect_timer) {
+        /* krztuszenie: coraz mniej mocy i przerwy w zaplonie */
+        cap = (fix16)(cap / DEFECT_SPUTTER * (DEFECT_SPUTTER - b->defect_timer) / 2);
+        if ((rng_next() & 7) < 3) cap = 0;
+    }
     b->prev_input = in;
 
     /* --- kat zlamania --- */
@@ -248,6 +270,28 @@ static void update_bike(Bike *b)
     }
 }
 
+/* Defekt: w wylosowanej klatce silnik zaczyna sie krztusic (DEFECT_SPUTTER klatek, dym),
+ * potem gasnie - BIKE_DEFECT, motocykl toczy sie do zatrzymania, a po DEFECT_HIDE znika.
+ * Kto zdazy dojechac do mety w trakcie krztuszenia, konczy bieg normalnie. */
+static void update_defect(Bike *b)
+{
+    if (b->state == BIKE_RACING && b->defect_frame && g_tour.heat.race_frames >= b->defect_frame) {
+        b->defect_frame = 0;
+        b->defect_timer = 1;
+    }
+    if (!b->defect_timer) return;
+    if (b->state == BIKE_RACING) {
+        if (++b->defect_timer >= DEFECT_SPUTTER) {
+            b->state = BIKE_DEFECT;
+            b->defect_timer = 1;
+            g_tour.stats.defects++;
+            g_tour.stats.defected[b->rider] = 1;
+        }
+    } else if (b->state == BIKE_DEFECT) {
+        if (b->defect_timer < 255) b->defect_timer++;
+    } else b->defect_timer = 0;            /* dojechal do mety mimo krztuszenia */
+}
+
 /* kontakt lokiec w lokiec: obaj -8%, krotki cooldown, rozsuniecie */
 static void collisions(void)
 {
@@ -261,7 +305,7 @@ static void collisions(void)
             Bike *a = &g_tour.bikes[i], *b = &g_tour.bikes[j];
             LONG dx, dy;
             if (a->state < BIKE_WHEELSPIN || b->state < BIKE_WHEELSPIN) continue;
-            if (a->state == BIKE_EXCLUDED || b->state == BIKE_EXCLUDED) continue;
+            if (a->state >= BIKE_EXCLUDED || b->state >= BIKE_EXCLUDED) continue;   /* wykluczony, defekt */
             dx = FIX2INT(a->x - b->x);
             dy = FIX2INT(a->y - b->y);
             if (dx * dx + dy * dy >= BUMP_DIST2) continue;
@@ -276,6 +320,12 @@ static void collisions(void)
         }
 }
 
+/* grupy w kolejnosci: na mecie, jadacy, defekt, wykluczony */
+static UBYTE pos_group(const Bike *b)
+{
+    return (UBYTE)(b->state == BIKE_FINISHED ? 0 : b->state == BIKE_DEFECT ? 2 : b->state == BIKE_EXCLUDED ? 3 : 1);
+}
+
 static void update_positions(void)
 {
     UBYTE order[MAX_RIDERS], i, j, n = 0;
@@ -283,11 +333,11 @@ static void update_positions(void)
     for (i = 1; i < n; i++)
         for (j = i; j > 0; j--) {
             Bike *a = &g_tour.bikes[order[j - 1]], *b = &g_tour.bikes[order[j]];
+            UBYTE ga = pos_group(a), gb = pos_group(b);
             BOOL swap;
-            if (a->state == BIKE_EXCLUDED) swap = b->state != BIKE_EXCLUDED;
-            else if (a->state == BIKE_FINISHED && b->state == BIKE_FINISHED) swap = b->finish_frame < a->finish_frame;
-            else if (b->state == BIKE_FINISHED) swap = a->state != BIKE_FINISHED;
-            else swap = a->state != BIKE_FINISHED && b->state != BIKE_EXCLUDED && b->race_distance > a->race_distance;
+            if (ga != gb) swap = gb < ga;
+            else if (ga == 0) swap = b->finish_frame < a->finish_frame;
+            else swap = ga == 1 && b->race_distance > a->race_distance;
             if (swap) { UBYTE t = order[j]; order[j] = order[j - 1]; order[j - 1] = t; }
         }
     for (i = 0; i < n; i++) {
@@ -308,9 +358,10 @@ void race_update(void)
     if (h->danger_timer) h->danger_timer--;
     for (i = 0; i < MAX_RIDERS; i++) {
         Bike *b = &g_tour.bikes[i];
-        if (b->state == BIKE_RACING || b->state == BIKE_FINISHED) update_bike(b);
+        update_defect(b);
+        if (b->state == BIKE_RACING || b->state == BIKE_FINISHED || b->state == BIKE_DEFECT) update_bike(b);
         else if (b->state == BIKE_WHEELSPIN) b->speed = 0;
-        if (b->state != BIKE_EXCLUDED) active++;
+        if (b->state != BIKE_EXCLUDED && b->state != BIKE_DEFECT) active++;
         if (b->state == BIKE_FINISHED) done++;
     }
 #ifdef SHOW_LAG
@@ -339,6 +390,7 @@ void race_update(void)
     /* ostatni na mecie -> jeszcze 2 s jazdy wybiegu, dopiero potem plansza wynikow */
     if (end_wait) {
         if (--end_wait == 0) h->phase = HEAT_FINISHED;
-    } else if (done == active || (winner_frame && h->race_frames - winner_frame > DNF_FRAMES))
+    } else if (done == active || (winner_frame && h->race_frames - winner_frame > DNF_FRAMES) ||
+               h->race_frames > HEAT_MAX_FRAMES)
         end_wait = END_WAIT_FRAMES;
 }

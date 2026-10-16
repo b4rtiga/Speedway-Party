@@ -340,7 +340,9 @@ static int screenshots(void)
     ui_help_enter(2);          render(); shot("22_instrukcja_3", FALSE);
     g_tour.num_humans = 2;
     tournament_default_names();       /* GRACZ 2 zamiast CPU 2 */
+    g_defects_enabled = TRUE;            /* w ustawieniach domyslnie TAK */
     g_tour.state = GS_SETUP;   render(); shot("02_setup", FALSE);
+    g_defects_enabled = FALSE;
     g_tour.num_humans = 0;
 
     for (i = 0; i < 3; i++) run_heat((UBYTE)i);
@@ -476,12 +478,25 @@ static int screenshots(void)
     while (g_tour.heat.phase != HEAT_RED_LIGHT) step();
     bike_sprites(); render(); hud_update(); shot("16_awaria", TRUE);
 
+    /* defekt: zawodnik z pola C krztusi sie i dymi, potem staje; wynik z "D" */
+    begin(1);
+    g_tour.state = GS_HEAT;
+    while (g_tour.heat.phase != HEAT_RACING) step();
+    for (i = 0; i < 300; i++) step();
+    g_tour.bikes[2].defect_frame = (UWORD)(g_tour.heat.race_frames + 1);
+    for (i = 0; i < 40; i++) step();
+    bike_sprites(); render(); hud_update(); shot("27_defekt", TRUE);
+    while (g_tour.heat.phase != HEAT_FINISHED) step();
+    tournament_award_points();
+    g_tour.state = GS_HEAT_RESULT; render(); hud_update(); shot("28_defekt_wynik", FALSE);
+
     printf("zrzuty: tools/shots/out/\n");
     return 0;
 }
 
 int main(int argc, char **argv)
 {
+    g_defects_enabled = FALSE;           /* zrzuty i trailer powtarzalne - bez losowych defektow */
     if (argc > 1 && !strcmp(argv[1], "trailer")) return trailer();
     if (argc > 1 && !strcmp(argv[1], "endcard")) return endcard();
     return screenshots();
