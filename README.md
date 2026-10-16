@@ -141,7 +141,7 @@ Tor **wyjeżdża się z biegu na bieg**. Każdy przejazd rozpędzonego motocykla
 
 Każdy turniej to **inny tor**: na start zawodów losują się 1–2 wyjeżdżone ścieżki w innym miejscu przekroju (przy krawężniku, środkiem albo szeroko). Ubita ścieżka trzyma lepiej i widać ją jako ciemniejszy pas, więc warto ją szybko znaleźć: to ona jest idealną linią danego turnieju. Na jej środku uślizg kosztuje do 40% mniej prędkości, a im dalej od niej, tym kara za złamanie motocykla stopniowo rośnie.
 
-Do wyboru są trzy tory z ciemnoszarą nawierzchnią z **bakałaru**: klasyczny **OWAL**, **SZEROKI** (więcej miejsca na mijanki) i **DŁUGI** (dłuższe proste, węższy) – każdy z własnymi rekordami. Linia startu jest na środku prostej. Na murawie stoją banery sponsorów: 3DPJOY i DEV84.
+Zawody odbywają się na klasycznym owalu z ciemnoszarą nawierzchnią z **bakałaru**, z linią startu na środku prostej. Na murawie stoją banery sponsorów: 3DPJOY i DEV84.
 
 ### 💧 Polewaczka, czyli tor zmienia się w trakcie zawodów
 Na start turnieju **stan toru jest losowany**: suchy, wilgotny albo mokry. Jeśli wolisz inny, zmienisz go w menu.
@@ -313,7 +313,7 @@ src/
   race.c        model jazdy: auto-gaz, uślizg, banda, kontakt, okrążenia
   ai.c          boty: Nowicjusz / Profesjonalista / Mistrz
   roost.c       szpryca i woda z polewaczki (cząsteczki Blittera)
-  track.c       geometria trzech torów, mapa przyczepności, wilgotność, wyjeżdżone ścieżki (przemalowanie w kolejce)
+  track.c       geometria owalu, mapa przyczepności, wilgotność, wyjeżdżone ścieżki (przemalowanie w kolejce)
   tractors.c    przerwa na tor (traktory na duszkach)
   tournament.c  tabela 15 biegów, punkty, biegi nominowane
   ui.c, text.c  ekrany tekstowe, font z polskimi literami
@@ -357,7 +357,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS): plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Menu i bieg chodzą w 50 FPS: według pomiaru w WinUAE w całym biegu (4 okrążenia) gubią się pojedyncze klatki (kilka w chwili odlotu taśmy i przy zmianie flagi). Pomiar daje wersja `make dist EXTRA=-DSHOW_LAG` (liczby w HUD).
 - **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
 - Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
-- Gra zajmuje ok. 1,1–1,3 MB Chip RAM (trzy tory po 65 KiB, motocykle, traktory, plansza tytułowa, dźwięk i muzyka w ADPCM: 104 KiB „Black Motor” albo 214 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Klatki motocykli to jeden komplet (51 KiB) – kolor kasku zawodnika gra nadaje przy kopiowaniu klatki. Na Amidze z Fast RAM muzyka i klatki motocykli lądują w Fast RAM.
+- Gra zajmuje ok. 0,95–1,15 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka w ADPCM: 104 KiB „Black Motor” albo 214 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Klatki motocykli to jeden komplet (51 KiB) – kolor kasku zawodnika gra nadaje przy kopiowaniu klatki. Na Amidze z Fast RAM muzyka i klatki motocykli lądują w Fast RAM.
 
 ### Znane ograniczenia
 - **Silniki słychać tylko dwa naraz:** Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty. Grają dwaj najwyżej sklasyfikowani zawodnicy, którzy jeszcze jadą; ci za metą dopiero wtedy, gdy na torze zostało mniej niż dwóch.
@@ -369,6 +369,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - Tylko **PAL** (50 Hz).
 
 ### Do zrobienia
+- więcej torów i stadionów
 - test na prawdziwym A1200 i z oryginalnym Kickstartem 3.1
 - ostatnie zgubione klatki w chwili startu spod taśmy
 - sprawdzenie zapisu rekordów toru (`halloffame.dat`) na prawdziwej Amidze

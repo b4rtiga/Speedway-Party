@@ -331,9 +331,9 @@ static COLD void draw_records(UBYTE *b)
     const HofTrack *h = &g_hof[rec_track];
     char s[32], *p;
     text_draw_big_center(b, 8, T("REKORDY", "RECORDS"), U_RAINBOW, U_SHADOW);
-    p = text_cat(s, "< ");
+    p = text_cat(s, NUM_TRACKS > 1 ? "< " : T("TOR: ", "TRACK: "));
     p = text_cat(p, track_name(rec_track));
-    text_cat(p, " >");
+    if (NUM_TRACKS > 1) text_cat(p, " >");
     text_draw_center(b, 34, s, U_WHITE, U_SHADOW);
     draw_hof_list(b, 54, T("NAJLEPSZE BIEGI", "BEST HEATS"), h->heat);
     draw_hof_list(b, 140, T("NAJLEPSZE OKRĄŻENIA", "BEST LAPS"), h->lap);
@@ -867,11 +867,12 @@ COLD UBYTE ui_setup_update(void)
 #define OPT_DEFECTS 5
 #define OPT_MUSIC   6
 #define OPT_BACK    7
+#define OPT_FIRST   (NUM_TRACKS > 1 ? OPT_ARENA : OPT_COND)   /* jeden tor - bez wiersza TOR */
 static UBYTE opt_row;
 
-void ui_options_enter(void) { opt_row = OPT_ARENA; }
+void ui_options_enter(void) { opt_row = OPT_FIRST; }
 
-static WORD opt_row_y(UBYTE row) { return (WORD)(40 + row * 17); }
+static WORD opt_row_y(UBYTE row) { return (WORD)(40 + (row - OPT_FIRST) * 17); }
 
 static const char *opt_value(UBYTE i)
 {
@@ -893,7 +894,7 @@ static COLD void draw_options(UBYTE *b)
                                                  T("DESZCZ:", "RAIN:"), T("ZAWODY:", "EVENT:"), T("DEFEKTY:", "DEFECTS:"),
                                                  T("MUZYKA:", "MUSIC:") };
     static const char *const about[OPT_ROWS] = {
-        T("OWAL, SZEROKI (64 PX) ALBO DŁUGI", "OVAL, WIDE (64 PX) OR LONG"),
+        T("TOR ZAWODÓW", "THE TRACK FOR THE MEETING"),
         T("STAN NAWIERZCHNI NA START TURNIEJU", "TRACK CONDITION AT THE START"),
         T("NOC: TOR W ŚWIETLE REFLEKTORÓW", "NIGHT: TRACK UNDER FLOODLIGHTS"),
         T("W TRAKCIE TURNIEJU ZACZNIE PADAĆ", "IT WILL START RAINING MID-EVENT"),
@@ -905,7 +906,7 @@ static COLD void draw_options(UBYTE *b)
     UBYTE i;
     text_draw_big_center(b, 8, T("USTAWIENIA", "SETTINGS"), U_RAINBOW, U_SHADOW);
     blit_fill(b, 16, opt_row_y(opt_row) - 4, 288, 16, U_CURSOR);
-    for (i = 0; i < OPT_BACK; i++) {
+    for (i = OPT_FIRST; i < OPT_BACK; i++) {
         text_draw(b, 40, opt_row_y(i), label[i], U_WHITE, U_SHADOW);
         p = text_cat(s, "< ");
         p = text_cat(p, opt_value(i));
@@ -913,7 +914,7 @@ static COLD void draw_options(UBYTE *b)
         text_draw(b, 168, opt_row_y(i), s, U_GOLD, U_SHADOW);
     }
     text_draw_center(b, opt_row_y(OPT_BACK), T("POWRÓT", "BACK"), opt_row == OPT_BACK ? U_RAINBOW : U_WHITE, U_SHADOW);
-    text_draw_center(b, 188, opt_row == OPT_TEAM && g_tour.series ? T("3 RUNDY NA 3 TORACH, PUNKTY SIĘ SUMUJĄ", "3 ROUNDS ON 3 TRACKS, POINTS ADD UP")
+    text_draw_center(b, 188, opt_row == OPT_TEAM && g_tour.series ? T("3 RUNDY, PUNKTY SIĘ SUMUJĄ", "3 ROUNDS, POINTS ADD UP")
                                                                    : about[opt_row], U_GREY, 0);
     text_draw_small_center(b, 216, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY);
     text_draw_small_center(b, 227, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY);
@@ -926,8 +927,8 @@ COLD BOOL ui_options_update(void)
     BOOL changed = FALSE;
     BYTE d = 0;
     while (key_get() != 0xFF) ;
-    if (m & BTN_UP)   { opt_row = (UBYTE)((opt_row + OPT_ROWS - 1) % OPT_ROWS); changed = TRUE; }
-    if (m & BTN_DOWN) { opt_row = (UBYTE)((opt_row + 1) % OPT_ROWS); changed = TRUE; }
+    if (m & BTN_UP)   { opt_row = (UBYTE)(opt_row == OPT_FIRST ? OPT_BACK : opt_row - 1); changed = TRUE; }
+    if (m & BTN_DOWN) { opt_row = (UBYTE)(opt_row == OPT_BACK ? OPT_FIRST : opt_row + 1); changed = TRUE; }
     if (m & BTN_RIGHT) d = 1;
     if (m & BTN_LEFT) d = -1;
     if (m & BTN_FIRE) {
@@ -1698,14 +1699,15 @@ static COLD void draw_series(UBYTE *b)
         text_draw(b, (WORD)(276 + (series_total(r) < 10 ? 8 : 0) - (series_total(r) >= 100 ? 8 : 0)), y, s,
                   lead ? U_GOLD : U_WHITE, U_SHADOW);
     }
-    /* tory rund malym fontem */
-    p = s;
-    for (k = 0; k < SERIES_ROUNDS; k++) {
-        if (k) p = text_cat(p, "  ");
-        *p++ = 'R'; *p++ = (char)('1' + k); *p++ = ':'; *p++ = ' ';
-        p = text_cat(p, track_name((UBYTE)((g_tour.track_pick + k) % NUM_TRACKS)));
+    if (NUM_TRACKS > 1) {                                         /* tory rund malym fontem */
+        p = s;
+        for (k = 0; k < SERIES_ROUNDS; k++) {
+            if (k) p = text_cat(p, "  ");
+            *p++ = 'R'; *p++ = (char)('1' + k); *p++ = ':'; *p++ = ' ';
+            p = text_cat(p, track_name((UBYTE)((g_tour.track_pick + k) % NUM_TRACKS)));
+        }
+        text_draw_small_center(b, 158, s, U_GREY);
     }
-    text_draw_small_center(b, 158, s, U_GREY);
 
     if (series_final()) {
         text_draw_center(b, 172, T("MISTRZ", "CHAMPION"), U_WHITE, U_SHADOW);
@@ -1713,7 +1715,8 @@ static COLD void draw_series(UBYTE *b)
         text_draw_big_center(b, 186, s, U_GOLD, U_SHADOW);
     } else {
         p = text_cat(s, T("NASTĘPNA RUNDA: ", "NEXT ROUND: "));
-        text_cat(p, track_name((UBYTE)((g_tour.track_pick + g_tour.series_round + 1) % NUM_TRACKS)));
+        if (NUM_TRACKS > 1) text_cat(p, track_name((UBYTE)((g_tour.track_pick + g_tour.series_round + 1) % NUM_TRACKS)));
+        else { p = text_uint(p, (ULONG)(g_tour.series_round + 2), 1); p = text_cat(p, "/"); text_uint(p, SERIES_ROUNDS, 1); }
         text_draw_center(b, 186, s, U_WHITE, U_SHADOW);
     }
 }

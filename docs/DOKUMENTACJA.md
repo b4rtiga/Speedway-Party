@@ -60,7 +60,7 @@ Przy starcie z dyskietki wczytywanie trwa kilkadziesiąt sekund, więc gra najpi
 - **TURNIEJ** – zawodnicy i ustawienia turnieju,
 - **TRENING** – gracz 1 sam na torze (stan toru i pora z ustawień turnieju): start spod taśmy i okrążenia bez limitu; na murawie czas ostatniego i najlepszego okrążenia oraz rekord toru. Taśma czy upadek zaczynają tylko od nowa spod taśmy, defektów nie ma. Koniec: ESC i potwierdzenie,
 - **INSTRUKCJA** – trzy strony: zasady turnieju i flagi, start i sterowanie, linia jazdy ze schematem toru (LEWO/PRAWO zmienia stronę),
-- **REKORDY** – tabele rekordów torów (LEWO/PRAWO zmienia tor),
+- **REKORDY** – tabele rekordów toru,
 - **CREDITS** – plansza twórców.
 
 Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
@@ -71,7 +71,7 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ### Turniej: zawodnicy i ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: tor (OWAL, SZEROKI albo DŁUGI – rozdział 6), stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), deszcz (rozdział 6), zawody indywidualne, drużynowe albo mistrzostwa (rozdział 4), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Zawodnicy i ustawienia zapisują się przy wyjściu z gry do pliku `settings.dat` obok gry (tylko gdy coś się zmieniło), więc po ponownym uruchomieniu są takie jak ostatnio. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), deszcz (rozdział 6), zawody indywidualne, drużynowe albo mistrzostwa (rozdział 4), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Zawodnicy i ustawienia zapisują się przy wyjściu z gry do pliku `settings.dat` obok gry (tylko gdy coś się zmieniło), więc po ponownym uruchomieniu są takie jak ostatnio. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
 ![Turniej: zawodnicy](../art/screen_02_setup.png)
 
@@ -111,7 +111,7 @@ Po biegu – wyniki z punktami i czasem. Gdy drugi zawodnik minie metę najwyże
 
 ### Rekordy toru
 
-Każdy tor ma osobne dwie tabele: **5 najlepszych biegów** (czas całych 4 okrążeń) i **5 najlepszych okrążeń**. Po każdym biegu wpada do nich każdy gracz, który dojechał do mety i ma wystarczająco dobry czas. Boty nie wchodzą do tabel, więc pokaz z samymi botami (0 graczy) niczego nie zapisuje. Przy równym czasie wyżej zostaje ten, kto wpisał się wcześniej.
+Tor ma dwie tabele: **5 najlepszych biegów** (czas całych 4 okrążeń) i **5 najlepszych okrążeń**. Po każdym biegu wpada do nich każdy gracz, który dojechał do mety i ma wystarczająco dobry czas. Boty nie wchodzą do tabel, więc pokaz z samymi botami (0 graczy) niczego nie zapisuje. Przy równym czasie wyżej zostaje ten, kto wpisał się wcześniej.
 
 Gracz, który w turnieju wjechał do piątki, po zawodach (po gazecie) wpisuje – raz, do wszystkich swoich miejsc; między biegami gra nie przerywa – **imię – do 7 znaków** (domyślnie pierwsze słowo nazwiska): GÓRA/DÓŁ zmienia znak (spacja, A–Z, polskie litery, 0–9, `-`), LEWO/PRAWO pozycję, można też pisać z klawiatury (Alt + litera = polska litera, Backspace cofa). FIRE albo Return zapisuje, ESC zostawia to, co jest na ekranie. Gdy do piątki wjechało kilku graczy, wpisują po kolei. Jeśli turniej zostanie przerwany (ESC), miejsca jego graczy dostają imiona z nazwisk.
 
@@ -129,7 +129,7 @@ Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zosta
 - **Bieg dodatkowy:** remis punktowy o miejsce na podium rozstrzyga dodatkowy bieg zawodników z remisu, z losowanymi polami. Remis poza podium rozstrzygają zwycięstwa biegów.
 - **Defekty** (w ustawieniach turnieju, domyślnie włączone): przed każdym biegiem punktowanym każdy zawodnik ma 2% szansy na awarię motocykla, najwyżej jedną w turnieju – średnio wypada około jednego defektu na turniej. W losowej chwili biegu silnik zaczyna się krztusić i dymić, po 1,5 s gaśnie, a zawodnik zjeżdża na murawę i stoi tam do końca biegu. Zawodnik dostaje 0 punktów, a w tabeli „D”. Kto zdąży dojechać do mety, zanim silnik zgaśnie, kończy bieg normalnie. W biegu dodatkowym defektów nie ma.
 - **Mecz drużynowy** (ZAWODY: DRUŻYNOWE w ustawieniach turnieju): gospodarze – zawodnicy 1 i 2 w kaskach czerwonym i niebieskim – przeciw gościom – zawodnikom 3 i 4 w kaskach białym i żółtym, jak w lidze. Ten sam program 15 biegów; bieg kończy się wynikiem 5:1, 4:2 albo 3:3, a wynik meczu to suma punktów drużyny – widać go w programie zawodów, po każdym biegu, na ekranie końcowym i w gazecie. W meczu nie ma biegów dodatkowych; możliwy jest remis.
-- **Mistrzostwa** (ZAWODY: MISTRZOSTWA): trzy turnieje (rundy) z tymi samymi zawodnikami, każdy na innym torze – pierwsza runda na torze wybranym w ustawieniach, kolejne na następnych (np. OWAL, SZEROKI, DŁUGI). Po każdej rundzie (po gazecie i wpisach do rekordów) ekran klasyfikacji generalnej: punkty z każdej rundy i suma – jak w Grand Prix liczą się wszystkie punkty biegowe. Przy równej sumie wyżej jest ten, kto wygrał więcej rund, potem ten, kto zajął wyższe miejsce w ostatniej rundzie. Po trzeciej rundzie – mistrz i fajerwerki. ESC i potwierdzenie w trakcie przerywa całe mistrzostwa.
+- **Mistrzostwa** (ZAWODY: MISTRZOSTWA): trzy turnieje (rundy) z tymi samymi zawodnikami. Po każdej rundzie (po gazecie i wpisach do rekordów) ekran klasyfikacji generalnej: punkty z każdej rundy i suma – jak w Grand Prix liczą się wszystkie punkty biegowe. Przy równej sumie wyżej jest ten, kto wygrał więcej rund, potem ten, kto zajął wyższe miejsce w ostatniej rundzie. Po trzeciej rundzie – mistrz i fajerwerki. ESC i potwierdzenie w trakcie przerywa całe mistrzostwa.
 - **Upadki:** uderzenie w bandę z dużą prędkością albo mocne najechanie z tyłu na rywala kończy się czasem upadkiem. Motocykl przewraca się i sunie po torze, sędzia daje czerwoną flagę, a bieg jest powtarzany spod taśmy bez upadłego – ten zostaje wykluczony („W”). Upadek na ostatnim okrążeniu prowadzącego nie przerywa już biegu – upadły po prostu go nie kończy.
 - **Kolor kasku** jest stały dla zawodnika przez cały turniej (czerwony, niebieski, biały, żółty). Pole startowe zmienia się co bieg.
 - **Boty:** Nowicjusz (spóźnia się pod taśmą, łamie za mocno, trzyma się krawężnika), Profesjonalista (refleks, „zamyka płot” przy próbie wyprzedzania od wewnątrz), Mistrz (czyta przyczepność toru, dawkuje uślizg, potrafi odjechać szeroko).
@@ -172,14 +172,6 @@ Na start każdego turnieju tor dostaje 1–2 wyjeżdżone, ubite ścieżki w los
 - **uślizg kosztuje mniej prędkości** – do 40% mniej na środku ścieżki; im dalej od niej, tym kara stopniowo rośnie.
 
 Tor wyjeżdża się też z biegu na bieg: linia, którą jeździ cała stawka, ciemnieje i trzyma coraz lepiej, a grudki szprycy obok ją spulchniają. Równarka w przerwie zaciera ścieżki.
-
-### Trzy tory
-
-W ustawieniach turnieju wybierasz tor: **OWAL** – klasyczny, 56 px szerokości; **SZEROKI** – te same proste i łuki, ale 64 px szerokości, więcej miejsca na mijanki po zewnętrznej; **DŁUGI** – proste dłuższe o 10%, węższy (52 px), więc wyprzedza się głównie na wyjściu z łuku. Charakter nawierzchni (gdzie trzyma, gdzie zakopuje) i tak jest losowany na każde zawody. Każdy tor ma własne rekordy i własną wersję nocną. Pola startowe mają na każdym torze trochę inne szanse – to charakter toru.
-
-![Tor SZEROKI](../art/screen_36_szeroki.png)
-
-![Tor DŁUGI](../art/screen_37_dlugi.png)
 
 ### Odsypisko i „szeroka niesie”
 
@@ -303,7 +295,7 @@ Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; 
 | `race.c` | model jazdy: gaz, uślizg, banda, kontakt, okrążenia |
 | `ai.c` | boty |
 | `roost.c` | szpryca i woda z polewaczki |
-| `track.c` | geometria trzech torów, przyczepność, wilgotność, wyjeżdżone ścieżki |
+| `track.c` | geometria owalu, przyczepność, wilgotność, wyjeżdżone ścieżki |
 | `tractors.c` | przerwa na tor |
 | `tournament.c` | program 15 biegów, punkty, biegi nominowane i dodatkowe, fakty do gazety |
 | `newspaper.c` | gazeta po zawodach: podsumowanie i wybór nagłówka |
@@ -315,7 +307,7 @@ Cztery kanały: dwa silniki (dwaj najwyżej sklasyfikowani spośród jadących; 
 
 ### Dane (katalog data/)
 
-Wszystkie pliki generują narzędzia z `tools/` i są w repozytorium: tory (`track0.bpl`, `track0.pal` – OWAL, `track1.*` – SZEROKI, `track2.*` – DŁUGI), plansza tytułowa (`title.bpl`, `title.pal`), motocykle (`bikes.spr`: jeden komplet klatek, kolor kasku nadaje gra), traktory (`tractors.spr`), HUD (`hud.pal`, `referee.bin`, `refarm.bin`), podprowadzające (`girls.bin`), dźwięki (`engine.raw`, `crowd.raw`, `buzzer.raw`, `whistle.raw`, `cheer.raw`) i muzyka (`music.raw`, kopiowana przy budowaniu).
+Wszystkie pliki generują narzędzia z `tools/` i są w repozytorium: tor (`track0.bpl`, `track0.pal`), plansza tytułowa (`title.bpl`, `title.pal`), motocykle (`bikes.spr`: jeden komplet klatek, kolor kasku nadaje gra), traktory (`tractors.spr`), HUD (`hud.pal`, `referee.bin`, `refarm.bin`), podprowadzające (`girls.bin`), dźwięki (`engine.raw`, `crowd.raw`, `buzzer.raw`, `whistle.raw`, `cheer.raw`) i muzyka (`music.raw`, kopiowana przy budowaniu).
 
 ## 9. Uruchomienie w WinUAE
 
@@ -348,7 +340,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 |---|---|
 | `make assets` | regeneruje grafikę, dźwięk i font (`genart`, `gentitle`, `gengirls`, `genaudio`, `genfont`) |
 | `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png` |
-| `python tools/gennight.py` | zawody w nocy: paleta nocna i mapa światła reflektorów (`data/trackNn.pal`, `data/trackNn.map` dla każdego toru); gra przelicza dzienny tor na nocny przy starcie turnieju |
+| `python tools/gennight.py` | zawody w nocy: paleta nocna i mapa światła reflektorów (`data/track0n.pal`, `data/track0n.map`); gra przelicza dzienny tor na nocny przy starcie turnieju |
 | `python tools/genreferee.py` | portret sędziego i malowana ręka z ilustracji `src/referee.png` |
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png` |
 | `python tools/import_engine.py plik.wav` | pętla silnika z nagrania (obecnie `src/speedway_500cc_10000rpm_loop.wav`) |
@@ -388,13 +380,13 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 
 - Gra działa w WinUAE w 50 FPS; w całym biegu gubią się pojedyncze klatki (kilka przy odlocie taśmy i zmianie flagi).
 - **Nie była jeszcze testowana na prawdziwym A1200** ani z oryginalnym Kickstartem 3.1.
-- Zajmuje ok. 1,1–1,3 MB Chip RAM, więc potrzebuje 2 MB Chip.
+- Zajmuje ok. 0,95–1,15 MB Chip RAM, więc potrzebuje 2 MB Chip.
 - Słychać tylko dwa silniki naraz (Paula ma 4 kanały): dwóch najwyżej sklasyfikowanych, którzy jeszcze jadą.
 - Dźwięk silnika pochodzi z nagrania wygenerowanego przez AI (500 cm³, 10 000 obr/min), zapętlonego narzędziem `tools/import_engine.py`.
 - Adapter 4 graczy na porcie równoległym nie był testowany.
 - Tylko PAL.
 
-**Do zrobienia:** test na prawdziwym A1200.
+**Do zrobienia:** więcej torów, test na prawdziwym A1200.
 
 ## 13. Jak aktualizować tę dokumentację
 

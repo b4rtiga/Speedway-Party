@@ -23,8 +23,6 @@ typedef struct {
 
 static const TrackDef track_defs[NUM_TRACKS] = {
     { T("OWAL", "OVAL"),    60, 40, 96,   0, 33 },     /* klasyczny owal z bakalaru */
-    { T("SZEROKI", "WIDE"), 60, 32, 96,   0, 33 },     /* szerszy (64 px): wiecej miejsca na mijanki */
-    { T("DŁUGI", "LONG"),   66, 38, 90,   0, 33 },     /* dluzsze proste (+10%), wezszy (52 px); ciasniejsze luki dawaly upadki */
 };
 static const TrackDef *def = &track_defs[0];
 

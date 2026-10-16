@@ -156,7 +156,7 @@ typedef struct Particle {
 /* ------------------------------ TOR -------------------------------- */
 typedef enum { GRIP_INNER = 0, GRIP_MIDDLE, GRIP_OUTER, GRIP_DEEP_OUTER, GRIP_WALL } GripZone;
 
-#define NUM_TRACKS     3                  /* owal, szeroki, dlugi (track.c: track_defs, genart.py: PRESETS) */
+#define NUM_TRACKS     1                  /* owal z bakalaru (track.c: track_defs, genart.py: PRESETS); kod gotowy na wiecej */
 #define GRIP_CELL      8                  /* komorka mapy przyczepnosci 8x8 px */
 #define GRIP_W         (320 / GRIP_CELL)
 #define GRIP_H         (208 / GRIP_CELL)

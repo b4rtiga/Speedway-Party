@@ -94,7 +94,7 @@ int main(void)
     g_tour.track_choice = 2;
     g_tour.night = 1;
     g_tour.series = 1;                                /* zawody: mistrzostwa */
-    g_tour.track_pick = 2;
+    g_tour.track_pick = NUM_TRACKS - 1;
     g_defects_enabled = FALSE;
     g_music_enabled = FALSE;
     strcpy(g_tour.riders[1].name, "ADA");
@@ -110,7 +110,7 @@ int main(void)
     settings_load();
     CHECK(g_tour.num_humans == 3 && g_tour.track_choice == 2 && g_tour.night == 1, "odczyt: gracze, stan toru, pora");
     CHECK(!g_defects_enabled && !g_music_enabled, "odczyt: defekty i muzyka");
-    CHECK(g_tour.series == 1 && !g_tour.team_mode && g_tour.track_pick == 2, "odczyt: mistrzostwa i tor");
+    CHECK(g_tour.series == 1 && !g_tour.team_mode && g_tour.track_pick == NUM_TRACKS - 1, "odczyt: mistrzostwa i tor");
     CHECK(!strcmp(g_tour.riders[0].name, "MAREK \x83OPATA") && !strcmp(g_tour.riders[1].name, "ADA"), "odczyt: nazwiska (z polska litera)");
     CHECK(g_tour.riders[1].input == INPUT_KEYS_ZX && g_tour.riders[3].ai_level == AI_MASTER, "odczyt: sterowanie i poziom bota");
 

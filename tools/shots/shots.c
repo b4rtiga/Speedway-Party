@@ -619,29 +619,6 @@ static int screenshots(void)
     track_set_night(FALSE);
     g_tour.night = 0;
 
-    /* tory SZEROKI i DLUGI: bieg w pelnym toku */
-    {
-        static const char *const nm[2] = { "36_szeroki", "37_dlugi" };
-        UBYTE t;
-        for (t = 1; t <= 2; t++) {
-            track_select(t);
-            track_set_wetness(0);
-            track_reset_wear();
-            track_random_surface();
-            track_tick_flush();
-            for (i = 0; i < 2; i++) {             /* oba bufory: cale tlo nowego toru */
-                g_tour.state = GS_TABLE; render();
-                g_video.front = g_video.back; g_video.back ^= 1;
-            }
-            begin(0);
-            g_tour.state = GS_HEAT;
-            while (g_tour.heat.phase != HEAT_RACING) step();
-            for (i = 0; i < 300; i++) step();
-            render(); bike_sprites(); render(); hud_update(); shot(nm[t - 1], TRUE);
-        }
-        track_select(0);
-    }
-
     /* mecz druzynowy: koniec meczu i gazeta (punkty z rozegranego turnieju) */
     g_tour.team_mode = 1;
     g_tour.state = GS_PODIUM; render(); shot("35_mecz", FALSE);
