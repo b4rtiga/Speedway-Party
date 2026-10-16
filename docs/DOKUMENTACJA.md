@@ -243,15 +243,16 @@ Gotowe dane (`data/`) są w repozytorium – do samego budowania gry Python nie 
 
 ```
 MUSIC = BlackMotor
+MUSIC_ADPCM = TAK
 ```
 
 | Wartość | Utwór |
 |---|---|
-| `BlackMotor` | „Black Motor”, 13,3 s, 208 KiB (domyślnie) |
-| `NightGrid` | „Night Grid”, 27,4 s, 428 KiB |
+| `BlackMotor` | „Black Motor”, 13,3 s, 104 KiB w ADPCM, 208 KiB w PCM (domyślnie) |
+| `NightGrid` | „Night Grid”, 27,4 s, 214 KiB w ADPCM, 428 KiB w PCM |
 | `BRAK` | bez muzyki, oszczędza Chip RAM |
 
-Utwory leżą w `src/music/<nazwa>/` jako miksy `*_s8.raw` (PCM 8 bit mono, ~16 kHz). Jednorazowo: `make dist MUSIC=NightGrid`.
+Utwory leżą w `src/music/<nazwa>/` jako miksy `*_s8.raw` (PCM 8 bit mono, ~16 kHz). Jednorazowo: `make dist MUSIC=NightGrid`. Przy `MUSIC_ADPCM = TAK` (domyślnie) `make` koduje utwór do 4-bitowego IMA ADPCM (`tools/adpcm.py`) – połowa pamięci, trochę więcej szumu; gra dekoduje go w trakcie grania, po kawałku na klatkę. `NIE` – oryginalny PCM. Odsłuch na PC: `python tools/adpcm.py --wav data/music.raw muzyka.wav`.
 
 ## 8. Architektura gry
 
@@ -355,6 +356,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` |
 | `sh tools/sim/news_test.sh` | testy gazety (reguły nagłówków, podsumowanie, długie nazwiska) |
 | `sh tools/sim/settings_test.sh` | test zapisu i odczytu ustawień (`settings.dat`) na „dysku w pamięci” |
+| `sh tools/sim/music_test.sh` | test muzyki w menu: dekoder ADPCM i strumień przez bufory DMA (emulacja Pauli) – każda zagrana próbka zgodna z `tools/adpcm.py` |
 | `sh tools/sim/records_test.sh` | testy tabel rekordów i pliku `halloffame.dat` |
 | `sh tools/sim/sprites_test.sh` | test klatek motocykli (kolor kasku nadany przy kopiowaniu = dawne 4 komplety) |
 | `sh tools/sim/start_test.sh [turnieje]` | uczciwość startu: 4 jednakowe boty, wyniki wg pola A–D (prędkość po 1 s, miejsce w 1. łuku i na mecie, zwycięstwa); `DIAG=1` – szpryca, krawężnik, linia jazdy |
@@ -386,7 +388,7 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 
 - Gra działa w WinUAE w 50 FPS; w całym biegu gubią się pojedyncze klatki (kilka przy odlocie taśmy i zmianie flagi).
 - **Nie była jeszcze testowana na prawdziwym A1200** ani z oryginalnym Kickstartem 3.1.
-- Zajmuje ok. 1,2–1,4 MB Chip RAM, więc potrzebuje 2 MB Chip.
+- Zajmuje ok. 1,1–1,3 MB Chip RAM, więc potrzebuje 2 MB Chip.
 - Słychać tylko dwa silniki naraz (Paula ma 4 kanały): dwóch najwyżej sklasyfikowanych, którzy jeszcze jadą.
 - Dźwięk silnika pochodzi z nagrania wygenerowanego przez AI (500 cm³, 10 000 obr/min), zapętlonego narzędziem `tools/import_engine.py`.
 - Adapter 4 graczy na porcie równoległym nie był testowany.

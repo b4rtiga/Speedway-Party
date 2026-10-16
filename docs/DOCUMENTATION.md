@@ -247,15 +247,16 @@ All texts shown by the game sit side by side in the code as `T("po polsku", "in 
 
 ```
 MUSIC = BlackMotor
+MUSIC_ADPCM = TAK
 ```
 
 | Value | Track |
 |---|---|
-| `BlackMotor` | “Black Motor”, 13.3 s, 208 KiB (default) |
-| `NightGrid` | “Night Grid”, 27.4 s, 428 KiB |
+| `BlackMotor` | “Black Motor”, 13.3 s, 104 KiB in ADPCM, 208 KiB in PCM (default) |
+| `NightGrid` | “Night Grid”, 27.4 s, 214 KiB in ADPCM, 428 KiB in PCM |
 | `BRAK` | no music, saves Chip RAM |
 
-The tracks are in `src/music/<name>/` as `*_s8.raw` mixes (8-bit mono PCM, ~16 kHz). One-off: `make dist MUSIC=NightGrid`.
+The tracks are in `src/music/<name>/` as `*_s8.raw` mixes (8-bit mono PCM, ~16 kHz). One-off: `make dist MUSIC=NightGrid`. With `MUSIC_ADPCM = TAK` (the default) `make` encodes the track to 4-bit IMA ADPCM (`tools/adpcm.py`) – half the memory, slightly more noise; the game decodes it while playing, a chunk per frame. `NIE` – the original PCM. To listen on a PC: `python tools/adpcm.py --wav data/music.raw music.wav`.
 
 ## 8. Game architecture
 
@@ -359,6 +360,7 @@ They need Python 3 with `numpy`, ffmpeg in PATH, and for the code check and the 
 | `sh tools/mktrailer.sh` | the trailer `art/trailer.mp4` |
 | `sh tools/sim/news_test.sh` | newspaper tests (headline rules, summary, long names) |
 | `sh tools/sim/settings_test.sh` | test of saving and loading the settings (`settings.dat`) on an “in-memory disk” |
+| `sh tools/sim/music_test.sh` | menu music test: the ADPCM decoder and streaming through the DMA buffers (emulated Paula) – every played sample matches `tools/adpcm.py` |
 | `sh tools/sim/records_test.sh` | tests of the record tables and the `halloffame.dat` file |
 | `sh tools/sim/sprites_test.sh` | bike frame test (helmet colour applied while copying = the old 4 sets) |
 | `sh tools/sim/start_test.sh [tournaments]` | start fairness: 4 identical bots, results by gate A–D (speed after 1 s, place in the 1st bend and at the finish, wins); `DIAG=1` – roost, kerb, racing line |
@@ -390,7 +392,7 @@ The track geometry lives in two places: `track_defs` in `src/track.c` and `PRESE
 
 - The game runs in WinUAE at 50 FPS; over a whole heat single frames are dropped (a few when the tape flies up and when the flag changes).
 - **It has not been tested on a real A1200 yet**, nor with an original Kickstart 3.1.
-- It uses about 1.2–1.4 MB of Chip RAM, so it needs 2 MB Chip.
+- It uses about 1.1–1.3 MB of Chip RAM, so it needs 2 MB Chip.
 - Only two engines can be heard at once (Paula has 4 channels): the two highest-placed riders still racing.
 - The engine sound comes from an AI-generated recording (500 cc, 10,000 rpm), looped with `tools/import_engine.py`.
 - The 4-player parallel port adapter has not been tested.

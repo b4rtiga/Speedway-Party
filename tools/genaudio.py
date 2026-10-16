@@ -4,7 +4,7 @@
                     gdy jest nagranie ENGINE_WAV, engine.raw robi z niego tools/import_engine.py
   data/crowd.raw    gwar kibicow, petla bez szwu, 11025 Hz
   data/buzzer.raw   start: brzeczyk + puszczenie tasmy (metaliczne "klak" i swist gumy), 0.7 s, 11025 Hz
-  data/whistle.raw  gwizdek sedziego z "groszkiem" 0.8 s, 22050 Hz
+  data/whistle.raw  gwizdek sedziego z "groszkiem" 0.8 s, 11025 Hz (polowa pamieci; ton 2850 Hz miesci sie)
   data/cheer.raw    okrzyk trybun, gdy prowadzacy wjezdza na ostatnia prosta, 2.6 s, 11025 Hz - syntetyczny;
                     gdy jest nagranie CHEER_WAV, cheer.raw powstaje z niego (mono, 11025 Hz, do 3 s)
 Podglady: art/*.wav (engine_sweep.wav symuluje Paule: obroty od wolnych do maksymalnych).
@@ -92,14 +92,15 @@ def buzzer(rate=11025, dur=0.7):
     return to_s8(x)
 
 
-def whistle(rate=22050, dur=0.8):
+def whistle(rate=11025, dur=0.8):
     t = np.arange(int(rate * dur)) / rate
     trill = 35 + 4 * np.sin(2 * np.pi * 1.3 * t)              # "groszek" w gwizdku
     phase_t = np.cumsum(trill) / rate
     f = 2850 + 70 * np.sin(2 * np.pi * phase_t)
     phase = np.cumsum(2 * np.pi * f / rate)
     am = 0.62 + 0.38 * np.sin(2 * np.pi * phase_t) ** 2
-    x = (np.sin(phase) + 0.18 * np.sin(2 * phase)) * am + rng.normal(0, 0.06, t.size)
+    harm = 0.18 if 2 * 2920 < rate / 2 else 0.0               # 2. harmoniczna tylko, gdy miesci sie pod Nyquistem
+    x = (np.sin(phase) + harm * np.sin(2 * phase)) * am + rng.normal(0, 0.06, t.size)
     env = np.minimum(1, t / 0.02) * np.minimum(1, (dur - t) / 0.08)
     return to_s8(x * env)
 
@@ -195,7 +196,7 @@ def main():
         "engine": (engine(), None),
         "crowd": (crowd(), 11025),
         "buzzer": (buzzer(), 11025),
-        "whistle": (whistle(), 22050),
+        "whistle": (whistle(), 11025),
         "cheer": (cheer_from_wav(CHEER_WAV) if CHEER_WAV.exists() else cheer(), 11025),
     }
     if CHEER_WAV.exists():

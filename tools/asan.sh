@@ -32,5 +32,13 @@ gcc $CF tools/sim/settings_test.c src/records.c src/hof.c -o "$B/settings_test" 
 if ! "$B/settings_test" >/dev/null 2>"$B/log"; then
     echo "BLAD: test ustawien"; grep -E "ERROR|runtime error|#[0-4] " "$B/log" | head -12; status=1
 fi
-[ $status = 0 ] && echo "OK: bez bledow pamieci (zrzuty PL/EN, trailer, symulator, ustawienia)"
+python3 tools/adpcm.py src/music/BlackMotor/black_motor_s8.raw "$B/music.adp" >/dev/null &&
+    python3 tools/adpcm.py --decode "$B/music.adp" "$B/music_ref.raw" || exit 1
+gcc $CF -DHOST_SIM tools/sim/music_test.c -o "$B/music_test" || exit 1
+for m in "$B/music.adp $B/music_ref.raw" "src/music/BlackMotor/black_motor_s8.raw src/music/BlackMotor/black_motor_s8.raw"; do
+    if ! "$B/music_test" $m >/dev/null 2>"$B/log"; then
+        echo "BLAD: test muzyki ($m)"; grep -E "ERROR|runtime error|#[0-4] " "$B/log" | head -12; status=1
+    fi
+done
+[ $status = 0 ] && echo "OK: bez bledow pamieci (zrzuty PL/EN, trailer, symulator, ustawienia, muzyka)"
 exit $status

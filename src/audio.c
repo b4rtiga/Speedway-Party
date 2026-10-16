@@ -11,19 +11,22 @@
  * Probki generuje tools/genaudio.py; bez plikow gra jest po prostu cicha.
  *
  * Muzyka (plansza tytulowa i ustawienia): gotowy miks PCM signed 8 bit mono, ~16 kHz
- * (PAL, okres 222), data/music.raw - utwor wybierany przed kompilacja w build.cfg. Zrodlo wczytywane przed przejeciem
+ * (PAL, okres 222), data/music.raw - utwor wybierany przed kompilacja w build.cfg, zwykle
+ * w 4-bitowym IMA ADPCM (naglowek "SPA4", tools/adpcm.py). Zrodlo wczytywane przed przejeciem
  * sprzetu do dowolnej pamieci (Fast RAM, jesli jest), a Paula gra z dwoch buforow po
  * 8 KiB w Chip RAM. Para kanalow silnikow (0 lewy + 1 prawy, te same dane, start jednym
  * zapisem do DMACON) = mono na srodku; w menu silniki milcza.
  * Kolejka: po zaladowaniu LC/LEN Paula ustawia AUD0 w INTREQ (przerwanie wylaczone -
- * tylko flaga). Wtedy drugi bufor juz nie gra: wypelniamy go kolejnym kawalkiem utworu
- * (kursor zawija do bajtu 0) i wpisujemy jego adres do LC. Bufor trwa ~0.5 s, a flage
- * sprawdzamy co klatke (20 ms). */
+ * tylko flaga). Wtedy drugi bufor (juz wypelniony) idzie do LC, a ten, ktory wlasnie
+ * odegral, wypelniamy kolejnym kawalkiem utworu po MUSIC_STEP bajtow na klatke (kursor
+ * zawija do poczatku) - dekodowanie ADPCM rozlozone na ~16 klatek zamiast jednego
+ * przestoju. Bufor trwa ~0.5 s (25 klatek), a flage sprawdzamy co klatke (20 ms). */
 #include <exec/memory.h>
 #include <proto/exec.h>
 
 #include "game.h"
 #include "hw.h"
+#include "system.h"
 
 #define R_ADKCON     0x09E
 #define AUD(ch, off) (0x0A0 + (ch) * 0x10 + (off))
@@ -41,12 +44,14 @@
 #define RPM_TO_PER   8867237UL            /* 3546895 * 120 / ENGINE_CYCLE: 4-suw, 1 cylinder */
 #define PER_CROWD    322                  /* 11025 Hz */
 #define PER_BUZZER   322
-#define PER_WHISTLE  161                  /* 22050 Hz */
+#define PER_WHISTLE  322                  /* 11025 Hz */
 #define PER_CHEER    322                  /* 11025 Hz */
 #define PER_MUSIC    222                  /* 3546895 / 222 = 15977 Hz (PAL) */
 #define MUSIC_VOL    48
 #define MUSIC_BUF    8192UL               /* bajtow na bufor DMA = 4096 slow w AUDxLEN */
 #define MUSIC_FADE   4                    /* wyciszanie: glosnosc w dol o 4 na klatke */
+#define MUSIC_STEP   512                  /* bajtow bufora wypelnianych na klatke (16 klatek na bufor) */
+#define ADPCM_HEAD   8                    /* "SPA4" + liczba probek */
 #define INTF_AUD0    0x0080
 #define INTF_AUD1    0x0100
 
@@ -62,8 +67,13 @@ static UBYTE *music_buf[2];               /* bufory DMA w Chip RAM */
 static BOOL   music_on;
 static UBYTE  music_vol;
 static UBYTE  music_queued;               /* bufor wpisany do LC (gra albo zaraz zagra) */
-static BOOL   music_dirty[2];             /* bufor odegrany - do ponownego wypelnienia */
-static ULONG  music_cursor;               /* nastepny bajt utworu */
+static UWORD  music_filled[2];            /* bajty bufora juz wypelnione (MUSIC_BUF = gotowy) */
+static ULONG  music_cursor;               /* nastepna probka utworu */
+static ULONG  music_samples;              /* probek w utworze */
+static BOOL   music_adpcm;                /* utwor w ADPCM (SPA4) */
+static LONG   adp_pred;                   /* stan dekodera ADPCM */
+static WORD   adp_idx;
+static ULONG  music_frame;                /* g_frame przy ostatnim wypelnianiu */
 BOOL g_music_enabled = TRUE;              /* opcja MUZYKA w ustawieniach */
 #ifdef SHOW_LAG
 ULONG g_music_fills, g_music_loops, g_chip_free;   /* diagnostyka na ekranie ustawien */
@@ -91,7 +101,13 @@ COLD BOOL audio_init(void)
     music.data = (BYTE *)asset_load_alloc("PROGDIR:data/music.raw", &music.len, MEMF_ANY);
     music_buf[0] = AllocMem(MUSIC_BUF * 2, MEMF_CHIP);
     music_buf[1] = music_buf[0] ? music_buf[0] + MUSIC_BUF : 0;
-    if (music.data && (music.len < 4 || (music.len & 1) || !music_buf[0])) {
+    if (music.data && music.len > ADPCM_HEAD && music.data[0] == 'S' && music.data[1] == 'P' && music.data[2] == 'A' && music.data[3] == '4') {
+        const UBYTE *h = (const UBYTE *)music.data + 4;
+        music_adpcm = TRUE;
+        music_samples = ((ULONG)h[0] << 24) | ((ULONG)h[1] << 16) | ((ULONG)h[2] << 8) | h[3];
+        if (music_samples & 1 || music_samples / 2 > music.len - ADPCM_HEAD) music_samples = 0;   /* uszkodzony */
+    } else music_samples = music.len;
+    if (music.data && (music_samples < 4 || (music_samples & 1) || !music_buf[0])) {
         FreeMem(music.data, music.len);
         music.data = 0;
     }
@@ -165,28 +181,87 @@ void sfx_whistle(void) { play_sfx(S_WHISTLE, PER_WHISTLE, 56); }
 
 /* ---------------------------- muzyka --------------------------------- */
 
-/* kolejne MUSIC_BUF bajtow utworu do bufora, przez koniec petli (dlugosci parzyste) */
-static void music_fill(UBYTE i)
+/* IMA ADPCM - te same tablice i arytmetyka co tools/adpcm.py */
+static const UWORD ima_step[89] = {
+    7, 8, 9, 10, 11, 12, 13, 14, 16, 17, 19, 21, 23, 25, 28, 31, 34, 37, 41, 45, 50, 55, 60, 66,
+    73, 80, 88, 97, 107, 118, 130, 143, 157, 173, 190, 209, 230, 253, 279, 307, 337, 371, 408,
+    449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552, 1707, 1878, 2066,
+    2272, 2499, 2749, 3024, 3327, 3660, 4026, 4428, 4871, 5358, 5894, 6484, 7132, 7845, 8630,
+    9493, 10442, 11487, 12635, 13899, 15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767 };
+static const BYTE ima_index[8] = { -1, -1, -1, -1, 2, 4, 6, 8 };
+
+#define ADPCM_NIBBLE(c) do {                                                    \
+        UWORD st_ = ima_step[idx];                                              \
+        LONG df_ = st_ >> 3;                                                    \
+        UBYTE c_ = (UBYTE)(c);                                                  \
+        if (c_ & 4) df_ += st_;                                                 \
+        if (c_ & 2) df_ += st_ >> 1;                                            \
+        if (c_ & 1) df_ += st_ >> 2;                                            \
+        if (c_ & 8) { pred -= df_; if (pred < -32768) pred = -32768; }          \
+        else        { pred += df_; if (pred > 32767) pred = 32767; }            \
+        idx = (WORD)(idx + ima_index[c_ & 7]);                                  \
+        if (idx < 0) idx = 0; else if (idx > 88) idx = 88;                      \
+    } while (0)
+
+/* n probek (parzyste) od music_cursor do d (slowami - Chip RAM); na koncu utworu dekoder
+ * wraca do stanu zerowego, jak koder na poczatku */
+static void adpcm_decode(UWORD *d, UWORD n)
 {
-    UWORD *d = (UWORD *)music_buf[i];
-    ULONG left = MUSIC_BUF;
-    while (left) {
-        ULONG n = music.len - music_cursor;
-        const UWORD *src = (const UWORD *)(music.data + music_cursor);
-        if (n > left) n = left;
-        left -= n;
-        music_cursor += n;
-        if (music_cursor >= music.len) {
+    const UBYTE *s = (const UBYTE *)music.data + ADPCM_HEAD + (music_cursor >> 1);
+    LONG pred = adp_pred;
+    WORD idx = adp_idx;
+    while (n) {
+        ULONG k = music_samples - music_cursor;
+        if (k > n) k = n;
+        n = (UWORD)(n - k);
+        music_cursor += k;
+        for (k >>= 1; k; k--) {
+            UBYTE b = *s++;
+            UWORD w;
+            ADPCM_NIBBLE(b >> 4);
+            w = (UWORD)(((UWORD)(pred >> 8) & 0xFF) << 8);
+            ADPCM_NIBBLE(b & 15);
+            *d++ = (UWORD)(w | ((pred >> 8) & 0xFF));
+        }
+        if (music_cursor >= music_samples) {
             music_cursor = 0;
+            s = (const UBYTE *)music.data + ADPCM_HEAD;
+            pred = 0;
+            idx = 0;
 #ifdef SHOW_LAG
             g_music_loops++;
 #endif
         }
-        for (n >>= 1; n; n--) *d++ = *src++;
     }
-    music_dirty[i] = FALSE;
+    adp_pred = pred;
+    adp_idx = idx;
+}
+
+/* do max kolejnych bajtow utworu do bufora i, przez koniec petli (dlugosci parzyste) */
+static void music_fill(UBYTE i, UWORD max)
+{
+    UWORD *d = (UWORD *)(music_buf[i] + music_filled[i]);
+    UWORD left = (UWORD)(MUSIC_BUF - music_filled[i]);
+    if (left > max) left = max;
+    music_filled[i] = (UWORD)(music_filled[i] + left);
+    if (music_adpcm) adpcm_decode(d, left);
+    else
+        while (left) {
+            ULONG n = music_samples - music_cursor;
+            const UWORD *src = (const UWORD *)(music.data + music_cursor);
+            if (n > left) n = left;
+            left = (UWORD)(left - n);
+            music_cursor += n;
+            if (music_cursor >= music_samples) {
+                music_cursor = 0;
 #ifdef SHOW_LAG
-    g_music_fills++;
+                g_music_loops++;
+#endif
+            }
+            for (n >>= 1; n; n--) *d++ = *src++;
+        }
+#ifdef SHOW_LAG
+    if (music_filled[i] == MUSIC_BUF) g_music_fills++;
 #endif
 }
 
@@ -204,8 +279,11 @@ static void music_start(void)
     wait_lines(3);
     REG16(R_INTREQ) = INTF_AUD0 | INTF_AUD1;
     music_cursor = 0;
-    music_fill(0);
-    music_fill(1);
+    adp_pred = 0;
+    adp_idx = 0;
+    music_filled[0] = music_filled[1] = 0;
+    music_fill(0, MUSIC_BUF);            /* drugi bufor dopelnia sie w trakcie (music_feed) */
+    music_frame = g_frame;
     music_queue(0);
     music_vol = MUSIC_VOL;
     REG16(AUD(CH_ENGINE0, A_PER)) = PER_MUSIC;
@@ -216,18 +294,26 @@ static void music_start(void)
     music_on = TRUE;
 }
 
-/* Paula zaladowala bufor z LC (flaga AUD0): drugi bufor skonczyl grac -> wypelnij go
- * i wpisz do LC; zagra bez przerwy po koncu biezacego. */
+/* Paula zaladowala bufor z LC (flaga AUD0): ten bufor wlasnie gra, a drugi juz odegral ->
+ * drugi idzie do LC (zagra po koncu biezacego) i od tej chwili dopelnia sie kolejnym
+ * kawalkiem utworu: MUSIC_STEP bajtow za kazda klatke od ostatniego razu (petla menu bywa
+ * dluzsza niz klatka), wiec jest gotowy po ~16 z 25 klatek grania biezacego. */
 static void music_feed(void)
 {
-    UBYTE cur, nxt;
-    if (!(REG16(R_INTREQR) & INTF_AUD0)) return;
-    REG16(R_INTREQ) = INTF_AUD0 | INTF_AUD1;
-    cur = music_queued;
-    nxt = (UBYTE)(cur ^ 1);
-    if (music_dirty[nxt]) music_fill(nxt);
-    music_queue(nxt);
-    music_dirty[cur] = TRUE;
+    UBYTE q;
+    ULONG f;
+    if (REG16(R_INTREQR) & INTF_AUD0) {
+        UBYTE cur = music_queued;                  /* zaladowany - gra */
+        REG16(R_INTREQ) = INTF_AUD0 | INTF_AUD1;
+        if (music_filled[cur] < MUSIC_BUF) music_fill(cur, MUSIC_BUF);   /* spoznienie: od razu */
+        music_filled[cur ^ 1] = 0;
+        music_queue((UBYTE)(cur ^ 1));
+    }
+    q = music_queued;
+    f = g_frame - music_frame;
+    music_frame = g_frame;
+    if (music_filled[q] < MUSIC_BUF)
+        music_fill(q, (UWORD)(f >= MUSIC_BUF / MUSIC_STEP ? MUSIC_BUF : f ? f * MUSIC_STEP : MUSIC_STEP));
 }
 
 static void music_stop(void)
