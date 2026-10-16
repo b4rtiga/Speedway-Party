@@ -67,7 +67,7 @@ FIRE or ESC takes you back from the manual, the records and the credits.
 
 ### Settings
 
-Number of players (0–4), each player's controls and name, bot skill, track condition (dry, damp, wet – random at first), music and breakdowns (chapter 4). The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed LET'S RACE! with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
+Number of players (0–4), each player's controls and name, bot skill, track condition (dry, damp, wet – random at first), music and defects (chapter 4). The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed LET'S RACE! with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
 
 ![Settings](../art/en/screen_02_setup.png)
 
@@ -91,7 +91,7 @@ After each heat – results with points and the time. After heats 4, 7, 11 and 1
 
 ![Heat result](../art/en/screen_07_result.png)
 
-![A breakdown: the engine coughs and smokes (yellow bike)](../art/en/screen_27_defekt.png)
+![A defect: the engine coughs and smokes (yellow bike)](../art/en/screen_27_defekt.png)
 
 ![The newspaper after the meeting](../art/en/screen_23_gazeta.png)
 
@@ -113,7 +113,7 @@ The tables are saved to `halloffame.dat` next to the game (the previous version 
 - **Everyone starts from every gate** – heats 1–13 are arranged that way.
 - **Nominated heats (14 and 15):** the leader of the table picks a gate first, then the others.
 - **Run-off:** a tie on points for a podium place is decided by an extra heat between the tied riders, with random gates. A tie outside the podium is decided by heat wins.
-- **Breakdowns** (an option in the settings, on by default): before every points heat each rider has a 2% chance of an engine failure, at most one per tournament – on average about one breakdown per tournament. At a random moment the engine starts to cough and smoke, dies after 1.5 s, and the bike rolls to a stop and leaves the track. The rider scores 0 points, shown as “R” (retired) in the table. A rider who reaches the line before the engine dies finishes normally. There are no breakdowns in a run-off.
+- **Defects** (an option in the settings, on by default): before every points heat each rider has a 2% chance of a defect – a machine failure – at most one per tournament; on average about one defect per tournament. At a random moment the engine starts to cough and smoke, dies after 1.5 s, and the bike rolls to a stop and leaves the track. The rider scores 0 points, shown as “D” in the table and “DEF” in the heat result. A rider who reaches the line before the engine dies finishes normally. There are no defects in a run-off.
 - **Helmet colour** stays with a rider for the whole tournament (red, blue, white, yellow). The starting gate changes every heat.
 - **Bots:** Rookie (late at the tape, slides too hard, hugs the kerb), Professional (quick reactions, “shuts the door” when you try to pass on the inside), Master (reads the track grip, doses the slide, can go wide).
 

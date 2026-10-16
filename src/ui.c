@@ -562,7 +562,7 @@ static const char *const news_body[5][2] = {
     { T("W KAŻDYM SWOIM STARCIE", "THE WINNER WON"),         T("ZWYCIĘZCA BYŁ PIERWSZY.", "EVERY SINGLE RACE.") },
     { T("TAK NIEWIELE DZIELIŁO PIERWSZE", "ONLY THE SMALLEST MARGIN"), T("I DRUGIE MIEJSCE.", "SEPARATED FIRST AND SECOND.") },
     { T("TURNIEJ ROZSTRZYGNIĘTY.", "THE TOURNAMENT IS DECIDED."),        T("OTO KOŃCOWA KLASYFIKACJA.", "HERE ARE THE FINAL STANDINGS.") } };
-static const char *const news_fact[5] = { T("FALSTARTY: ", "FALSE STARTS: "), T("WYKLUCZENIA: ", "EXCLUSIONS: "), T("ZWYCIĘSTWA LIDERA: ", "WINNER'S HEAT WINS: "), T("GRACZE PRZY STOLE: ", "HUMAN PLAYERS: "), T("DEFEKTY: ", "ENGINE FAILURES: ") };
+static const char *const news_fact[5] = { T("FALSTARTY: ", "FALSE STARTS: "), T("WYKLUCZENIA: ", "EXCLUSIONS: "), T("ZWYCIĘSTWA LIDERA: ", "WINNER'S HEAT WINS: "), T("GRACZE PRZY STOLE: ", "HUMAN PLAYERS: "), T("DEFEKTY: ", "DEFECTS: ") };
 
 /* liczba wyrownana do prawej krawedzi x1 */
 static COLD void text_uint_right(UBYTE *b, WORD x1, WORD y, ULONG v, UBYTE c)
@@ -679,7 +679,7 @@ static COLD void draw_setup(UBYTE *b)
     text_draw(b, 168, setup_row_y(ROW_COND), s, U_GOLD, U_SHADOW);
     text_draw(b, 40, setup_row_y(ROW_MUSIC), T("MUZYKA:", "MUSIC:"), U_WHITE, U_SHADOW);
     text_draw(b, 168, setup_row_y(ROW_MUSIC), g_music_enabled ? T("< TAK >", "< YES >") : T("< NIE >", "< NO >"), U_GOLD, U_SHADOW);
-    text_draw(b, 40, setup_row_y(ROW_DEFECTS), T("DEFEKTY:", "BREAKDOWNS:"), U_WHITE, U_SHADOW);
+    text_draw(b, 40, setup_row_y(ROW_DEFECTS), T("DEFEKTY:", "DEFECTS:"), U_WHITE, U_SHADOW);
     text_draw(b, 168, setup_row_y(ROW_DEFECTS), g_defects_enabled ? T("< TAK >", "< YES >") : T("< NIE >", "< NO >"), U_GOLD, U_SHADOW);
     text_draw_center(b, setup_row_y(ROW_START), T("START TURNIEJU", "START TOURNAMENT"), setup_row == ROW_START ? U_RAINBOW : U_WHITE, U_SHADOW);
 
@@ -926,7 +926,7 @@ static COLD void draw_standings(UBYTE *b, WORD y)
         for (h = 0; h < NUM_HEATS; h++) {
             UBYTE v = r->heat_points[h];
             if (v == HP_NONE) continue;
-            s[0] = v == HP_EXCLUDED ? T('W', 'X') : v == HP_DEFECT ? T('D', 'R') : (char)('0' + v); s[1] = 0;
+            s[0] = v == HP_EXCLUDED ? T('W', 'X') : v == HP_DEFECT ? 'D' : (char)('0' + v); s[1] = 0;
             text_draw(b, (WORD)(TB_GRID + h * TB_CELL + 3), yy, s,
                       v >= HP_DEFECT ? U_BORDER : v == 3 ? U_GOLD : U_WHITE, 0);
         }
@@ -1351,7 +1351,7 @@ static COLD void draw_result(UBYTE *b)
             text_draw(b, 104, y + 1, s, U_WHITE, U_SHADOW);
             if (g_tour.current_heat != RUNOFF_HEAT || !fin)     /* bieg dodatkowy: bez punktow */
                 text_draw(b, 200, y + 1, fin ? pts_txt[line] : bk->state == BIKE_EXCLUDED ? T("W", "EXC") :
-                                         bk->state == BIKE_DEFECT ? T("D", "RET") : T("NU", "DNF"),
+                                         bk->state == BIKE_DEFECT ? T("D", "DEF") : T("NU", "DNF"),
                           line == 0 && fin ? U_GOLD : U_WHITE, U_SHADOW);
         }
     }
