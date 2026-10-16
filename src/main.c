@@ -124,6 +124,7 @@ static void training_start(void)
 {
     static const UBYTE start_wet[3] = { 0, 130, 255 };
     Heat *h = &g_tour.heat;
+    audio_music_cut();                  /* liczenie toru trwa kilka klatek - muzyka by sie zacinala */
     player1_port(input_menu_fire_port());
     g_training = TRUE;
     tournament_reset();

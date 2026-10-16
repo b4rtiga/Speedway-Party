@@ -337,6 +337,13 @@ static BOOL music_wanted(void)
                                                     g_tour.state == GS_OPTIONS));
 }
 
+/* natychmiastowa cisza (zamiast wyciszania) - przed dluzszym liczeniem, ktore wstrzymuje
+ * dopelnianie buforow */
+void audio_music_cut(void)
+{
+    if (running && music_on) music_stop();
+}
+
 /* start przy wejsciu do menu (raz), przy wyjsciu krotkie wyciszenie i stop */
 static void update_music(void)
 {

@@ -189,7 +189,7 @@ W ustawieniach turnieju DESZCZ: TAK – w losowym biegu (od 3. do 9.) zaczyna pa
 
 ### Zawody w nocy
 
-W ustawieniach turnieju PORA: NOC. Tor oświetlają cztery maszty z reflektorami w rogach trybun: łuki są w ciepłym świetle, proste w półmroku. Noc nie zmienia jazdy – przyczepność, ścieżki, polewanie i defekty działają tak samo; ciemniej jest tylko na ekranie (szpryca i woda też są ciemniejsze w cieniu).
+W ustawieniach turnieju PORA: NOC. Tor oświetlają cztery maszty z reflektorami w rogach trybun: lampy świecą z miękką poświatą, łuki są w pełnym ciepłym świetle, a środki prostych trochę ciemniejsze. Noc nie zmienia jazdy – przyczepność, ścieżki, polewanie i defekty działają tak samo; ciemniej jest tylko na ekranie (szpryca i woda też są ciemniejsze w cieniu).
 
 ![Zawody w nocy](../art/screen_30_noc.png)
 

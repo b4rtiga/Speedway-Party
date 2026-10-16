@@ -16,7 +16,8 @@ z par (kolor, jasnosc) w 6 wymiarach: RGB sucho + RGB mokro (polewanie dziala te
 
 trackNn.pal: 256 RGB sucho + 256 RGB mokro (jak trackN.pal).
 trackNn.map: night_map 16 x 256 bajtow, potem siatka swiatla 27 x 41 bajtow (0..15), potem
-3 indeksy poswiaty masztow (srodek, pierscien, poswiata). Plamy swiatla na lukach wg geometrii toru
+4 latki masztow 19 x 19 bajtow: gotowe indeksy pikseli wokol lampy (kolor nocny + miekka
+poswiata dodana do tego, co pod nia - trybuny przeswituja jak na makiecie), 0 = bez zmian. Plamy swiatla na lukach wg geometrii toru
 (tools/genart.py: PRESETS). Podglad: build/preview/noc_<tor>.png.
 Wymaga numpy."""
 import sys
@@ -46,9 +47,11 @@ def pools_for(half_l, r_in, r_out):
     dx, up, down = half_l + r_mid * 48 / 68, r_mid * 52 / 68, r_mid * 62 / 68
     rx, ry = 52 * r_mid / 68, 40 * r_mid / 68
     return [(CX - dx, CY - up, rx, ry), (CX + dx, CY - up, rx, ry), (CX - dx, CY + down, rx, ry), (CX + dx, CY + down, rx, ry)]
-AMB = np.array([0.20, 0.23, 0.40])             # noc: ciemno i chlodno
-LIT = np.array([1.22, 1.12, 0.92])             # swiatlo reflektorow: cieple
-GLOW = [(255, 250, 225), (250, 222, 150), (120, 104, 80)]   # maszt: srodek, pierscien, poswiata
+AMB = np.array([0.30, 0.33, 0.50])             # noc: ciemno i chlodno (tor w polmroku, nie w czerni)
+LIT = np.array([1.25, 1.15, 0.95])             # swiatlo reflektorow: cieple
+POOL_SCALE = 1.25                              # plamy wieksze niz na makiecie: wiecej swiatla na prostych
+GLOW_R = 9                                     # latka masztu: 19 x 19 px
+GLOW_RGB = np.array([255, 245, 210])           # poswiata lampy (jak makieta noc_A)
 FIXED = [0, 1] + list(range(96, 128)) + list(range(240, 256))
 SLOTS = [i for i in range(256) if i not in FIXED]
 
@@ -56,6 +59,7 @@ SLOTS = [i for i in range(256) if i not in FIXED]
 def light(x, y, pools):
     v = 0.0
     for cx, cy, rx, ry in pools:
+        rx, ry = rx * POOL_SCALE, ry * POOL_SCALE
         d = ((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2
         v += np.exp(-(d ** 2) * 1.2)
     return np.clip(v, 0, 1)
@@ -125,42 +129,56 @@ def build(tn, name, half_l, r_in, r_out):
             weight[(c, l)] = weight.get((c, l), 0) + 4
     for c in [129, 19, 20, 21, 22, 24] + list(range(140, 172)):
         weight[(c, LEVELS - 1)] = weight.get((c, LEVELS - 1), 0) + 8
+    # latki masztow: kolor nocny piksela + poswiata lampy (exp(-r^2/30), jak makieta noc_A)
+    patch = []                                                # (maszt, dy, dx, wektor 6D)
+    for m, (mx, my) in enumerate(MASTS):
+        for dy in range(-GLOW_R, GLOW_R + 1):
+            for dx in range(-GLOW_R, GLOW_R + 1):
+                g = 0.9 * np.exp(-(dx * dx + dy * dy) / 30.0)
+                x, y = mx + dx, my + dy
+                if g < 0.05 or not (0 <= x < W and 0 <= y < H):
+                    continue
+                c, l = idx[y, x], lv[y, x]
+                v = np.concatenate([dry[c] * factor(l) + g * GLOW_RGB, wet[c] * factor(l) + g * GLOW_RGB])
+                patch.append((m, dy, dx, np.clip(v, 0, 255)))
+
     keys = list(weight)
     vec = np.array([np.concatenate([dry[c] * factor(l), wet[c] * factor(l)]) for c, l in keys])
     vec = np.clip(vec, 0, 255)
     w = np.array([weight[k] for k in keys], np.float64)
+    vec = np.concatenate([vec, np.array([p[3] for p in patch])])
+    w = np.concatenate([w, np.full(len(patch), 6.0)])
 
-    glow = np.array([list(g) + list(g) for g in GLOW], np.float64)
-    cent = kmeans(vec, w, len(SLOTS) - len(GLOW))
-    cent = np.concatenate([cent, glow])                       # poswiata masztow - na stale
+    cent = kmeans(vec, w, len(SLOTS))
 
     night = pal.copy()                                        # stale indeksy jak w palecie dziennej
     for s, cv in zip(SLOTS, cent):
         night[0, s] = cv[:3]
         night[1, s] = cv[3:]
-    glow_idx = SLOTS[len(cent) - len(GLOW):len(cent)]
 
     # night_map[lv][c]: najblizszy kolor palety nocnej dla kazdego koloru dziennego i jasnosci
     nm = np.zeros((LEVELS, 256), np.uint8)
-    cand = np.array([np.concatenate([night[0, s], night[1, s]]) for s in SLOTS[:len(cent) - len(GLOW)]])
+    cand = np.array([np.concatenate([night[0, s], night[1, s]]) for s in SLOTS[:len(cent)]])
     for l in range(LEVELS):
         t = np.clip(np.concatenate([dry * factor(l), wet * factor(l)], axis=1), 0, 255)
         d = ((t[:, None, :] - cand[None, :, :]) ** 2).sum(2)
         nm[l] = np.array(SLOTS)[d.argmin(1)]
+    pt = np.zeros((4, 2 * GLOW_R + 1, 2 * GLOW_R + 1), np.uint8)
+    for m, dy, dx, v in patch:
+        pt[m, dy + GLOW_R, dx + GLOW_R] = SLOTS[int(((cand - v) ** 2).sum(1).argmin())]
 
     (ROOT / f"data/track{tn}n.pal").write_bytes(bytes(np.clip(night, 0, 255).astype(np.uint8).ravel()))
     (ROOT / f"data/track{tn}n.map").write_bytes(bytes(nm.ravel()) + bytes(grid.astype(np.uint8).ravel())
-                                               + bytes(glow_idx))
+                                               + bytes(pt.ravel()))
 
-    # podglad: tak jak policzy gra (bez duszkow), z poswiata masztow
+    # podglad: tak jak policzy gra (bez duszkow), z latkami masztow
     out = nm[lv, idx]
-    for mx, my in MASTS:
-        for dy in range(-5, 6):
-            for dx in range(-5, 6):
-                r2 = dx * dx + dy * dy
-                g = 0 if r2 <= 2 else 1 if r2 <= 8 else 2 if r2 <= 22 else -1
-                if g >= 0 and 0 <= mx + dx < W and 0 <= my + dy < H:
-                    out[my + dy, mx + dx] = glow_idx[g]
+    for m, (mx, my) in enumerate(MASTS):
+        for dy in range(-GLOW_R, GLOW_R + 1):
+            for dx in range(-GLOW_R, GLOW_R + 1):
+                v = pt[m, dy + GLOW_R, dx + GLOW_R]
+                if v and 0 <= mx + dx < W and 0 <= my + dy < H:
+                    out[my + dy, mx + dx] = v
     (ROOT / "build/preview").mkdir(parents=True, exist_ok=True)
     write_png(ROOT / f"build/preview/noc_{name}.png", np.repeat(np.repeat(night[0][out], 3, 0), 3, 1))
     print(f"data/track{tn}n.pal, data/track{tn}n.map, build/preview/noc_{name}.png")

@@ -251,14 +251,15 @@ static UBYTE *pristine;                    /* oryginal tla wybranego toru (dowol
 #define NIGHT_LEVELS 16
 #define LIGHT_W      (GRIP_W + 1)
 #define LIGHT_H      (GRIP_H + 1)
+#define NIGHT_PATCH  19                     /* latka masztu 19 x 19 px (tools/gennight.py: GLOW_R) */
 typedef struct {                           /* uklad pliku trackNn.map */
     UBYTE map[NIGHT_LEVELS][256];
     UBYTE grid[LIGHT_H][LIGHT_W];
-    UBYTE glow[3];
+    UBYTE patch[4][NIGHT_PATCH][NIGHT_PATCH];  /* maszty: gotowe piksele z poswiata, 0 = bez zmian */
 } NightData;
 static NightData nights[NUM_TRACKS];
 static NightData *night = &nights[0];      /* noc wybranego toru (track_select) */
-#define NIGHT_FILE   (NIGHT_LEVELS * 256 + LIGHT_W * LIGHT_H + 3)
+#define NIGHT_FILE   (NIGHT_LEVELS * 256 + LIGHT_W * LIGHT_H + 4 * NIGHT_PATCH * NIGHT_PATCH)
 static RGB24  night_pal[NUM_TRACKS][2][256];
 static BOOL   night_ok[NUM_TRACKS], night_on;
 static const WORD mast_xy[4][2] = { { 28, 22 }, { 292, 22 }, { 28, 190 }, { 292, 190 } };
@@ -523,13 +524,13 @@ COLD void track_set_night(BOOL on)
             }
         if (on) {
             WORD m, dx, dy;
-            for (m = 0; m < 4; m++)                       /* maszty: srodek, pierscien, poswiata */
-                for (dy = -5; dy <= 5; dy++)
-                    for (dx = -5; dx <= 5; dx++) {
-                        WORD r2 = (WORD)(dx * dx + dy * dy);
-                        if (r2 <= 22)
-                            blit_plot(g_video.background, (WORD)(mast_xy[m][0] + dx), (WORD)(mast_xy[m][1] + dy),
-                                      night->glow[r2 <= 2 ? 0 : r2 <= 8 ? 1 : 2]);
+            for (m = 0; m < 4; m++)                       /* maszty: lampa z miekka poswiata */
+                for (dy = 0; dy < NIGHT_PATCH; dy++)
+                    for (dx = 0; dx < NIGHT_PATCH; dx++) {
+                        UBYTE v = night->patch[m][dy][dx];
+                        if (v)
+                            blit_plot(g_video.background, (WORD)(mast_xy[m][0] + dx - NIGHT_PATCH / 2),
+                                      (WORD)(mast_xy[m][1] + dy - NIGHT_PATCH / 2), v);
                     }
         }
         for (gy = 0; gy < GRIP_H; gy++)                    /* tlo jak przy ubiciu 0 */

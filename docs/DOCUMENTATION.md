@@ -189,7 +189,7 @@ In the tournament settings choose RAIN: YES – at a random heat (from the 3rd t
 
 ### Night meetings
 
-In the tournament settings choose TIME: NIGHT. Four floodlight masts in the corners of the stands light the track: the bends are in warm light, the straights in half-darkness. Night does not change the riding – grip, grooves, watering and defects work the same; it is only darker on the screen (roost and water are darker in the shadows too).
+In the tournament settings choose TIME: NIGHT. Four floodlight masts in the corners of the stands light the track: the lamps shine with a soft glow, the bends are in full warm light and the middle of the straights is a little darker. Night does not change the riding – grip, grooves, watering and defects work the same; it is only darker on the screen (roost and water are darker in the shadows too).
 
 ![A night meeting](../art/en/screen_30_noc.png)
 
