@@ -70,7 +70,7 @@ FIRE or ESC takes you back from the manual, the records and the credits.
 
 ### Tournament: riders and settings
 
-Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: the track (OVAL, WIDE or LONG – chapter 6), track condition at the start (dry, damp, wet or random – the default), time of day (day or night – chapter 6), rain (chapter 6), an individual or team event (chapter 4), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. Riders and settings are saved when you quit the game, to `settings.dat` next to the game (only if something changed), so after a restart they are as you left them. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
+Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: the track (OVAL, WIDE or LONG – chapter 6), track condition at the start (dry, damp, wet or random – the default), time of day (day or night – chapter 6), rain (chapter 6), an individual event, a team match or a championship (chapter 4), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. Riders and settings are saved when you quit the game, to `settings.dat` next to the game (only if something changed), so after a restart they are as you left them. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
 
 ![Tournament: riders](../art/en/screen_02_setup.png)
 
@@ -104,6 +104,8 @@ After each heat – results with points and the time. When the runner-up crosses
 
 ![A fall: the heat is stopped and the faller excluded](../art/en/screen_31_upadek.png)
 
+![Championship: final standings](../art/en/screen_38_mistrzostwa.png)
+
 ![The newspaper after the meeting](../art/en/screen_23_gazeta.png)
 
 ### Track records
@@ -126,6 +128,7 @@ The tables are saved to `halloffame.dat` next to the game (the previous version 
 - **Run-off:** a tie on points for a podium place is decided by an extra heat between the tied riders, with random gates. A tie outside the podium is decided by heat wins.
 - **Defects** (an option in the settings, on by default): before every points heat each rider has a 2% chance of a defect – a machine failure – at most one per tournament; on average about one defect per tournament. At a random moment the engine starts to cough and smoke, dies after 1.5 s, and the rider rolls onto the infield and stays there until the end of the heat. The rider scores 0 points, shown as “D” in the table and “DEF” in the heat result. A rider who reaches the line before the engine dies finishes normally. There are no defects in a run-off.
 - **Team match** (EVENT: TEAM in the tournament settings): the home team – riders 1 and 2 in red and blue helmets – against the away team – riders 3 and 4 in white and yellow, as in league speedway. The same 15-heat programme; a heat ends 5:1, 4:2 or 3:3, and the match score is the sum of the team's points – shown in the race programme, after every heat, on the final screen and in the newspaper. There are no run-offs in a match; a draw is possible.
+- **Championship** (EVENT: CHAMPIONSHIP): three tournaments (rounds) with the same riders, each on a different track – the first round on the track chosen in the settings, the next ones on the following tracks (e.g. OVAL, WIDE, LONG). After each round (after the newspaper and the record entries) the overall standings show the points from each round and the total – as in the Grand Prix, all heat points count. On an equal total the rider who won more rounds is higher, then the one placed higher in the last round. After round three – the champion and fireworks. ESC and confirming during the series abandons the whole championship.
 - **Falls:** hitting the fence at high speed or running hard into a rival from behind sometimes ends in a fall. The bike goes down and slides along the track, the referee shows the red flag and the heat is rerun from the tape without the faller, who is excluded (“X”). A fall during the leader's last lap no longer stops the heat – the faller simply does not finish.
 - **Helmet colour** stays with a rider for the whole tournament (red, blue, white, yellow). The starting gate changes every heat.
 - **Bots:** Rookie (late at the tape, slides too hard, hugs the kerb), Professional (quick reactions, “shuts the door” when you try to pass on the inside), Master (reads the track grip, doses the slide, can go wide).

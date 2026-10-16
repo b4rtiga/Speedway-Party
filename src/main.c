@@ -207,7 +207,11 @@ static void next_heat(void)
     if (g_tour.current_heat >= NUM_HEATS) {
         /* remis o podium -> bieg dodatkowy (moze byc kilka po kolei), potem podium */
         if (!g_tour.team_mode && tournament_prepare_runoff()) { g_tour.current_heat = RUNOFF_HEAT; enter(GS_TABLE); }
-        else { news_build(); enter(GS_PODIUM); }        /* turniej rozstrzygniety: migawka do gazety */
+        else {                                           /* turniej rozstrzygniety: migawka do gazety */
+            if (g_tour.series) series_add_round();
+            news_build();
+            enter(GS_PODIUM);
+        }
         return;
     }
     if (g_tour.current_heat >= FIXED_HEATS) {
@@ -215,6 +219,24 @@ static void next_heat(void)
         enter(GS_GATE_PICK);
         return;
     }
+    enter(GS_TABLE);
+}
+
+/* Nowy turniej (albo runda mistrzostw - na kolejnym torze): punkty od zera, tor, stan toru, deszcz */
+static void tournament_start(void)
+{
+    records_resolve_pending();           /* przerwany turniej: jego miejsca z imieniem z nazwiska */
+    tournament_reset();
+    g_tour.current_heat = 0;
+    track_select(SERIES_TRACK());        /* tor z ustawien (geometria, tlo, palety) */
+    g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice
+                                                                 : (UBYTE)rng_range(0, 2);
+    g_tour.rain_from = g_tour.rain_opt ? (UBYTE)rng_range(2, 8) : 0xFF;   /* deszcz od biegu 3..9 */
+    {
+        static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
+        track_set_wetness(start_wet[g_tour.start_condition]);
+    }
+    surface_pending = TRUE;              /* nowa nawierzchnia - na programie zawodow, po muzyce */
     enter(GS_TABLE);
 }
 
@@ -250,7 +272,8 @@ static void next_name_entry(void)
             enter(GS_NAME_ENTRY);
             return;
         }
-    enter(GS_SETUP);                             /* nastepny turniej */
+    if (g_tour.series) enter(GS_SERIES);         /* mistrzostwa: klasyfikacja po rundzie */
+    else enter(GS_SETUP);                        /* nastepny turniej */
 }
 
 static void name_entry_done(void)
@@ -400,19 +423,18 @@ static void update_state(void)
 #else
         if (setup_pick()) {
 #endif
-            records_resolve_pending();           /* przerwany turniej: jego miejsca z imieniem z nazwiska */
-            tournament_reset();
-            g_tour.current_heat = 0;
-            track_select(g_tour.track_pick);   /* tor z ustawien (geometria, tlo, palety) */
-            g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice
-                                                                         : (UBYTE)rng_range(0, 2);
-            g_tour.rain_from = g_tour.rain_opt ? (UBYTE)rng_range(2, 8) : 0xFF;   /* deszcz od biegu 3..9 */
-            {
-                static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
-                track_set_wetness(start_wet[g_tour.start_condition]);
-            }
-            surface_pending = TRUE;         /* nowa nawierzchnia - na programie zawodow, po muzyce */
-            enter(GS_TABLE);
+            series_reset();
+            tournament_start();
+        }
+        break;
+
+    case GS_SERIES:                      /* klasyfikacja mistrzostw: nastepna runda albo koniec */
+#ifdef AUTOPLAY
+        if (state_timer > 3 * FPS) { if (++g_tour.series_round < SERIES_ROUNDS) tournament_start(); else enter(GS_SETUP); break; }
+#endif
+        if (state_timer > FPS / 2 && ui_confirm()) {
+            if (++g_tour.series_round < SERIES_ROUNDS) tournament_start();
+            else enter(GS_SETUP);
         }
         break;
 

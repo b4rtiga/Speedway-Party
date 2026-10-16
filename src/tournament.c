@@ -102,6 +102,58 @@ UBYTE tournament_team_heat(UBYTE team, UBYTE hn)
     return sum;
 }
 
+/* Mistrzostwa: SERIES_ROUNDS turniejow na kolejnych torach. Klasyfikacja generalna to suma
+ * punktow biegowych ze wszystkich rund (jak w Grand Prix); przy remisie wiecej wygranych rund,
+ * potem lepsze miejsce w ostatniej rundzie. */
+void series_reset(void)
+{
+    UBYTE r, k;
+    g_tour.series_round = 0;
+    for (r = 0; r < MAX_RIDERS; r++)
+        for (k = 0; k < SERIES_ROUNDS; k++) g_tour.series_pts[r][k] = g_tour.series_place[r][k] = 0;
+}
+
+void series_add_round(void)
+{
+    UBYTE order[MAX_RIDERS], i, k = g_tour.series_round;
+    tournament_sort(order);                      /* z biegiem dodatkowym i zwyciestwami */
+    for (i = 0; i < MAX_RIDERS; i++) {
+        g_tour.series_pts[order[i]][k] = g_tour.riders[order[i]].points;
+        g_tour.series_place[order[i]][k] = (UBYTE)(i + 1);
+    }
+}
+
+UWORD series_total(UBYTE rider)
+{
+    UWORD t = 0;
+    UBYTE k;
+    for (k = 0; k < SERIES_ROUNDS; k++) t += g_tour.series_pts[rider][k];
+    return t;
+}
+
+static UBYTE series_firsts(UBYTE rider)
+{
+    UBYTE k, n = 0;
+    for (k = 0; k < SERIES_ROUNDS; k++) n += (UBYTE)(g_tour.series_place[rider][k] == 1);
+    return n;
+}
+
+void series_sort(UBYTE order[MAX_RIDERS])
+{
+    UBYTE i, j, k = g_tour.series_round;
+    for (i = 0; i < MAX_RIDERS; i++) order[i] = i;
+    for (i = 1; i < MAX_RIDERS; i++)
+        for (j = i; j > 0; j--) {
+            UBYTE a = order[j - 1], b = order[j];
+            UWORD ta = series_total(a), tb = series_total(b);
+            BOOL swap;
+            if (ta != tb) swap = tb > ta;
+            else if (series_firsts(a) != series_firsts(b)) swap = series_firsts(b) > series_firsts(a);
+            else swap = g_tour.series_place[b][k] && g_tour.series_place[b][k] < g_tour.series_place[a][k];
+            if (swap) { order[j] = a; order[j - 1] = b; }
+        }
+}
+
 void tournament_award_points(void)
 {
     static const UBYTE pts[4] = { 3, 2, 1, 0 };

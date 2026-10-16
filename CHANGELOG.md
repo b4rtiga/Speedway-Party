@@ -16,7 +16,8 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 - **Równe szanse z każdego pola:** boty łamią motocykl przed łukiem na czas i każdy jedzie w biegu trochę inną linią. Wcześniej z czterech jednakowych botów pole C wygrywało 59% biegów, a pole A 1%; teraz każde pole wygrywa od 20 do 34%.
 - **Gra pamięta ustawienia:** nazwiska i sterowanie graczy, poziomy botów oraz stan toru, porę, defekty i muzykę – po ponownym uruchomieniu wszystko jest jak ostatnio (plik `settings.dat` obok gry).
 - **Trzy tory:** OWAL, SZEROKI (64 px zamiast 56 – więcej miejsca na mijanki) i DŁUGI (proste dłuższe o 10%, węższy). Tor wybierasz w ustawieniach; każdy ma własne rekordy (na ekranie REKORDY LEWO/PRAWO zmienia tor) i własną wersję nocną.
-- **Nowy ekran USTAWIENIA** (z ekranu turnieju): tor, stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc), deszcz, zawody indywidualne albo drużynowe, defekty i muzyka. Pod listą zawodników widać skrót wybranych ustawień.
+- **Mistrzostwa:** nowa wartość opcji ZAWODY – trzy rundy na trzech torach z tymi samymi zawodnikami, punkty biegowe się sumują (jak w Grand Prix). Po każdej rundzie klasyfikacja generalna, po ostatniej mistrz i fajerwerki.
+- **Nowy ekran USTAWIENIA** (z ekranu turnieju): tor, stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc), deszcz, zawody indywidualne, drużynowe albo mistrzostwa, defekty i muzyka. Pod listą zawodników widać skrót wybranych ustawień.
 - **Menu:** TURNIEJ zamiast JEDZIEMY! i nowa pozycja TRENING; ekran zawodników nazywa się TURNIEJ.
 - **Podprowadzające:** nowe wypukłe tablice w kolorach kasków z logo sponsorów (3DPJOY, DEV84), płynne kołysanie całej sylwetki z tablicą i buziaki z odlatującym serduszkiem.
 - **Pasek na dole ekranu:** światła startowe gasną 2 s po starcie.

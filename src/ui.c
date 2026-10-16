@@ -714,11 +714,13 @@ static COLD void draw_setup(UBYTE *b)
     p = text_cat(p, g_tour.night ? T("  NOC", "  NIGHT") : T("  DZIEŃ", "  DAY"));
     if (g_tour.rain_opt) p = text_cat(p, T("  DESZCZ", "  RAIN"));
     if (g_tour.team_mode) p = text_cat(p, T("  MECZ", "  TEAM"));
-    p = text_cat(p, T("  DEFEKTY: ", "  DEFECTS: "));
+    if (g_tour.series) p = text_cat(p, T("  MISTRZOSTWA", "  CHAMPIONSHIP"));
+    text_draw_small_center(b, 180, s, U_GREY);
+    p = text_cat(s, T("DEFEKTY: ", "DEFECTS: "));
     p = text_cat(p, yes_no(g_defects_enabled));
     p = text_cat(p, T("  MUZYKA: ", "  MUSIC: "));
     text_cat(p, yes_no(g_music_enabled));
-    text_draw_small_center(b, 184, s, U_GREY);
+    text_draw_small_center(b, 190, s, U_GREY);
 
     /* podpowiedzi o klawiszach malym fontem */
     text_draw_small_center(b, 216, editing ? T("PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA", "TYPE ON KEYBOARD / UP-DOWN LETTER")
@@ -878,7 +880,8 @@ static const char *opt_value(UBYTE i)
     case OPT_COND:    return cond_names[g_tour.track_choice];
     case OPT_NIGHT:   return g_tour.night ? T("NOC", "NIGHT") : T("DZIEŃ", "DAY");
     case OPT_RAIN:    return yes_no(g_tour.rain_opt);
-    case OPT_TEAM:    return g_tour.team_mode ? T("DRUŻYNOWE", "TEAM") : T("INDYWIDUALNE", "INDIVIDUAL");
+    case OPT_TEAM:    return g_tour.team_mode ? T("DRUŻYNOWE", "TEAM") : g_tour.series ? T("MISTRZOSTWA", "CHAMPIONSHIP")
+                                                                          : T("INDYWIDUALNE", "INDIVIDUAL");
     case OPT_DEFECTS: return yes_no(g_defects_enabled);
     default:          return yes_no(g_music_enabled);
     }
@@ -910,7 +913,8 @@ static COLD void draw_options(UBYTE *b)
         text_draw(b, 168, opt_row_y(i), s, U_GOLD, U_SHADOW);
     }
     text_draw_center(b, opt_row_y(OPT_BACK), T("POWRÓT", "BACK"), opt_row == OPT_BACK ? U_RAINBOW : U_WHITE, U_SHADOW);
-    text_draw_center(b, 188, about[opt_row], U_GREY, 0);
+    text_draw_center(b, 188, opt_row == OPT_TEAM && g_tour.series ? T("3 RUNDY NA 3 TORACH, PUNKTY SIĘ SUMUJĄ", "3 ROUNDS ON 3 TRACKS, POINTS ADD UP")
+                                                                   : about[opt_row], U_GREY, 0);
     text_draw_small_center(b, 216, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY);
     text_draw_small_center(b, 227, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY);
     text_draw_small_center(b, 238, T("ESC - POWRÓT", "ESC - BACK"), U_GREY);
@@ -940,7 +944,11 @@ COLD BOOL ui_options_update(void)
         else if (opt_row == OPT_COND) g_tour.track_choice = (UBYTE)((g_tour.track_choice + 4 + d) % 4);
         else if (opt_row == OPT_NIGHT) g_tour.night = (UBYTE)(!g_tour.night && track_night_available());
         else if (opt_row == OPT_RAIN) g_tour.rain_opt = (UBYTE)!g_tour.rain_opt;
-        else if (opt_row == OPT_TEAM) g_tour.team_mode = (UBYTE)!g_tour.team_mode;
+        else if (opt_row == OPT_TEAM) {             /* indywidualne -> druzynowe -> mistrzostwa */
+            UBYTE e = (UBYTE)((g_tour.team_mode ? 1 : g_tour.series ? 2 : 0) + 3 + d) % 3;
+            g_tour.team_mode = (UBYTE)(e == 1);
+            g_tour.series = (UBYTE)(e == 2);
+        }
         else if (opt_row == OPT_DEFECTS) g_defects_enabled = (BOOL)!g_defects_enabled;
         else if (opt_row == OPT_MUSIC) g_music_enabled = (BOOL)!g_music_enabled;
     }
@@ -1089,7 +1097,13 @@ static COLD void draw_table(UBYTE *b)
     else { p = text_cat(s, T("BIEG ", "HEAT ")); text_uint(p, (ULONG)(hn + 1), 1); }
     text_draw_big_center(b, 10, s, U_RAINBOW, U_SHADOW);
     if (g_tour.team_mode) text_draw_center(b, 36, team_score_text(s), U_GOLD, 0);      /* mecz: wynik */
-    else text_draw_center(b, 36, hn == RUNOFF_HEAT ? T("REMIS - O MIEJSCE NA PODIUM", "TIE - RUN-OFF FOR THE PODIUM")
+    else if (g_tour.series && hn < FIXED_HEATS) {                                      /* mistrzostwa: runda */
+        p = text_cat(s, T("MISTRZOSTWA - RUNDA ", "CHAMPIONSHIP - ROUND "));
+        p = text_uint(p, (ULONG)(g_tour.series_round + 1), 1);
+        p = text_cat(p, "/");
+        text_uint(p, SERIES_ROUNDS, 1);
+        text_draw_center(b, 36, s, U_GOLD, 0);
+    } else text_draw_center(b, 36, hn == RUNOFF_HEAT ? T("REMIS - O MIEJSCE NA PODIUM", "TIE - RUN-OFF FOR THE PODIUM")
                           : hn >= FIXED_HEATS ? T("BIEG NOMINOWANY", "NOMINATED HEAT") : T("PROGRAM ZAWODÓW", "RACE PROGRAMME"), U_GOLD, 0);
 
     panel(b, 48, 52, 224, 64, U_PANEL, U_BORDER);
@@ -1535,6 +1549,8 @@ static const UBYTE fw_cols[6] = { U_GOLD, U_RED, U_GREEN, U_WHITE, 98, U_SILVER 
 static BOOL fw_free_area(WORD x, WORD y)
 {
     if (x < 0 || x > SCREEN_W - 1) return FALSE;
+    if (g_tour.state == GS_SERIES)                                /* klasyfikacja: miedzy napisami */
+        return (BOOL)((y >= 48 && y <= 66) || ((x < 12 || x >= 308) && y >= 34 && y <= 150));
     if (y >= 34 && y <= 66) return TRUE;                          /* pas pod tytulem */
     return (BOOL)((x < 44 || x >= 276) && y >= 34 && y <= 160);   /* po bokach podium */
 }
@@ -1635,7 +1651,71 @@ static COLD void draw_podium(UBYTE *b)
         text_cat(p, T(" ZW.", " WINS"));
         text_draw(b, 40, y, s, i == 0 ? U_GOLD : U_WHITE, U_SHADOW);
     }
-    if (blink) text_draw_center(b, 238, T("FIRE - NOWY TURNIEJ", "FIRE - NEW TOURNAMENT"), U_RAINBOW, U_SHADOW);
+    if (blink) text_draw_center(b, 238, T("FIRE - DALEJ", "FIRE - CONTINUE"), U_RAINBOW, U_SHADOW);
+}
+
+/* Mistrzostwa: klasyfikacja generalna po rundzie - punkty z kazdej rundy i suma; po ostatniej
+ * rundzie mistrz i fajerwerki. */
+static BOOL series_final(void) { return (BOOL)(g_tour.series_round + 1 >= SERIES_ROUNDS); }
+
+static COLD void draw_series(UBYTE *b)
+{
+    UBYTE order[MAX_RIDERS], i, k;
+    char s[48], *p;
+    series_sort(order);
+    text_draw_big_center(b, 10, T("MISTRZOSTWA", "CHAMPIONSHIP"), U_RAINBOW, U_SHADOW);
+    if (series_final()) text_cat(s, T("KLASYFIKACJA KOŃCOWA", "FINAL STANDINGS"));
+    else {
+        p = text_cat(s, T("KLASYFIKACJA PO RUNDZIE ", "STANDINGS AFTER ROUND "));
+        p = text_uint(p, (ULONG)(g_tour.series_round + 1), 1);
+        p = text_cat(p, "/");
+        text_uint(p, SERIES_ROUNDS, 1);
+    }
+    text_draw_center(b, 36, s, U_GOLD, 0);
+
+    panel(b, 12, 70, 296, 82, U_PANEL, U_BORDER);
+    for (k = 0; k < SERIES_ROUNDS; k++) {                         /* naglowki rund: R1 R2 R3 */
+        s[0] = 'R'; s[1] = (char)('1' + k); s[2] = 0;
+        text_draw(b, (WORD)(176 + k * 32), 76, s, k <= g_tour.series_round ? U_GOLD : U_GREY, U_SHADOW);
+    }
+    text_draw(b, 268, 76, T("SUMA", "TOT"), U_GOLD, U_SHADOW);
+    for (i = 0; i < MAX_RIDERS; i++) {
+        UBYTE r = order[i];
+        WORD y = (WORD)(94 + i * 14);
+        BOOL lead = (BOOL)(i == 0);
+        s[0] = (char)('1' + i); s[1] = '.'; s[2] = 0;
+        text_draw(b, 20, y, s, lead ? U_GOLD : U_WHITE, U_SHADOW);
+        helmet_box(b, 40, (WORD)(y - 1), r);
+        name_trunc(s, g_tour.riders[r].name, 12);
+        text_draw(b, 62, y, s, lead ? U_GOLD : U_WHITE, U_SHADOW);
+        for (k = 0; k < SERIES_ROUNDS; k++) {
+            if (k <= g_tour.series_round) text_uint(s, g_tour.series_pts[r][k], 1);
+            else text_cat(s, "-");
+            text_draw(b, (WORD)(176 + k * 32 + (k <= g_tour.series_round && g_tour.series_pts[r][k] < 10 ? 8 : 0)), y, s,
+                      g_tour.series_place[r][k] == 1 ? U_GOLD : U_WHITE, U_SHADOW);
+        }
+        text_uint(s, series_total(r), 1);
+        text_draw(b, (WORD)(276 + (series_total(r) < 10 ? 8 : 0) - (series_total(r) >= 100 ? 8 : 0)), y, s,
+                  lead ? U_GOLD : U_WHITE, U_SHADOW);
+    }
+    /* tory rund malym fontem */
+    p = s;
+    for (k = 0; k < SERIES_ROUNDS; k++) {
+        if (k) p = text_cat(p, "  ");
+        *p++ = 'R'; *p++ = (char)('1' + k); *p++ = ':'; *p++ = ' ';
+        p = text_cat(p, track_name((UBYTE)((g_tour.track_pick + k) % NUM_TRACKS)));
+    }
+    text_draw_small_center(b, 158, s, U_GREY);
+
+    if (series_final()) {
+        text_draw_center(b, 172, T("MISTRZ", "CHAMPION"), U_WHITE, U_SHADOW);
+        name_trunc(s, g_tour.riders[order[0]].name, NAME_EDIT_MAX);
+        text_draw_big_center(b, 186, s, U_GOLD, U_SHADOW);
+    } else {
+        p = text_cat(s, T("NASTĘPNA RUNDA: ", "NEXT ROUND: "));
+        text_cat(p, track_name((UBYTE)((g_tour.track_pick + g_tour.series_round + 1) % NUM_TRACKS)));
+        text_draw_center(b, 186, s, U_WHITE, U_SHADOW);
+    }
 }
 
 /* ========================== NAKLADKI ============================== */
@@ -2204,10 +2284,13 @@ static void draw_blink_line(UBYTE *b)
     switch (g_tour.state) {
     case GS_TITLE:   y = 206; s = T("NACIŚNIJ FIRE", "PRESS FIRE"); break;
     case GS_TABLE:   s = T("FIRE - DALEJ", "FIRE - CONTINUE"); break;
-    case GS_PODIUM:  s = T("FIRE - NOWY TURNIEJ", "FIRE - NEW TOURNAMENT"); break;
+    case GS_PODIUM:  s = T("FIRE - DALEJ", "FIRE - CONTINUE"); break;
     case GS_CREDITS: s = T("FIRE - POWRÓT", "FIRE - BACK"); break;
     case GS_RECORDS: s = T("FIRE - POWRÓT", "FIRE - BACK"); break;
-    case GS_NEWS:    y = 240; s = T("FIRE - NASTĘPNY TURNIEJ", "FIRE - NEXT TOURNAMENT"); break;
+    case GS_NEWS:    y = 240; s = g_tour.series ? T("FIRE - KLASYFIKACJA", "FIRE - STANDINGS")
+                                                    : T("FIRE - NASTĘPNY TURNIEJ", "FIRE - NEXT TOURNAMENT"); break;
+    case GS_SERIES:  s = series_final() ? T("FIRE - KONIEC MISTRZOSTW", "FIRE - END OF CHAMPIONSHIP")
+                                        : T("FIRE - NASTĘPNA RUNDA", "FIRE - NEXT ROUND"); break;
     default: return;
     }
     if (g_paused) return;                                /* okno pauzy - pasek moglby je przeciac */
@@ -2298,7 +2381,10 @@ panel_done:
     if (drawn_serial[bi] == serial && buf_is_track[bi] == 0) {
         if (blink_dirty[bi]) { blink_dirty[bi] = 0; draw_blink_line(b); }
         if (g_tour.state == GS_PRESENT) present_girls(b, bi);    /* wychodzace podprowadzajace */
-        if (g_tour.state == GS_PODIUM) { if (bi == 0) fireworks_step(); fireworks_draw(b, bi); }   /* fajerwerki */
+        if (g_tour.state == GS_PODIUM || (g_tour.state == GS_SERIES && series_final())) {   /* fajerwerki */
+            if (bi == 0) fireworks_step();
+            fireworks_draw(b, bi);
+        }
         return;
     }
     blink_dirty[bi] = 0;
@@ -2320,6 +2406,7 @@ panel_done:
     case GS_PRESENT:   draw_present(b, bi); break;
     case GS_GATE_PICK: draw_pick(b); break;
     case GS_PODIUM:    draw_podium(b); fw_drawn_n[bi] = 0; break;
+    case GS_SERIES:    draw_series(b); fw_drawn_n[bi] = 0; break;
     default: break;
     }
     if (g_paused) draw_pause(b, 82);

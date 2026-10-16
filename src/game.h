@@ -242,6 +242,7 @@ typedef enum {
     GS_RECORDS,          /* tabela rekordow toru (z ekranu wyboru) */
     GS_NAME_ENTRY,         /* wpisywanie imienia po rekordzie (gracz w TOP 5) */
     GS_OPTIONS,          /* opcje turnieju (z ustawien): stan toru, defekty, muzyka */
+    GS_SERIES,           /* mistrzostwa: klasyfikacja generalna po rundzie */
     GS_QUIT
 } GameState;
 
@@ -259,6 +260,8 @@ typedef struct TourStats {
     BOOL  title_runoff;                    /* bieg dodatkowy o 1. miejsce */
     BOOL  other_runoff;                    /* bieg dodatkowy o 2.-3. miejsce */
 } TourStats;
+
+#define SERIES_ROUNDS 3                    /* mistrzostwa: rundy na kolejnych torach */
 
 typedef struct Tournament {
     Rider     riders[MAX_RIDERS];
@@ -278,7 +281,11 @@ typedef struct Tournament {
     UBYTE     night;                       /* opcja PORA: 1 = zawody w nocy (track_set_night) */
     UBYTE     rain_opt;                    /* opcja DESZCZ: w ktoryms biegu zaczyna padac */
     UBYTE     team_mode;                   /* opcja ZAWODY: 1 = mecz druzynowy (gospodarze 1+2, goscie 3+4) */
-    UBYTE     track_pick;                  /* opcja TOR: 0..NUM_TRACKS-1 */
+    UBYTE     track_pick;                  /* opcja TOR: 0..NUM_TRACKS-1 (w mistrzostwach tor 1. rundy) */
+    UBYTE     series;                      /* opcja ZAWODY: 1 = mistrzostwa (SERIES_ROUNDS turniejow) */
+    UBYTE     series_round;                /* biezaca runda mistrzostw: 0..SERIES_ROUNDS-1 */
+    UBYTE     series_pts[MAX_RIDERS][SERIES_ROUNDS];    /* punkty zawodnika w rundzie */
+    UBYTE     series_place[MAX_RIDERS][SERIES_ROUNDS];  /* miejsce w rundzie (1..4), 0 = nie jechana */
     UBYTE     rain_from;                   /* bieg (0..), od ktorego pada; 0xFF = nie pada */
     UBYTE     new_records;                 /* REC_HEAT|REC_LAP pobite w ostatnim biegu */
     TourStats stats;                       /* fakty zawodow (gazeta) */
@@ -306,6 +313,11 @@ BOOL tournament_prepare_runoff(void);            /* remis o podium -> bieg dodat
 void tournament_award_points(void);
 UWORD tournament_team_points(UBYTE team);        /* mecz: 0 gospodarze (zawodnicy 0, 1), 1 goscie (2, 3) */
 UBYTE tournament_team_heat(UBYTE team, UBYTE hn); /* punkty druzyny w biegu hn (5:1, 4:2, 3:3) */
+void  series_reset(void);                        /* mistrzostwa: od rundy 1, bez punktow */
+void  series_add_round(void);                    /* wyniki rozstrzygnietego turnieju do klasyfikacji */
+UWORD series_total(UBYTE rider);                 /* suma punktow z rund */
+void  series_sort(UBYTE order[MAX_RIDERS]);      /* klasyfikacja generalna */
+#define SERIES_TRACK() ((UBYTE)((g_tour.track_pick + (g_tour.series ? g_tour.series_round : 0)) % NUM_TRACKS))
 
 /* newspaper.c - gazeta "GLOS OWALU" po zawodach */
 #define NEWS_NAME  13                    /* znakow nazwiska w gazecie */

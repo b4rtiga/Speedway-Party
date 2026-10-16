@@ -154,7 +154,7 @@ static void settings_pack(UBYTE *b)
     b[7] = (UBYTE)(g_defects_enabled ? 1 : 0);
     b[8] = (UBYTE)(g_music_enabled ? 1 : 0);
     b[9] = g_tour.rain_opt;
-    b[10] = g_tour.team_mode;
+    b[10] = (UBYTE)(g_tour.team_mode ? 1 : g_tour.series ? 2 : 0);   /* zawody: indyw. / mecz / mistrzostwa */
     b[11] = g_tour.track_pick;
     for (i = 0; i < MAX_RIDERS; i++) {
         UBYTE *r = b + SET_HEAD + i * SET_RIDER;
@@ -172,7 +172,7 @@ COLD void settings_load(void)
     UBYTE i, k;
     settings_pack(set_loaded);                    /* domyslne - gdy pliku nie ma */
     if (!asset_load(SET_DAT, b, SET_LEN) || b[0] != 'S' || b[1] != 'P' || b[2] != 'S' || b[3] != '1') return;
-    if (b[4] > MAX_RIDERS || b[5] > TRACK_RANDOM || b[6] > 1 || b[7] > 1 || b[8] > 1 || b[9] > 1 || b[10] > 1 || b[11] >= NUM_TRACKS) return;
+    if (b[4] > MAX_RIDERS || b[5] > TRACK_RANDOM || b[6] > 1 || b[7] > 1 || b[8] > 1 || b[9] > 1 || b[10] > 2 || b[11] >= NUM_TRACKS) return;
     for (i = 0; i < MAX_RIDERS; i++) {
         const UBYTE *r = b + SET_HEAD + i * SET_RIDER;
         if (r[NAME_LEN] != 0 || r[NAME_LEN + 1] >= INPUT_NONE || r[NAME_LEN + 2] > AI_MASTER) return;
@@ -183,7 +183,8 @@ COLD void settings_load(void)
     g_defects_enabled = (BOOL)b[7];
     g_music_enabled = (BOOL)b[8];
     g_tour.rain_opt = b[9];
-    g_tour.team_mode = b[10];
+    g_tour.team_mode = (UBYTE)(b[10] == 1);
+    g_tour.series = (UBYTE)(b[10] == 2);
     g_tour.track_pick = b[11];
     for (i = 0; i < MAX_RIDERS; i++) {
         const UBYTE *r = b + SET_HEAD + i * SET_RIDER;

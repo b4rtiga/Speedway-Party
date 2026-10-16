@@ -648,6 +648,25 @@ static int screenshots(void)
     g_tour.state = GS_NEWS;   render(); shot("test_mecz_gazeta", FALSE);
     g_tour.team_mode = 0;
 
+    /* mistrzostwa: klasyfikacja po 1. rundzie i koncowa (mistrz, fajerwerki) */
+    {
+        static const UBYTE pts[MAX_RIDERS][SERIES_ROUNDS] = { { 11, 13, 12 }, { 12, 9, 14 }, { 8, 10, 6 }, { 5, 4, 4 } };
+        static const UBYTE plc[MAX_RIDERS][SERIES_ROUNDS] = { { 2, 1, 2 }, { 1, 3, 1 }, { 3, 2, 3 }, { 4, 4, 4 } };
+        UBYTE r, k;
+        g_tour.series = 1;
+        g_tour.track_pick = 0;
+        for (r = 0; r < MAX_RIDERS; r++)
+            for (k = 0; k < SERIES_ROUNDS; k++) { g_tour.series_pts[r][k] = pts[r][k]; g_tour.series_place[r][k] = plc[r][k]; }
+        g_tour.series_round = 0;
+        g_tour.state = GS_SERIES; render(); shot("test_mistrzostwa_r1", FALSE);
+        g_tour.series_round = SERIES_ROUNDS - 1;
+        g_tour.state = GS_SERIES; render();
+        g_video.back = 0;
+        for (i = 0; i < 70; i++) { g_frame++; ui_render(); }
+        shot("38_mistrzostwa", FALSE);
+        g_tour.series = 0;
+    }
+
     printf("zrzuty: tools/shots/out/\n");
     return 0;
 }
