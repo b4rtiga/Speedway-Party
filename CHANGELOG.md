@@ -12,7 +12,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 - **Fajerwerki na podium** i **fala na trybunach** – kibice „falują” przy zmianie prowadzącego i na mecie.
 - **Deszcz:** nowa opcja DESZCZ – w losowym biegu zaczyna padać, tor z biegu na bieg mięknie zamiast przesychać, w biegu widać krople.
 - **Fotofinisz:** gdy drugi zawodnik minie metę najwyżej 0,1 s za zwycięzcą, gra pokazuje końcówkę biegu w zwolnionym tempie i stopklatkę na linii mety z różnicą czasu.
-- **Upadki:** uderzenie w bandę z dużą prędkością albo mocne najechanie na rywala czasem kończy się upadkiem – czerwona flaga, upadły wykluczony, bieg powtarzany spod taśmy.
+- **Upadki:** uderzenie w bandę z dużą prędkością, dłuższa jazda tuż przy bandzie albo mocne najechanie na rywala czasem kończy się upadkiem – czerwona flaga, upadły wykluczony, bieg powtarzany spod taśmy.
 - **Równe szanse z każdego pola:** boty łamią motocykl przed łukiem na czas i każdy jedzie w biegu trochę inną linią. Wcześniej z czterech jednakowych botów pole C wygrywało 59% biegów, a pole A 1%; teraz każde pole wygrywa od 20 do 34%.
 - **Gra pamięta ustawienia:** nazwiska i sterowanie graczy, poziomy botów oraz stan toru, porę, defekty i muzykę – po ponownym uruchomieniu wszystko jest jak ostatnio (plik `settings.dat` obok gry).
 - **Mistrzostwa:** nowa wartość opcji ZAWODY – trzy rundy z tymi samymi zawodnikami, punkty biegowe się sumują (jak w Grand Prix). Po każdej rundzie klasyfikacja generalna, po ostatniej mistrz i fajerwerki.

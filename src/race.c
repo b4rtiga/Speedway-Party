@@ -49,6 +49,10 @@ static UWORD winner_frame;
 #define FALL_HIT_SPEED  18                 /* najechanie: roznica predkosci od 18% maks. ... */
 #define FALL_HIT_CHANCE 30                 /* ... 30% szansy (upada najezdzajacy) */
 #define FALL_STOP       (FPS * 3 / 2)      /* po 1,5 s czerwona flaga */
+#define FALL_RUB_ZONE   3                  /* jazda po bandzie: w pasie 3 px przy bandzie ... */
+#define FALL_RUB_LIMIT  25                 /* ... przez 0,5 s ... */
+#define FALL_RUB_SPEED  35                 /* ... od 35% predkosci maks. (pod banda hamuje odsypisko) ... */
+#define FALL_RUB_CHANCE 3                  /* ... 3% szansy na kazda dalsza klatke */
 static UBYTE fall_bike = 0xFF, fall_timer;
 
 /* Fotofinisz: pozycje motocykli z ostatnich REPLAY_N klatek (pierscien). Gdy drugi minie mete
@@ -118,6 +122,7 @@ void race_init_heat(void)
         b->lap_start = 0;
         b->best_lap = 0;
         b->last_lap = 0;
+        b->fence_rub = 0;
         b->position = g;
         h->order[g] = g;
         b->state = (b->empty || g_tour.riders[r].warnings >= 2) ? BIKE_EXCLUDED : BIKE_AT_GATE;
@@ -335,6 +340,12 @@ static void update_bike(Bike *b)
         push_to_lateral(b, INNER_LIMIT + 1);
         align_to_tangent(b);
     }
+    /* ocieranie o bande: ciagla jazda przy samej bandzie z predkoscia czasem konczy sie upadkiem */
+    if (lat > OUTER_LIMIT - FALL_RUB_ZONE) {
+        if (b->fence_rub < 250) b->fence_rub++;
+        if (b->fence_rub >= FALL_RUB_LIMIT && b->speed > FIXPCT(MAX_SPEED, FALL_RUB_SPEED))
+            try_fall(b, FALL_RUB_CHANCE);
+    } else b->fence_rub = (UBYTE)(b->fence_rub > 3 ? b->fence_rub - 3 : 0);
 
     /* --- okrazenia: przeciecie linii tasmy --- */
     prev_s = b->race_distance - (LONG)b->lap * t->lap_length;

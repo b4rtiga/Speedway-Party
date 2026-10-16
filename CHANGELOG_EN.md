@@ -12,7 +12,7 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 - **Fireworks over the podium** and a **crowd wave** – the stands ripple when the lead changes and at the finish.
 - **Rain:** a new RAIN option – it starts raining at a random heat, the track gets softer heat by heat instead of drying, and you can see the drops.
 - **Photo finish:** when the runner-up crosses the line at most 0.1 s behind the winner, the game shows the end of the heat in slow motion and a freeze-frame on the line with the margin.
-- **Falls:** hitting the fence at high speed or running hard into a rival sometimes ends in a fall – red flag, the faller is excluded and the heat is rerun from the tape.
+- **Falls:** hitting the fence at high speed, riding right along the fence for long or running hard into a rival sometimes ends in a fall – red flag, the faller is excluded and the heat is rerun from the tape.
 - **Fair chances from every gate:** bots lay the bike down in time before a bend, and each one takes a slightly different line in a heat. Before, with four identical bots gate C won 59% of heats and gate A 1%; now every gate wins between 20 and 34%.
 - **Settings are remembered:** player names and controls, bot skill, track condition, time of day, defects and music – after a restart everything is as it was (`settings.dat` next to the game).
 - **Championship:** a new EVENT option value – three rounds with the same riders, heat points add up (as in the Grand Prix). Overall standings after each round, the champion and fireworks after the last one.

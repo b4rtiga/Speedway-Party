@@ -1800,7 +1800,7 @@ static COLD void draw_false_start(UBYTE *b)
 
 /* trening: tabliczka na murawie - ostatnie i najlepsze okrazenie, rekord toru */
 #define TRAIN_X 104
-#define TRAIN_Y 64
+#define TRAIN_Y 80                       /* murawa y 60..140: od krawezników > 10 px (duszek +-10) */
 #define TRAIN_W 112
 #define TRAIN_H 40
 static UWORD train_shown[2];                /* pokazane czasy (ostatnie, najlepsze) - zmiana = odswiezenie */
