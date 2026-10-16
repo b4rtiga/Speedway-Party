@@ -487,7 +487,9 @@ static int game_main(void)
     tournament_defaults();
     tournament_reset();
     records_load();
+    settings_load();                            /* zawodnicy i opcje z poprzedniej sesji */
     if (!track_init()) { rc = 20; goto out; }   /* wszystkie tory (przed przejeciem) */
+    if (!track_night_available()) g_tour.night = 0;
     ui_init();
 #ifdef SHOW_LAG
     { extern ULONG g_chip_free; g_chip_free = AvailMem(MEMF_CHIP); }   /* po wczytaniu wszystkiego */
@@ -570,6 +572,7 @@ static int game_main(void)
     audio_stop();
     system_restore();
     records_save();                     /* dysk dostepny dopiero po oddaniu systemu */
+    settings_save();
 out:
     system_hide_early();                /* blad przy wczytywaniu: z powrotem ekran systemu */
     audio_free();

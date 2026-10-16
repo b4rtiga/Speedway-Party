@@ -67,7 +67,7 @@ FIRE or ESC takes you back from the manual, the records and the credits.
 
 ### Tournament: riders and settings
 
-Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: track condition at the start (dry, damp, wet or random – the default), time of day (day or night – chapter 6), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
+Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: track condition at the start (dry, damp, wet or random – the default), time of day (day or night – chapter 6), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. Riders and settings are saved when you quit the game, to `settings.dat` next to the game (only if something changed), so after a restart they are as you left them. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
 
 ![Tournament: riders](../art/en/screen_02_setup.png)
 
@@ -328,6 +328,7 @@ They need Python 3 with `numpy`, ffmpeg in PATH, and for the code check and the 
 | `sh tools/shots/run.sh` | screenshots from the real game code compiled for the PC (`art/screen_*.png`; with `LANG_EN=1` English ones in `art/en/`) |
 | `sh tools/mktrailer.sh` | the trailer `art/trailer.mp4` |
 | `sh tools/sim/news_test.sh` | newspaper tests (headline rules, summary, long names) |
+| `sh tools/sim/settings_test.sh` | test of saving and loading the settings (`settings.dat`) on an “in-memory disk” |
 | `sh tools/sim/records_test.sh` | tests of the record tables and the `halloffame.dat` file |
 | `sh tools/sim/sprites_test.sh` | bike frame test (helmet colour applied while copying = the old 4 sets) |
 | `sh tools/sim/start_test.sh [tournaments]` | start fairness: 4 identical bots, results by gate A–D (speed after 1 s, place in the 1st bend and at the finish, wins); `DIAG=1` – roost, kerb, racing line |

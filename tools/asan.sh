@@ -28,5 +28,9 @@ for seed in 1 2 3 4 5; do
         echo "BLAD: symulator, ziarno $seed"; grep -E "ERROR|runtime error|#[0-4] " "$B/log" | head -12; status=1
     fi
 done
-[ $status = 0 ] && echo "OK: bez bledow pamieci (zrzuty PL/EN, trailer, symulator)"
+gcc $CF tools/sim/settings_test.c src/records.c src/hof.c -o "$B/settings_test" || exit 1
+if ! "$B/settings_test" >/dev/null 2>"$B/log"; then
+    echo "BLAD: test ustawien"; grep -E "ERROR|runtime error|#[0-4] " "$B/log" | head -12; status=1
+fi
+[ $status = 0 ] && echo "OK: bez bledow pamieci (zrzuty PL/EN, trailer, symulator, ustawienia)"
 exit $status

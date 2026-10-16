@@ -397,6 +397,8 @@ void  roost_forget_buffer(UBYTE buf);             /* bufor przerysowany w calosc
 /* records.c - rekordy torow (PROGDIR:records.dat) */
 void         records_load(void);                  /* przed przejeciem sprzetu */
 void         records_save(void);                  /* po oddaniu systemu */
+void         settings_load(void);                 /* settings.dat: zawodnicy i opcje (po tournament_defaults) */
+void         settings_save(void);                 /* przy wyjsciu, tylko po zmianie */
 UBYTE        records_check_heat(void);            /* po biegu: bity REC_* nowych rekordow */
 TrackRecord *records_for(UBYTE track);            /* najlepszy bieg i okrazenie (1. miejsca TOP 5) */
 void         records_resolve_pending(void);       /* nowy turniej: niewpisane imiona -> domyslne */

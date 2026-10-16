@@ -56,8 +56,9 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
   (zasady, start, linia jazdy), REKORDY (TOP 5 biegow i okrazen graczy) albo CREDITS
 - gracz w TOP 5 wpisuje imie raz, po turnieju (7 znakow): GORA/DOL znak, LEWO/PRAWO pozycja,
   mozna tez pisac z klawiatury, FIRE zapisz
-- rekordy zapisuja sie do halloffame.dat przy wyjsciu z gry (ESC na ekranie
-  wyboru i ESC jeszcze raz); reset Amigi w trakcie gry traci wyniki z sesji
+- rekordy (halloffame.dat) i ustawienia (settings.dat) zapisuja sie przy wyjsciu
+  z gry (ESC na ekranie wyboru i ESC jeszcze raz); reset Amigi w trakcie gry traci
+  wyniki z sesji
 - menu: joystick w porcie 1 albo 0 (FIRE = zatwierdz) albo strzalki + Return;
   czym zatwierdzisz TURNIEJ, tym steruje GRACZ 1 (JOY 0, JOY 1 albo STRZALKI)
 - ESC albo drugi przycisk joysticka = pauza / wyjscie
@@ -106,8 +107,9 @@ CONTROLS (each player: LEFT / RIGHT only, the throttle is automatic)
   (rules, start, racing line), RECORDS (TOP 5 heats and laps by players) or CREDITS
 - a player in the TOP 5 enters a name once, after the tournament (7 characters):
   UP/DOWN letter, LEFT/RIGHT position, or type on the keyboard, FIRE saves
-- records are saved to halloffame.dat when you quit (ESC on the title screen and
-  ESC once more); resetting the Amiga during play loses the session's results
+- records (halloffame.dat) and settings (settings.dat) are saved when you quit
+  (ESC on the title screen and ESC once more); resetting the Amiga during play
+  loses the session's results
 - menus: joystick in port 1 or 0 (FIRE = confirm) or cursor keys + Return;
   whatever you confirm TOURNAMENT with becomes PLAYER 1's control
   (JOY 0, JOY 1 or CURSORS)

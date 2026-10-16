@@ -67,7 +67,7 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ### Turniej: zawodnicy i ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), pora (dzień albo noc – rozdział 6), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Zawodnicy i ustawienia zapisują się przy wyjściu z gry do pliku `settings.dat` obok gry (tylko gdy coś się zmieniło), więc po ponownym uruchomieniu są takie jak ostatnio. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
 ![Turniej: zawodnicy](../art/screen_02_setup.png)
 
@@ -324,6 +324,7 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry skompilowanego na PC (`art/screen_*.png`; z `LANG_EN=1` angielskie w `art/en/`) |
 | `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` |
 | `sh tools/sim/news_test.sh` | testy gazety (reguły nagłówków, podsumowanie, długie nazwiska) |
+| `sh tools/sim/settings_test.sh` | test zapisu i odczytu ustawień (`settings.dat`) na „dysku w pamięci” |
 | `sh tools/sim/records_test.sh` | testy tabel rekordów i pliku `halloffame.dat` |
 | `sh tools/sim/sprites_test.sh` | test klatek motocykli (kolor kasku nadany przy kopiowaniu = dawne 4 komplety) |
 | `sh tools/sim/start_test.sh [turnieje]` | uczciwość startu: 4 jednakowe boty, wyniki wg pola A–D (prędkość po 1 s, miejsce w 1. łuku i na mecie, zwycięstwa); `DIAG=1` – szpryca, krawężnik, linia jazdy |
