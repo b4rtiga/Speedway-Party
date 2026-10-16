@@ -73,7 +73,7 @@ Liczba graczy (0–4), sterowanie i nazwiska graczy, poziom botów, stan toru (s
 
 ### Program zawodów i prezentacja
 
-Przed każdym biegiem program pokazuje, kto startuje z którego pola, oraz tabelę punktów ze wszystkich biegów i rekordy toru. Potem podprowadzające stają na polach A–D z tablicami w kolorach kasków zawodników, którzy z nich startują (3 sekundy albo FIRE).
+Przed każdym biegiem program pokazuje, kto startuje z którego pola, oraz tabelę punktów ze wszystkich biegów i rekordy toru. Potem podprowadzające stają na polach A–D z tablicami w kolorach kasków zawodników, którzy z nich startują (3 sekundy albo FIRE). Kołyszą się w rytm, a co chwilę któraś puszcza oko, uśmiecha się albo posyła buziaka.
 
 ![Program zawodów](../art/screen_03_table.png)
 
