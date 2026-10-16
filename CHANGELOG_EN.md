@@ -17,7 +17,7 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 - **Settings are remembered:** player names and controls, bot skill, track condition, time of day, defects and music – after a restart everything is as it was (`settings.dat` next to the game).
 - **Championship:** a new EVENT option value – three rounds with the same riders, heat points add up (as in the Grand Prix). Overall standings after each round, the champion and fireworks after the last one.
 - **CD32 pad** (and THEA500 Mini's pad): red = FIRE, blue = ESC – the whole game without a keyboard. For developers: `make cd32` builds a CD32 disc image (needs your own `CD32.TM` file, not tested yet).
-- **Less memory for sound:** the menu music in 4-bit ADPCM (Black Motor 104 KiB instead of 208; the game decodes it while playing) and the referee's whistle at 11 kHz (9 KiB instead of 17) – about 113 KiB less Chip RAM in total.
+- **Less memory for sound:** the menu music in 4-bit ADPCM (Black Motor 104 KiB instead of 208; the game decodes it while playing) – about 100 KiB less Chip RAM.
 - **New SETTINGS screen** (from the event screen): track condition (dry, damp, wet or random), time of day (day or night), rain, an individual event, a team match or a championship, defects and music. A summary of the settings is shown under the list of riders.
 - **Menu:** EVENT instead of LET'S RACE! and a new PRACTICE item; the riders screen is called EVENT and its start button START.
 - **Start girls:** new glossy boards in the helmet colours with sponsor logos (3DPJOY, DEV84), a smooth sway of the whole figure with the board, and kisses with a flying heart.

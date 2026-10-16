@@ -17,7 +17,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 - **Gra pamięta ustawienia:** nazwiska i sterowanie graczy, poziomy botów oraz stan toru, porę, defekty i muzykę – po ponownym uruchomieniu wszystko jest jak ostatnio (plik `settings.dat` obok gry).
 - **Mistrzostwa:** nowa wartość opcji ZAWODY – trzy rundy z tymi samymi zawodnikami, punkty biegowe się sumują (jak w Grand Prix). Po każdej rundzie klasyfikacja generalna, po ostatniej mistrz i fajerwerki.
 - **Pad CD32** (i pad THEA500 Mini): czerwony = FIRE, niebieski = ESC – cała gra bez klawiatury. Dla twórców: `make cd32` składa obraz płyty CD32 (wymaga własnego pliku `CD32.TM`, jeszcze nieprzetestowany).
-- **Mniej pamięci na dźwięk:** muzyka w menu w 4-bitowym ADPCM (Black Motor 104 KiB zamiast 208; gra dekoduje ją w trakcie grania) i gwizdek sędziego w 11 kHz (9 KiB zamiast 17) – razem o ok. 113 KiB mniej Chip RAM.
+- **Mniej pamięci na dźwięk:** muzyka w menu w 4-bitowym ADPCM (Black Motor 104 KiB zamiast 208; gra dekoduje ją w trakcie grania) – o ok. 100 KiB mniej Chip RAM.
 - **Nowy ekran USTAWIENIA** (z ekranu zawodów): stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc), deszcz, zawody indywidualne, drużynowe albo mistrzostwa, defekty i muzyka. Pod listą zawodników widać skrót wybranych ustawień.
 - **Menu:** ZAWODY zamiast JEDZIEMY! i nowa pozycja TRENING; ekran zawodników nazywa się ZAWODY, a przycisk startu – START.
 - **Podprowadzające:** nowe wypukłe tablice w kolorach kasków z logo sponsorów (3DPJOY, DEV84), płynne kołysanie całej sylwetki z tablicą i buziaki z odlatującym serduszkiem.
