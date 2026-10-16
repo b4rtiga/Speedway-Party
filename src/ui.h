@@ -18,6 +18,10 @@ UBYTE ui_setup_update(void);       /* SETUP_START = start turnieju, SETUP_OPTION
 #define SETUP_OPTIONS 2
 void ui_setup_focus_options(void); /* po powrocie z opcji: kursor na OPCJE TURNIEJU */
 void ui_options_enter(void);
+void  ui_train_enter(void);        /* ustawienia treningu: kursor na START TRENINGU */
+UBYTE ui_train_update(void);       /* TRAIN_GO = start, TRAIN_BACK = powrot do menu, 0 = nic */
+#define TRAIN_GO   1
+#define TRAIN_BACK 2
 void ui_records_enter(void);       /* rekordy: od toru z ustawien */
 BOOL ui_records_update(void);      /* TRUE = powrot; LEWO/PRAWO - tor */       /* opcje turnieju: kursor na STAN TORU */
 BOOL ui_options_update(void);      /* TRUE = powrot do ustawien */

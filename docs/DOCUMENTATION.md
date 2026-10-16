@@ -58,7 +58,7 @@ Each player has just two controls: **LEFT** and **RIGHT**. The throttle is autom
 Loading from floppy takes several dozen seconds, so the game first shows the title screen with “LOADING…” and reads the rest of the data in the background (the system still runs normally; the game takes over the hardware only once everything is loaded). The title screen waits for FIRE. Then you choose:
 
 - **TOURNAMENT** – riders and tournament settings,
-- **PRACTICE** – player 1 alone on the track (track condition and time of day from the tournament settings): a tape start and unlimited laps; the infield shows the last and best lap and the track record. A tape offence or a fall just restarts from the tape, there are no defects. To finish: ESC and confirm,
+- **PRACTICE** – player 1 alone on the track. First a practice settings screen (separate from the tournament ones): track condition (dry, damp, wet or random), time of day (day or night) and rain (from the start); START PRACTICE starts, BACK or ESC returns to the menu. A tape start and unlimited laps; the infield shows the last and best lap and the track record. A tape offence or a fall just restarts from the tape, there are no defects. To finish: ESC and confirm – back to the practice settings,
 - **HOW TO PLAY** – three pages: tournament rules and flags, start and controls, the racing line with a track diagram (LEFT/RIGHT turns the page),
 - **RECORDS** – the track record tables,
 - **CREDITS** – who made the game.

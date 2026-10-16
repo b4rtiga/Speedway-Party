@@ -8,7 +8,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 - **Zawody w nocy:** nowa opcja PORA: DZIEŃ / NOC. W nocy tor oświetlają cztery maszty z reflektorami – lampy z miękką poświatą, łuki w pełnym ciepłym świetle, środki prostych trochę ciemniejsze.
 - **Defekty motocykli:** w losowej chwili biegu silnik krztusi się, dymi i gaśnie, a zawodnik zjeżdża na murawę i czeka tam do końca biegu – dostaje 0 punktów („D”). Średnio jeden defekt na turniej, najwyżej jeden na zawodnika; można je wyłączyć.
 - **Mecz drużynowy:** gospodarze (kaski czerwony i niebieski) przeciw gościom (biały i żółty) – biegi 5:1, 4:2, 3:3, wynik meczu w programie, po biegu, na ekranie końcowym i w gazecie.
-- **Trening:** nowa pozycja w menu – gracz 1 sam na torze, okrążenia bez limitu, na murawie czas okrążenia, najlepszy czas i rekord toru.
+- **Trening:** nowa pozycja w menu – gracz 1 sam na torze, okrążenia bez limitu; własne ustawienia: stan toru, pora i deszcz; na murawie czas okrążenia, najlepszy czas i rekord toru.
 - **Fajerwerki na podium** i **fala na trybunach** – kibice „falują” przy zmianie prowadzącego i na mecie.
 - **Deszcz:** nowa opcja DESZCZ – w losowym biegu zaczyna padać, tor z biegu na bieg mięknie zamiast przesychać, w biegu widać krople.
 - **Fotofinisz:** gdy drugi zawodnik minie metę najwyżej 0,1 s za zwycięzcą, gra pokazuje końcówkę biegu w zwolnionym tempie i stopklatkę na linii mety z różnicą czasu.

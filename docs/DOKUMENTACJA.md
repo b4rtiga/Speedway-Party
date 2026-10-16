@@ -58,7 +58,7 @@ Każdy gracz ma tylko dwa przyciski: **LEWO** i **PRAWO**. Gaz jest automatyczny
 Przy starcie z dyskietki wczytywanie trwa kilkadziesiąt sekund, więc gra najpierw pokazuje planszę tytułową z napisem „WCZYTYWANIE…”, a resztę danych doczytuje w tle (system działa jeszcze normalnie, gra przejmuje sprzęt dopiero po wczytaniu). Plansza tytułowa czeka na FIRE. Potem wybierasz:
 
 - **TURNIEJ** – zawodnicy i ustawienia turnieju,
-- **TRENING** – gracz 1 sam na torze (stan toru i pora z ustawień turnieju): start spod taśmy i okrążenia bez limitu; na murawie czas ostatniego i najlepszego okrążenia oraz rekord toru. Taśma czy upadek zaczynają tylko od nowa spod taśmy, defektów nie ma. Koniec: ESC i potwierdzenie,
+- **TRENING** – gracz 1 sam na torze. Najpierw ekran ustawień treningu (osobnych od turniejowych): stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc) i deszcz (pada od startu); START TRENINGU rusza, POWRÓT albo ESC wraca do menu. Start spod taśmy i okrążenia bez limitu; na murawie czas ostatniego i najlepszego okrążenia oraz rekord toru. Taśma czy upadek zaczynają tylko od nowa spod taśmy, defektów nie ma. Koniec: ESC i potwierdzenie – powrót do ustawień treningu,
 - **INSTRUKCJA** – trzy strony: zasady turnieju i flagi, start i sterowanie, linia jazdy ze schematem toru (LEWO/PRAWO zmienia stronę),
 - **REKORDY** – tabele rekordów toru,
 - **CREDITS** – plansza twórców.

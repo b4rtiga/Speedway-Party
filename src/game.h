@@ -244,6 +244,7 @@ typedef enum {
     GS_NAME_ENTRY,         /* wpisywanie imienia po rekordzie (gracz w TOP 5) */
     GS_OPTIONS,          /* opcje turnieju (z ustawien): stan toru, defekty, muzyka */
     GS_SERIES,           /* mistrzostwa: klasyfikacja generalna po rundzie */
+    GS_TRAIN_OPTS,       /* trening: tor, stan toru, pora, deszcz - przed startem */
     GS_QUIT
 } GameState;
 
@@ -284,6 +285,8 @@ typedef struct Tournament {
     UBYTE     team_mode;                   /* opcja ZAWODY: 1 = mecz druzynowy (gospodarze 1+2, goscie 3+4) */
     UBYTE     track_pick;                  /* opcja TOR: 0..NUM_TRACKS-1 (w mistrzostwach tor 1. rundy) */
     UBYTE     series;                      /* opcja ZAWODY: 1 = mistrzostwa (SERIES_ROUNDS turniejow) */
+    UBYTE     train_track, train_cond;     /* trening: tor, stan toru (0..2, TRACK_RANDOM) */
+    UBYTE     train_night, train_rain;     /* trening: noc, deszcz od startu */
     UBYTE     series_round;                /* biezaca runda mistrzostw: 0..SERIES_ROUNDS-1 */
     UBYTE     series_pts[MAX_RIDERS][SERIES_ROUNDS];    /* punkty zawodnika w rundzie */
     UBYTE     series_place[MAX_RIDERS][SERIES_ROUNDS];  /* miejsce w rundzie (1..4), 0 = nie jechana */

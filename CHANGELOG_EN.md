@@ -8,7 +8,7 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 - **Night meetings:** a new TIME: DAY / NIGHT option. At night four floodlight masts light the track – lamps with a soft glow, the bends in full warm light, the middle of the straights a little darker.
 - **Machine defects:** at a random moment of a heat an engine coughs, smokes and dies, and the rider rolls onto the infield and waits there until the end of the heat – 0 points (“D”). About one defect per tournament, at most one per rider; they can be switched off.
 - **Team match:** the home team (red and blue helmets) against the away team (white and yellow) – heats end 5:1, 4:2 or 3:3, and the match score is shown in the programme, after each heat, on the final screen and in the newspaper.
-- **Practice:** a new menu item – player 1 alone on the track, unlimited laps, with the lap time, the best lap and the track record on the infield.
+- **Practice:** a new menu item – player 1 alone on the track, unlimited laps; its own settings: track condition, time of day and rain; with the lap time, the best lap and the track record on the infield.
 - **Fireworks over the podium** and a **crowd wave** – the stands ripple when the lead changes and at the finish.
 - **Rain:** a new RAIN option – it starts raining at a random heat, the track gets softer heat by heat instead of drying, and you can see the drops.
 - **Photo finish:** when the runner-up crosses the line at most 0.1 s behind the winner, the game shows the end of the heat in slow motion and a freeze-frame on the line with the margin.

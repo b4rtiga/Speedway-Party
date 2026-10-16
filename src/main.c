@@ -125,16 +125,15 @@ static void training_start(void)
     static const UBYTE start_wet[3] = { 0, 130, 255 };
     Heat *h = &g_tour.heat;
     audio_music_cut();                  /* liczenie toru trwa kilka klatek - muzyka by sie zacinala */
-    player1_port(input_menu_fire_port());
     g_training = TRUE;
     tournament_reset();
     g_tour.riders[0].control = CTRL_HUMAN;
     g_tour.riders[0].warnings = 0;
     g_tour.current_heat = 0;
-    g_tour.rain_from = 0xFF;
-    track_select(g_tour.track_pick);
-    g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice : (UBYTE)rng_range(0, 2);
-    track_set_night((BOOL)g_tour.night);
+    g_tour.rain_from = g_tour.train_rain ? 0 : 0xFF;   /* deszcz: pada od startu */
+    track_select(g_tour.train_track);
+    g_tour.start_condition = g_tour.train_cond < TRACK_RANDOM ? g_tour.train_cond : (UBYTE)rng_range(0, 2);
+    track_set_night((BOOL)g_tour.train_night);
     track_set_wetness(start_wet[g_tour.start_condition]);
     track_reset_wear();
     track_random_surface();
@@ -313,13 +312,18 @@ static BOOL handle_pause(void)
         if (edge) {
             g_paused = FALSE;
             if (g_pause_quit) enter(GS_QUIT);
-            else if (g_training) { g_training = FALSE; ui_menu_enter(1); enter(GS_MENU); }   /* koniec treningu */
+            else if (g_training) { g_training = FALSE; enter(GS_TRAIN_OPTS); }   /* koniec treningu: jego ustawienia */
             else enter(GS_SETUP);
         } else if (ui_confirm()) {
             g_paused = FALSE;
             while (key_get() != 0xFF) ;  /* Enter z pauzy nie przechodzi do ekranu pod spodem */
             ui_invalidate();
         }
+        return TRUE;
+    }
+    if (edge && g_tour.state == GS_TRAIN_OPTS) {     /* ESC w ustawieniach treningu: menu */
+        ui_menu_enter(1);
+        enter(GS_MENU);
         return TRUE;
     }
     if (edge && g_tour.state == GS_OPTIONS) {        /* ESC w opcjach: powrot do ustawien */
@@ -382,7 +386,7 @@ static void update_state(void)
         if (state_timer > FPS / 4) {
             UBYTE pick = ui_menu_update();
             if (pick == 1) { player1_port(input_menu_fire_port()); enter(GS_SETUP); }
-            else if (pick == 2) training_start();
+            else if (pick == 2) { player1_port(input_menu_fire_port()); ui_train_enter(); enter(GS_TRAIN_OPTS); }
             else if (pick == 3) { ui_help_enter(0); enter(GS_HELP); }
             else if (pick == 4) { ui_records_enter(); enter(GS_RECORDS); }
             else if (pick == 5) enter(GS_CREDITS);
@@ -406,6 +410,14 @@ static void update_state(void)
 #endif
         if (state_timer > FPS / 2) { if (ui_name_entry_update()) name_entry_done(); }
         else while (key_get() != 0xFF) ;  /* wcisniecia sprzed ekranu nie wpisuja znakow */
+        break;
+
+    case GS_TRAIN_OPTS:                  /* ustawienia treningu: START albo POWROT (ESC) do menu */
+        if (state_timer > FPS / 4) {
+            UBYTE r = ui_train_update();
+            if (r == TRAIN_GO) training_start();
+            else if (r == TRAIN_BACK) { ui_menu_enter(1); enter(GS_MENU); }
+        }
         break;
 
     case GS_OPTIONS:                     /* opcje turnieju: POWROT (albo ESC) do ustawien */
@@ -575,7 +587,8 @@ static int game_main(void)
     settings_load();                            /* zawodnicy i opcje z poprzedniej sesji */
     if (!track_init()) { rc = 20; goto out; }   /* wszystkie tory (przed przejeciem) */
     if (g_tour.track_pick >= NUM_TRACKS) g_tour.track_pick = 0;
-    if (!track_night_available()) g_tour.night = 0;
+    if (g_tour.train_track >= NUM_TRACKS) g_tour.train_track = 0;
+    if (!track_night_available()) g_tour.night = g_tour.train_night = 0;
     ui_init();
 #ifdef SHOW_LAG
     { extern ULONG g_chip_free; g_chip_free = AvailMem(MEMF_CHIP); }   /* po wczytaniu wszystkiego */
@@ -634,7 +647,7 @@ static int game_main(void)
             /* fala na trybunach przy zmianie lidera i na mecie (nie w nocy - tam inna paleta) */
             extern UWORD g_crowd_wave;
             static BOOL waving;
-            if (g_crowd_wave && g_tour.state == GS_HEAT && !g_tour.night) {
+            if (g_crowd_wave && g_tour.state == GS_HEAT && !(g_training ? g_tour.train_night : g_tour.night)) {
                 g_crowd_wave--;
                 video_crowd_cycle((UBYTE)(g_frame >> 2));
                 waving = TRUE;

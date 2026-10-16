@@ -959,6 +959,83 @@ COLD BOOL ui_options_update(void)
     return FALSE;
 }
 
+/* Po wyborze TRENING: warunki jazdy - tor, stan toru, pora, deszcz (pada od startu).
+ * Osobne od ustawien turnieju. FIRE na START TRENINGU rusza, POWROT albo ESC - menu. */
+#define TR_ARENA   0
+#define TR_COND    1
+#define TR_NIGHT   2
+#define TR_RAIN    3
+#define TR_START   4
+#define TR_BACK    5
+#define TR_FIRST   (NUM_TRACKS > 1 ? TR_ARENA : TR_COND)       /* jeden tor - bez wiersza TOR */
+static UBYTE tr_row = TR_START;
+
+void ui_train_enter(void) { tr_row = TR_START; }
+
+static WORD tr_row_y(UBYTE row) { return (WORD)(48 + (row - TR_FIRST) * 18 + (row >= TR_START ? 10 : 0)); }
+
+static COLD void draw_train_opts(UBYTE *b)
+{
+    static const char *const label[TR_START] = { T("TOR:", "TRACK:"), T("STAN TORU:", "SURFACE:"), T("PORA:", "TIME:"),
+                                                 T("DESZCZ:", "RAIN:") };
+    static const char *const about[TR_BACK + 1] = {
+        T("TOR TRENINGU", "THE TRACK TO PRACTISE ON"),
+        T("SUCHY, WILGOTNY, MOKRY ALBO LOSOWY", "DRY, DAMP, WET OR RANDOM"),
+        T("NOC: TOR W ŚWIETLE REFLEKTORÓW", "NIGHT: TRACK UNDER FLOODLIGHTS"),
+        T("PADA OD STARTU, TOR MIĘKNIE", "RAIN FROM THE START, THE TRACK SOFTENS"),
+        T("SAM NA TORZE, OKRĄŻENIA BEZ LIMITU", "ALONE ON TRACK, UNLIMITED LAPS"),
+        T("POWRÓT DO MENU", "BACK TO THE MENU") };
+    char s[32], *p;
+    UBYTE i;
+    text_draw_big_center(b, 8, T("TRENING", "PRACTICE"), U_RAINBOW, U_SHADOW);
+    blit_fill(b, 16, tr_row_y(tr_row) - 4, 288, 16, U_CURSOR);
+    for (i = TR_FIRST; i < TR_START; i++) {
+        const char *v = i == TR_ARENA ? track_name(g_tour.train_track) : i == TR_COND ? cond_names[g_tour.train_cond]
+                      : i == TR_NIGHT ? (g_tour.train_night ? T("NOC", "NIGHT") : T("DZIEŃ", "DAY")) : yes_no(g_tour.train_rain);
+        text_draw(b, 40, tr_row_y(i), label[i], U_WHITE, U_SHADOW);
+        p = text_cat(s, "< ");
+        p = text_cat(p, v);
+        text_cat(p, " >");
+        text_draw(b, 168, tr_row_y(i), s, U_GOLD, U_SHADOW);
+    }
+    text_draw_center(b, tr_row_y(TR_START), T("START TRENINGU", "START PRACTICE"), tr_row == TR_START ? U_RAINBOW : U_WHITE, U_SHADOW);
+    text_draw_center(b, tr_row_y(TR_BACK), T("POWRÓT", "BACK"), tr_row == TR_BACK ? U_RAINBOW : U_WHITE, U_SHADOW);
+    text_draw_center(b, 188, about[tr_row], U_GREY, 0);
+    text_draw_small_center(b, 216, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY);
+    text_draw_small_center(b, 227, T("FIRE: ZMIANA / START", "FIRE: CHANGE / START"), U_GREY);
+    text_draw_small_center(b, 238, T("ESC - POWRÓT DO MENU", "ESC - BACK TO THE MENU"), U_GREY);
+}
+
+COLD UBYTE ui_train_update(void)
+{
+    UBYTE m = input_menu();
+    BOOL changed = FALSE;
+    BYTE d = 0;
+    while (key_get() != 0xFF) ;
+    if (m & BTN_UP)   { tr_row = (UBYTE)(tr_row == TR_FIRST ? TR_BACK : tr_row - 1); changed = TRUE; }
+    if (m & BTN_DOWN) { tr_row = (UBYTE)(tr_row == TR_BACK ? TR_FIRST : tr_row + 1); changed = TRUE; }
+    if (m & BTN_RIGHT) d = 1;
+    if (m & BTN_LEFT) d = -1;
+    if (m & BTN_FIRE) {
+        if (tr_row == TR_START) return TRAIN_GO;
+        if (tr_row == TR_BACK) return TRAIN_BACK;
+        d = 1;
+    }
+    if (d && tr_row < TR_START) {
+        changed = TRUE;
+        if (tr_row == TR_ARENA) {
+            g_tour.train_track = (UBYTE)((g_tour.train_track + NUM_TRACKS + d) % NUM_TRACKS);
+            track_select(g_tour.train_track);          /* noc dostepna wg toru */
+            if (!track_night_available()) g_tour.train_night = 0;
+        }
+        else if (tr_row == TR_COND) g_tour.train_cond = (UBYTE)((g_tour.train_cond + 4 + d) % 4);
+        else if (tr_row == TR_NIGHT) g_tour.train_night = (UBYTE)(!g_tour.train_night && track_night_available());
+        else g_tour.train_rain = (UBYTE)!g_tour.train_rain;
+    }
+    if (changed) ui_invalidate();
+    return 0;
+}
+
 /* ===================== PROGRAM / TABELA =========================== */
 
 /* mecz druzynowy: "GOSPODARZE 23 : 19 GOSCIE" */
@@ -2407,6 +2484,7 @@ panel_done:
     case GS_NEWS:      draw_news(b); break;
     case GS_SETUP:     draw_setup(b); break;
     case GS_OPTIONS:   draw_options(b); break;
+    case GS_TRAIN_OPTS: draw_train_opts(b); break;
     case GS_TABLE:     draw_table(b); break;
     case GS_PRESENT:   draw_present(b, bi); break;
     case GS_GATE_PICK: draw_pick(b); break;

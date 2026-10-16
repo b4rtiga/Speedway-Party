@@ -334,7 +334,7 @@ static BOOL music_wanted(void)
 {
     return (BOOL)(music.data && g_music_enabled && (g_tour.state == GS_TITLE || g_tour.state == GS_MENU ||
                                                     g_tour.state == GS_CREDITS || g_tour.state == GS_HELP || g_tour.state == GS_SETUP ||
-                                                    g_tour.state == GS_OPTIONS));
+                                                    g_tour.state == GS_OPTIONS || g_tour.state == GS_TRAIN_OPTS));
 }
 
 /* natychmiastowa cisza (zamiast wyciszania) - przed dluzszym liczeniem, ktore wstrzymuje

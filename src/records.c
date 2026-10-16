@@ -32,7 +32,7 @@
 #define SET_DAT  "PROGDIR:settings.dat"
 #define SET_TMP  "PROGDIR:settings.tmp"
 #define SET_RIDER (NAME_LEN + 1 + 2)      /* nazwisko, sterowanie, poziom bota */
-#define SET_HEAD 12                       /* "SPS1" + 8 bajtow opcji */
+#define SET_HEAD 16                       /* "SPS1" + 8 bajtow opcji turnieju + 4 treningu */
 #define SET_LEN  (SET_HEAD + MAX_RIDERS * SET_RIDER)
 
 typedef struct {                          /* stary plik records.dat (struktura zapisana wprost) */
@@ -140,7 +140,7 @@ COLD void records_save(void)
 #endif
 
 /* ---------------- ustawienia (settings.dat) ----------------
- * "SPS1", liczba graczy, stan toru, pora, defekty, muzyka, deszcz, mecz, tor; potem dla kazdego wiersza:
+ * "SPS1", liczba graczy, stan toru, pora, defekty, muzyka, deszcz, mecz, tor, trening (tor, stan toru, noc, deszcz); potem dla kazdego wiersza:
  * nazwisko (NAME_LEN + 1, z zerem), sterowanie, poziom bota. Bez pliku albo z bledem - domyslne. */
 static UBYTE set_loaded[SET_LEN];                 /* stan z pliku - zapis tylko po zmianie */
 
@@ -156,6 +156,10 @@ static void settings_pack(UBYTE *b)
     b[9] = g_tour.rain_opt;
     b[10] = (UBYTE)(g_tour.team_mode ? 1 : g_tour.series ? 2 : 0);   /* zawody: indyw. / mecz / mistrzostwa */
     b[11] = g_tour.track_pick;
+    b[12] = g_tour.train_track;
+    b[13] = g_tour.train_cond;
+    b[14] = g_tour.train_night;
+    b[15] = g_tour.train_rain;
     for (i = 0; i < MAX_RIDERS; i++) {
         UBYTE *r = b + SET_HEAD + i * SET_RIDER;
         const Rider *rd = &g_tour.riders[i];
@@ -172,7 +176,8 @@ COLD void settings_load(void)
     UBYTE i, k;
     settings_pack(set_loaded);                    /* domyslne - gdy pliku nie ma */
     if (!asset_load(SET_DAT, b, SET_LEN) || b[0] != 'S' || b[1] != 'P' || b[2] != 'S' || b[3] != '1') return;
-    if (b[4] > MAX_RIDERS || b[5] > TRACK_RANDOM || b[6] > 1 || b[7] > 1 || b[8] > 1 || b[9] > 1 || b[10] > 2 || b[11] >= NUM_TRACKS) return;
+    if (b[4] > MAX_RIDERS || b[5] > TRACK_RANDOM || b[6] > 1 || b[7] > 1 || b[8] > 1 || b[9] > 1 || b[10] > 2 || b[11] >= NUM_TRACKS
+        || b[12] >= NUM_TRACKS || b[13] > TRACK_RANDOM || b[14] > 1 || b[15] > 1) return;
     for (i = 0; i < MAX_RIDERS; i++) {
         const UBYTE *r = b + SET_HEAD + i * SET_RIDER;
         if (r[NAME_LEN] != 0 || r[NAME_LEN + 1] >= INPUT_NONE || r[NAME_LEN + 2] > AI_MASTER) return;
@@ -186,6 +191,10 @@ COLD void settings_load(void)
     g_tour.team_mode = (UBYTE)(b[10] == 1);
     g_tour.series = (UBYTE)(b[10] == 2);
     g_tour.track_pick = b[11];
+    g_tour.train_track = b[12];
+    g_tour.train_cond = b[13];
+    g_tour.train_night = b[14];
+    g_tour.train_rain = b[15];
     for (i = 0; i < MAX_RIDERS; i++) {
         const UBYTE *r = b + SET_HEAD + i * SET_RIDER;
         Rider *rd = &g_tour.riders[i];

@@ -576,6 +576,10 @@ static int screenshots(void)
         break;
     }
 
+    /* ustawienia treningu (ekran po wyborze TRENING) */
+    ui_train_enter();
+    g_tour.state = GS_TRAIN_OPTS; render(); shot("39_trening_ustawienia", FALSE);
+
     /* trening: zawodnik sam, tabliczka z czasami okrazen (bot jedzie za gracza) */
     g_training = TRUE;
     g_tour.heat.gate_rider[0] = 0;

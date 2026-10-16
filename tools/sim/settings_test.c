@@ -94,6 +94,9 @@ int main(void)
     g_tour.track_choice = 2;
     g_tour.night = 1;
     g_tour.series = 1;                                /* zawody: mistrzostwa */
+    g_tour.train_cond = 2;                            /* trening: mokry tor, noc, deszcz */
+    g_tour.train_night = 1;
+    g_tour.train_rain = 1;
     g_tour.track_pick = NUM_TRACKS - 1;
     g_defects_enabled = FALSE;
     g_music_enabled = FALSE;
@@ -102,7 +105,7 @@ int main(void)
     g_tour.riders[3].ai_level = AI_MASTER;
     settings_save();
     f = find("PROGDIR:settings.dat");
-    CHECK(f >= 0 && disk[f].len == 12 + MAX_RIDERS * (NAME_LEN + 3) && !memcmp(disk[f].data, "SPS1", 4), "zapis: plik i naglowek");
+    CHECK(f >= 0 && disk[f].len == 16 + MAX_RIDERS * (NAME_LEN + 3) && !memcmp(disk[f].data, "SPS1", 4), "zapis: plik i naglowek");
     CHECK(find("PROGDIR:settings.tmp") < 0, "plik tymczasowy usuniety");
 
     memset(&g_tour, 0, sizeof(g_tour));               /* "nowe uruchomienie gry" */
@@ -111,6 +114,7 @@ int main(void)
     CHECK(g_tour.num_humans == 3 && g_tour.track_choice == 2 && g_tour.night == 1, "odczyt: gracze, stan toru, pora");
     CHECK(!g_defects_enabled && !g_music_enabled, "odczyt: defekty i muzyka");
     CHECK(g_tour.series == 1 && !g_tour.team_mode && g_tour.track_pick == NUM_TRACKS - 1, "odczyt: mistrzostwa i tor");
+    CHECK(g_tour.train_cond == 2 && g_tour.train_night == 1 && g_tour.train_rain == 1, "odczyt: ustawienia treningu");
     CHECK(!strcmp(g_tour.riders[0].name, "MAREK \x83OPATA") && !strcmp(g_tour.riders[1].name, "ADA"), "odczyt: nazwiska (z polska litera)");
     CHECK(g_tour.riders[1].input == INPUT_KEYS_ZX && g_tour.riders[3].ai_level == AI_MASTER, "odczyt: sterowanie i poziom bota");
 
