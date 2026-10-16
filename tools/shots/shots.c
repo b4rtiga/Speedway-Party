@@ -401,7 +401,7 @@ static int screenshots(void)
             roost_erase(); ui_render(); roost_draw();
             if (k < 5) { g_video.front = g_video.back; g_video.back ^= 1; }
         }
-        bike_sprites(); shot("26_pauza", TRUE);
+        bike_sprites(); shot("test_pauza", TRUE);          /* kontrola: tylko tools/shots/out */
         g_paused = FALSE;
         ui_invalidate();
     }
@@ -515,7 +515,7 @@ static int screenshots(void)
     bike_sprites(); render(); hud_update(); shot("27_defekt", TRUE);
     while (g_tour.heat.phase != HEAT_FINISHED) step();
     tournament_award_points();
-    g_tour.state = GS_HEAT_RESULT; render(); hud_update(); shot("28_defekt_wynik", FALSE);
+    g_tour.state = GS_HEAT_RESULT; render(); hud_update(); shot("test_defekt_wynik", FALSE);   /* kontrola: tylko tools/shots/out */
 
     printf("zrzuty: tools/shots/out/\n");
     return 0;

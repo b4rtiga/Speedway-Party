@@ -12,4 +12,6 @@ python -m ziglang cc -O1 -std=gnu99 -DHOST_SIM $DEF -Wall -Wno-unused-parameter 
     src/sprites.c src/tractors.c src/roost.c src/race.c src/start.c src/ai.c \
     src/tournament.c src/track.c src/fixmath.c src/records.c src/hof.c src/newspaper.c src/audio.c \
     -o "$EXE" || exit 1
-"./$EXE" && python tools/shots/topng.py "$OUT" "$DEST"
+# angielskie: tylko zrzuty z docs/DOCUMENTATION.md i ze strony gry (galeria)
+EN_SHOTS=02_setup,03_table,04_gate_red,05_racing,06_false_start,07_result,08_grading,10_podium,13_sciezki,16_awaria,17_prezentacja,18_menu,23_gazeta,24_imie,25_rekordy,27_defekt,29_opcje
+"./$EXE" && python tools/shots/topng.py "$OUT" "$DEST" ${LANG_EN:+$EN_SHOTS}
