@@ -1052,28 +1052,82 @@ static void draw_girl_rows(UBYTE *b, WORD x0, WORD py, UBYTE color, WORD y0, WOR
     }
 }
 
-/* Tablica nad glowa (64x32): cien, czarny kontur i biala ramka z zaokraglonymi rogami, pole
- * w kolorze kasku z jasnym polyskiem u gory i ciemniejszym pasem u dolu, na srodku duza litera
- * pola startowego. Dlonie podprowadzajacej (kopia z maska) nachodza na dolna krawedz. */
+/* Tablica nad glowa (64x36), rysowana wierszami (rect_px): cien, czarny kontur z zaokraglonymi
+ * rogami, pole w kolorze kasku z gradientem (polysk u gory, ciemniejszy dol, przejscia ditheringiem
+ * w szachownice), wypukla krawedz (jasna z lewej, ciemna z prawej), odblask, nity po bokach
+ * i bialy krazek z litera pola startowego. Dlonie podprowadzajacej (kopia z maska) nachodza na
+ * dolna krawedz. */
 #define U_HELMET_LT 113                     /* + kask: jasny odcien (track.c, tools/genart.py) */
 #define U_HELMET_DK 117                     /* + kask: ciemny odcien */
+#define BOARD_W     64
+#define BOARD_H     36
+static const UBYTE board_inset[4] = { 4, 2, 1, 1 };                  /* zaokraglenie rogow */
+static const UBYTE disc_out[27] = { 4, 6, 8, 9, 10, 11, 12, 12, 13, 13, 13, 13, 13, 13,   /* krazek r=13.5 */
+                                    13, 13, 13, 13, 13, 12, 12, 11, 10, 9, 8, 6, 4 };
+static const UBYTE disc_in[25] = { 4, 6, 8, 9, 10, 10, 11, 11, 12, 12, 12, 12, 12,          /* r=12.5 */
+                                   12, 12, 12, 12, 11, 11, 10, 10, 9, 8, 6, 4 };
+
+static WORD board_row_inset(WORD r)
+{
+    if (r < 4) return board_inset[r];
+    if (r >= BOARD_H - 4) return board_inset[BOARD_H - 1 - r];
+    return 0;
+}
+
 static void draw_board(UBYTE *b, WORD x0, WORD y0, UBYTE color, UBYTE gate)
 {
-    WORD bx = (WORD)(x0 - 8), by = (WORD)(y0 - 30);
+    WORD bx = (WORD)(x0 - 8), by = (WORD)(y0 + 2 - BOARD_H), cx = (WORD)(bx + BOARD_W / 2), cy = (WORD)(by + BOARD_H / 2);
+    UBYTE base = (UBYTE)(U_HELMET + color), lt = (UBYTE)(U_HELMET_LT + color), dk = (UBYTE)(U_HELMET_DK + color);
+    BOOL white = (BOOL)(color == HELMET_WHITE);
+    WORD r, i;
     char s[2];
-    BOOL light = (BOOL)(color == HELMET_WHITE || color == HELMET_YELLOW);
-    rect_px(b, bx + 2, by + 2, 64, 32, U_SHADOW);                      /* cien */
-    rect_px(b, bx, by, 64, 32, U_SHADOW);                              /* kontur */
-    rect_px(b, bx, by, 1, 1, 0); rect_px(b, bx + 63, by, 1, 1, 0); rect_px(b, bx, by + 31, 1, 1, 0);
-    rect_px(b, bx + 1, by + 1, 62, 30, U_WHITE);                       /* ramka */
-    rect_px(b, bx + 1, by + 1, 1, 1, U_SHADOW); rect_px(b, bx + 62, by + 1, 1, 1, U_SHADOW);
-    rect_px(b, bx + 1, by + 30, 1, 1, U_SHADOW); rect_px(b, bx + 62, by + 30, 1, 1, U_SHADOW);
-    rect_px(b, bx + 3, by + 3, 58, 26, (UBYTE)(U_HELMET + color));    /* pole w kolorze kasku */
-    rect_px(b, bx + 3, by + 3, 58, 4, (UBYTE)(U_HELMET_LT + color));  /* polysk */
-    rect_px(b, bx + 3, by + 25, 58, 4, (UBYTE)(U_HELMET_DK + color)); /* cien u dolu */
+
+    for (r = 0; r < BOARD_H; r++) {                                  /* cien i kontur */
+        i = board_row_inset(r);
+        rect_px(b, bx + i + 2, by + r + 3, BOARD_W - 2 * i, 1, U_SHADOW);
+        rect_px(b, bx + i, by + r, BOARD_W - 2 * i, 1, U_SHADOW);
+    }
+    for (r = 1; r < BOARD_H - 1; r++) {                              /* pole: gradient + krawedz */
+        WORD a = board_row_inset(r - 1), c = board_row_inset(r + 1), w;
+        UBYTE col;
+        i = board_row_inset(r);
+        if (a > i) i = a;
+        if (c > i) i = c;
+        i++;
+        w = (WORD)(BOARD_W - 2 * i);
+        UBYTE dith = 0;
+        if (r <= 3) col = lt;
+        else if (r <= 6) { col = base; dith = lt; }                 /* przejscia w szachownice */
+        else if (r < BOARD_H - 9) col = base;
+        else if (r < BOARD_H - 6) { col = base; dith = dk; }
+        else col = dk;
+        rect_px(b, bx + i, by + r, w, 1, col);
+        if (dith) {
+            WORD x;
+            for (x = (WORD)(bx + i + ((r + i) & 1)); x < bx + i + w; x += 2) rect_px(b, x, by + r, 1, 1, dith);
+        }
+        if (r > 1 && r < BOARD_H - 2) {
+            rect_px(b, bx + i, by + r, 1, 1, lt);                    /* jasna lewa krawedz */
+            rect_px(b, bx + i + w - 1, by + r, 1, 1, dk);            /* ciemna prawa */
+        }
+    }
+    rect_px(b, bx + 7, by + 2, 18, 1, U_WHITE);                      /* odblask */
+    rect_px(b, bx + 5, by + 3, 4, 1, U_WHITE);
+    for (i = 0; i < 2; i++) {                                         /* nity */
+        WORD nx = (WORD)(i ? bx + BOARD_W - 8 : bx + 6);
+        rect_px(b, nx, cy - 1, 2, 2, U_SILVER);
+        rect_px(b, nx + 1, cy, 1, 1, U_SHADOW);
+    }
+    for (r = -13; r <= 13; r++) {                                     /* krazek: czarny brzeg */
+        WORD hw = disc_out[r + 13];
+        rect_px(b, cx - hw, cy + r, 2 * hw + 1, 1, U_SHADOW);
+    }
+    for (r = -12; r <= 12; r++) {                                     /* i srodek, dol lekko szary */
+        WORD hw = disc_in[r + 12];
+        rect_px(b, cx - hw, cy + r, 2 * hw + 1, 1, white ? U_PANEL : r >= 9 ? U_SILVER : U_WHITE);
+    }
     s[0] = gate_letter[gate]; s[1] = 0;
-    text_draw_big(b, x0 + GIRL_W / 2 - FONT_W, by + 5, s, light ? U_PANEL : U_WHITE,
-                  light ? 0 : (UBYTE)(U_HELMET_DK + color));
+    text_draw_big(b, cx - FONT_W, cy - FONT_H, s, white ? U_WHITE : U_PANEL, 0);
 }
 
 static void draw_girl(UBYTE *b, WORD x0, WORD y0, UBYTE color, UBYTE gate, BYTE amp)
