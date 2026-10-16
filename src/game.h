@@ -229,7 +229,7 @@ typedef enum {
     GS_TRACK_GRADING,    /* rownanie i polewanie (traktory) */
     GS_PODIUM,
     GS_PRESENT,          /* prezentacja przed biegiem: podprowadzajace z tablicami w kolorach pol */
-    GS_MENU,             /* po planszy tytulowej: JEDZIEMY! / CREDITS */
+    GS_MENU,             /* po planszy tytulowej: TURNIEJ / CREDITS */
     GS_CREDITS,          /* plansza TWORCY */
     GS_HELP,             /* INSTRUKCJA: zasady, start, idealna linia (3 strony) */
     GS_NEWS,             /* gazeta po zawodach (po podium) */

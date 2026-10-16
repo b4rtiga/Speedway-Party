@@ -52,14 +52,14 @@ STEROWANIE (kazdy gracz: tylko LEWO / PRAWO, gaz automatyczny)
 - LEWO lamie motocykl w luk (do 40 st.), PRAWO to kontra
 - najlepsza linia (ciemniejsza, wyjezdzona sciezka) jest inna na kazdych zawodach;
   na niej uslizg mniej hamuje
-- plansza tytulowa czeka na FIRE / Return, potem JEDZIEMY!, INSTRUKCJA
+- plansza tytulowa czeka na FIRE / Return, potem TURNIEJ, INSTRUKCJA
   (zasady, start, linia jazdy), REKORDY (TOP 5 biegow i okrazen graczy) albo CREDITS
 - gracz w TOP 5 wpisuje imie raz, po turnieju (7 znakow): GORA/DOL znak, LEWO/PRAWO pozycja,
   mozna tez pisac z klawiatury, FIRE zapisz
 - rekordy zapisuja sie do halloffame.dat przy wyjsciu z gry (ESC na ekranie
   wyboru i ESC jeszcze raz); reset Amigi w trakcie gry traci wyniki z sesji
 - menu: joystick w porcie 1 albo 0 (FIRE = zatwierdz) albo strzalki + Return;
-  czym zatwierdzisz JEDZIEMY!, tym steruje GRACZ 1 (JOY 0, JOY 1 albo STRZALKI)
+  czym zatwierdzisz TURNIEJ, tym steruje GRACZ 1 (JOY 0, JOY 1 albo STRZALKI)
 - ESC albo drugi przycisk joysticka = pauza / wyjscie
 
 Kod zrodlowy i opis: https://github.com/b4rtiga/Speedway-Party
@@ -102,14 +102,14 @@ CONTROLS (each player: LEFT / RIGHT only, the throttle is automatic)
 - LEFT lays the bike into a slide (up to 40 degrees), RIGHT counter-steers
 - the best racing line (a darker, worn-in groove) is different at every meeting;
   sliding on it costs less speed
-- the title screen waits for FIRE / Return, then LET'S RACE!, HOW TO PLAY
+- the title screen waits for FIRE / Return, then TOURNAMENT, HOW TO PLAY
   (rules, start, racing line), RECORDS (TOP 5 heats and laps by players) or CREDITS
 - a player in the TOP 5 enters a name once, after the tournament (7 characters):
   UP/DOWN letter, LEFT/RIGHT position, or type on the keyboard, FIRE saves
 - records are saved to halloffame.dat when you quit (ESC on the title screen and
   ESC once more); resetting the Amiga during play loses the session's results
 - menus: joystick in port 1 or 0 (FIRE = confirm) or cursor keys + Return;
-  whatever you confirm LET'S RACE! with becomes PLAYER 1's control
+  whatever you confirm TOURNAMENT with becomes PLAYER 1's control
   (JOY 0, JOY 1 or CURSORS)
 - ESC or the second joystick button = pause / quit
 

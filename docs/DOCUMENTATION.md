@@ -56,7 +56,7 @@ Each player has just two controls: **LEFT** and **RIGHT**. The throttle is autom
 
 Loading from floppy takes several dozen seconds, so the game first shows the title screen with “LOADING…” and reads the rest of the data in the background (the system still runs normally; the game takes over the hardware only once everything is loaded). The title screen waits for FIRE. Then you choose:
 
-- **LET'S RACE!** – the tournament settings,
+- **TOURNAMENT** – riders and tournament settings,
 - **HOW TO PLAY** – three pages: tournament rules and flags, start and controls, the racing line with a track diagram (LEFT/RIGHT turns the page),
 - **RECORDS** – the track record tables,
 - **CREDITS** – who made the game.
@@ -65,13 +65,13 @@ FIRE or ESC takes you back from the manual, the records and the credits.
 
 ![Main menu after the title screen](../art/en/screen_18_menu.png)
 
-### Settings
+### Tournament: riders and settings
 
-Number of players (0–4), each player's controls and name, and bot skill. The **TOURNAMENT OPTIONS** row opens a separate screen: track condition at the start (dry, damp, wet or random – the default), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the settings. A summary of the chosen options is shown under the list. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed LET'S RACE! with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
+Number of players (0–4), each player's controls and name, and bot skill. The **SETTINGS** row opens a separate screen: track condition at the start (dry, damp, wet or random – the default), defects (chapter 4) and music; LEFT/RIGHT or FIRE changes, BACK or ESC returns to the tournament screen. A summary of the chosen settings is shown under the list. The cursor starts on **START TOURNAMENT**. PLAYER 1 gets the control you confirmed TOURNAMENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). With 0 players the whole tournament is ridden by bots – a demo mode.
 
-![Settings](../art/en/screen_02_setup.png)
+![Tournament: riders](../art/en/screen_02_setup.png)
 
-![Tournament options](../art/en/screen_29_opcje.png)
+![Tournament settings](../art/en/screen_29_opcje.png)
 
 ### Race programme and rider presentation
 
@@ -164,7 +164,7 @@ Loose dirt collects by the fence. Ride into it too slowly and the bike bogs down
 
 ### Watering and drying
 
-The track condition at the start is random by default (you can set it in the tournament options). A wet track grips clearly worse – you have to slide harder. After heats 4, 7, 11 and 13 the track is graded and watered, then dries out heat by heat.
+The track condition at the start is random by default (you can set it in the tournament settings). A wet track grips clearly worse – you have to slide harder. After heats 4, 7, 11 and 13 the track is graded and watered, then dries out heat by heat.
 
 # Part II. For developers
 

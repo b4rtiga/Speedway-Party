@@ -56,7 +56,7 @@ Każdy gracz ma tylko dwa przyciski: **LEWO** i **PRAWO**. Gaz jest automatyczny
 
 Przy starcie z dyskietki wczytywanie trwa kilkadziesiąt sekund, więc gra najpierw pokazuje planszę tytułową z napisem „WCZYTYWANIE…”, a resztę danych doczytuje w tle (system działa jeszcze normalnie, gra przejmuje sprzęt dopiero po wczytaniu). Plansza tytułowa czeka na FIRE. Potem wybierasz:
 
-- **JEDZIEMY!** – przejście do ustawień turnieju,
+- **TURNIEJ** – zawodnicy i ustawienia turnieju,
 - **INSTRUKCJA** – trzy strony: zasady turnieju i flagi, start i sterowanie, linia jazdy ze schematem toru (LEWO/PRAWO zmienia stronę),
 - **REKORDY** – tabele rekordów toru,
 - **CREDITS** – plansza twórców.
@@ -65,13 +65,13 @@ Z instrukcji, rekordów i twórców wracasz FIRE albo ESC.
 
 ![Wybór po planszy tytułowej](../art/screen_18_menu.png)
 
-### Ustawienia
+### Turniej: zawodnicy i ustawienia
 
-Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **OPCJE TURNIEJU** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ustawień. Pod listą widać skrót wybranych opcji. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz JEDZIEMY!: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
+Liczba graczy (0–4), sterowanie i nazwiska graczy oraz poziom botów. Wiersz **USTAWIENIA** otwiera osobny ekran: stan toru na start (suchy, wilgotny, mokry albo losowy – domyślnie), defekty (rozdział 4) i muzyka; LEWO/PRAWO albo FIRE zmienia, POWRÓT albo ESC wraca do ekranu turnieju. Pod listą widać skrót wybranych ustawień. Kursor stoi od razu na **START TURNIEJU**. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz TURNIEJ: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Przy 0 graczach cały turniej jadą boty – to tryb pokazowy.
 
-![Ustawienia](../art/screen_02_setup.png)
+![Turniej: zawodnicy](../art/screen_02_setup.png)
 
-![Opcje turnieju](../art/screen_29_opcje.png)
+![Ustawienia turnieju](../art/screen_29_opcje.png)
 
 ### Program zawodów i prezentacja
 
@@ -115,7 +115,7 @@ Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zosta
 - **Każdy startuje z każdego pola** – program biegów 1–13 jest tak ułożony.
 - **Biegi nominowane (14 i 15):** lider tabeli wybiera pole pierwszy, potem kolejni.
 - **Bieg dodatkowy:** remis punktowy o miejsce na podium rozstrzyga dodatkowy bieg zawodników z remisu, z losowanymi polami. Remis poza podium rozstrzygają zwycięstwa biegów.
-- **Defekty** (opcja w ustawieniach, domyślnie włączona): przed każdym biegiem punktowanym każdy zawodnik ma 2% szansy na awarię motocykla, najwyżej jedną w turnieju – średnio wypada około jednego defektu na turniej. W losowej chwili biegu silnik zaczyna się krztusić i dymić, po 1,5 s gaśnie, motocykl toczy się do zatrzymania i zjeżdża z toru. Zawodnik dostaje 0 punktów, a w tabeli „D”. Kto zdąży dojechać do mety, zanim silnik zgaśnie, kończy bieg normalnie. W biegu dodatkowym defektów nie ma.
+- **Defekty** (w ustawieniach turnieju, domyślnie włączone): przed każdym biegiem punktowanym każdy zawodnik ma 2% szansy na awarię motocykla, najwyżej jedną w turnieju – średnio wypada około jednego defektu na turniej. W losowej chwili biegu silnik zaczyna się krztusić i dymić, po 1,5 s gaśnie, motocykl toczy się do zatrzymania i zjeżdża z toru. Zawodnik dostaje 0 punktów, a w tabeli „D”. Kto zdąży dojechać do mety, zanim silnik zgaśnie, kończy bieg normalnie. W biegu dodatkowym defektów nie ma.
 - **Kolor kasku** jest stały dla zawodnika przez cały turniej (czerwony, niebieski, biały, żółty). Pole startowe zmienia się co bieg.
 - **Boty:** Nowicjusz (spóźnia się pod taśmą, łamie za mocno, trzyma się krawężnika), Profesjonalista (refleks, „zamyka płot” przy próbie wyprzedzania od wewnątrz), Mistrz (czyta przyczepność toru, dawkuje uślizg, potrafi odjechać szeroko).
 
@@ -164,7 +164,7 @@ Pod bandą zbiera się luźna nawierzchnia. Wjazd tam za wolno – motocykl się
 
 ### Polewanie i schnięcie
 
-Stan toru na start jest domyślnie losowany (można go ustawić w opcjach turnieju). Mokry tor trzyma wyraźnie gorzej – trzeba łamać mocniej. Po biegach 4, 7, 11 i 13 tor jest równany i polewany, a potem z biegu na bieg przesycha.
+Stan toru na start jest domyślnie losowany (można go ustawić w ustawieniach turnieju). Mokry tor trzyma wyraźnie gorzej – trzeba łamać mocniej. Po biegach 4, 7, 11 i 13 tor jest równany i polewany, a potem z biegu na bieg przesycha.
 
 # Część II. Dla twórców
 

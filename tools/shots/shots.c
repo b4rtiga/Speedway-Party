@@ -228,7 +228,7 @@ static int trailer(void)
 
     tenter(GS_TITLE);  thold(5 * FPS, FALSE);                 /* plansza tytulowa */
     ui_menu_enter(0);
-    tenter(GS_MENU);   thold(FPS * 3 / 2, FALSE);             /* JEDZIEMY! / CREDITS */
+    tenter(GS_MENU);   thold(FPS * 3 / 2, FALSE);             /* TURNIEJ / CREDITS */
     g_tour.start_condition = 0;                               /* suchy tor */
     g_defects_enabled = TRUE;                                 /* w ustawieniach domyslnie TAK */
     tenter(GS_SETUP);  thold(FPS * 3 / 2, FALSE);             /* ustawienia: 1 gracz... */

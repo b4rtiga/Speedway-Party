@@ -234,7 +234,7 @@ static COLD void draw_title(UBYTE *b)
 
 /* ==================== WYBOR PO PLANSZY TYTULOWEJ ==================== */
 
-/* Na tle ilustracji tytulowej: JEDZIEMY! (dalej do ustawien), INSTRUKCJA, REKORDY albo CREDITS. */
+/* Na tle ilustracji tytulowej: TURNIEJ (dalej do ustawien), INSTRUKCJA, REKORDY albo CREDITS. */
 #define MENU_ITEMS 4
 #define MENU_Y0    146                      /* pierwsza pozycja; kolejne co MENU_DY */
 #define MENU_DY    20
@@ -253,7 +253,7 @@ COLD UBYTE ui_menu_update(void)
 
 static COLD void draw_menu(UBYTE *b)
 {
-    static const char *items[MENU_ITEMS] = { T("JEDZIEMY!", "LET'S RACE!"), T("INSTRUKCJA", "HOW TO PLAY"), T("REKORDY", "RECORDS"), "CREDITS" };
+    static const char *items[MENU_ITEMS] = { T("TURNIEJ", "TOURNAMENT"), T("INSTRUKCJA", "HOW TO PLAY"), T("REKORDY", "RECORDS"), "CREDITS" };
     UBYTE i;
     if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
     text_draw_big_center(b, 12, "SPEEDWAY", U_RAINBOW, U_SHADOW);
@@ -651,7 +651,7 @@ static COLD void draw_setup(UBYTE *b)
     char s[48], *p;
     UBYTE i;
 
-    text_draw_big_center(b, 12, T("USTAWIENIA", "SETTINGS"), U_RAINBOW, U_SHADOW);
+    text_draw_big_center(b, 12, T("TURNIEJ", "TOURNAMENT"), U_RAINBOW, U_SHADOW);
     blit_fill(b, 16, setup_row_y(setup_row) - 4, 288, 17, editing ? U_GOLD : U_CURSOR);
 
     p = text_cat(s, T("LICZBA GRACZY:   < ", "PLAYERS:         < "));
@@ -672,8 +672,7 @@ static COLD void draw_setup(UBYTE *b)
         text_draw(b, 168, y, human ? T("GRACZ", "HUMAN") : "AI", human ? U_GREEN : U_GREY, U_SHADOW);
         text_draw(b, human ? 216 : 192, y, human ? port_names[r->input] : level_names[r->ai_level], U_GOLD, U_SHADOW);   /* PROFESJONALISTA = 15 znakow */
     }
-    text_draw(b, 40, setup_row_y(ROW_OPTIONS), T("OPCJE TURNIEJU", "TOURNAMENT OPTIONS"), U_WHITE, U_SHADOW);
-    text_draw(b, 200, setup_row_y(ROW_OPTIONS), ">", U_GOLD, U_SHADOW);
+    text_draw_center(b, setup_row_y(ROW_OPTIONS), T("USTAWIENIA", "SETTINGS"), setup_row == ROW_OPTIONS ? U_RAINBOW : U_WHITE, U_SHADOW);
     text_draw_center(b, setup_row_y(ROW_START), T("START TURNIEJU", "START TOURNAMENT"), setup_row == ROW_START ? U_RAINBOW : U_WHITE, U_SHADOW);
     /* skrot opcji pod lista */
     p = text_cat(s, T("TOR: ", "TRACK: "));
@@ -687,7 +686,7 @@ static COLD void draw_setup(UBYTE *b)
     text_draw_center(b, 206, editing ? T("PISZ Z KLAWIATURY / GÓRA-DÓŁ LITERA", "TYPE ON KEYBOARD / UP-DOWN LETTER")
                                      : T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY, 0);
     text_draw_center(b, 222, editing ? T("PRAWO: DODAJ  LEWO: USUŃ  FIRE: OK", "RIGHT: ADD  LEFT: DELETE  FIRE: OK")
-                                     : T("FIRE: NAZWISKO / OPCJE / START", "FIRE: NAME / OPTIONS / START"), U_GREY, 0);
+                                     : T("FIRE: NAZWISKO / USTAWIENIA / START", "FIRE: NAME / SETTINGS / START"), U_GREY, 0);
     text_draw_center(b, 238, T("ESC - POWRÓT DO MENU", "ESC - BACK TO MENU"), U_GREY, 0);
 #ifdef SHOW_LAG
     {
@@ -814,10 +813,10 @@ COLD UBYTE ui_setup_update(void)
     return 0;
 }
 
-/* ===================== OPCJE TURNIEJU ============================== */
+/* ===================== USTAWIENIA TURNIEJU ========================= */
 
-/* Z ustawien (wiersz OPCJE TURNIEJU): stan toru na start (albo losowy), defekty, muzyka.
- * LEWO/PRAWO zmienia, FIRE zmienia albo wraca (POWROT), ESC wraca do ustawien. */
+/* Z ekranu TURNIEJ (wiersz USTAWIENIA): stan toru na start (albo losowy), defekty, muzyka.
+ * LEWO/PRAWO zmienia, FIRE zmienia albo wraca (POWROT), ESC wraca do ekranu TURNIEJ. */
 #define OPT_ROWS    4
 #define OPT_TRACK   0
 #define OPT_DEFECTS 1
@@ -836,10 +835,10 @@ static COLD void draw_options(UBYTE *b)
         T("STAN NAWIERZCHNI NA START TURNIEJU", "TRACK CONDITION AT THE START"),
         T("AWARIE MOTOCYKLI: OK. 1 NA TURNIEJ", "ENGINE FAILURES: ABOUT 1 PER EVENT"),
         T("MUZYKA W MENU", "MUSIC IN THE MENUS"),
-        T("POWRÓT DO USTAWIEŃ", "BACK TO THE SETTINGS") };
+        T("POWRÓT DO EKRANU TURNIEJU", "BACK TO THE TOURNAMENT SCREEN") };
     char s[24], *p;
     UBYTE i;
-    text_draw_big_center(b, 12, T("OPCJE TURNIEJU", "TOURNAMENT OPTIONS"), U_RAINBOW, U_SHADOW);
+    text_draw_big_center(b, 12, T("USTAWIENIA", "SETTINGS"), U_RAINBOW, U_SHADOW);
     blit_fill(b, 16, opt_row_y(opt_row) - 4, 288, 17, U_CURSOR);
     for (i = 0; i < 3; i++) {
         text_draw(b, 40, opt_row_y(i), label[i], U_WHITE, U_SHADOW);
@@ -853,7 +852,7 @@ static COLD void draw_options(UBYTE *b)
     text_draw_center(b, 172, about[opt_row], U_GREY, 0);
     text_draw_center(b, 206, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY, 0);
     text_draw_center(b, 222, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY, 0);
-    text_draw_center(b, 238, T("ESC - POWRÓT DO USTAWIEŃ", "ESC - BACK TO SETTINGS"), U_GREY, 0);
+    text_draw_center(b, 238, T("ESC - POWRÓT", "ESC - BACK"), U_GREY, 0);
 }
 
 COLD BOOL ui_options_update(void)

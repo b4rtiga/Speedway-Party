@@ -207,7 +207,7 @@ static void name_entry_done(void)
     next_name_entry();
 }
 
-/* JEDZIEMY! zatwierdzone joystickiem w porcie 0 -> GRACZ 1 na JOY 0, z klawiatury -> STRZALKI,
+/* TURNIEJ zatwierdzone joystickiem w porcie 0 -> GRACZ 1 na JOY 0, z klawiatury -> STRZALKI,
  * joystickiem w porcie 1 -> JOY 1. Gracz, ktory mial ten port, dostaje dotychczasowy port gracza 1. */
 static void player1_port(InputPort p)
 {
@@ -297,7 +297,7 @@ static void update_state(void)
         if (ui_title_update() || (state_timer > FPS / 2 && ui_confirm())) { ui_menu_enter(0); enter(GS_MENU); }
         break;
 
-    case GS_MENU:                        /* JEDZIEMY! -> ustawienia, CREDITS -> plansza tworcow */
+    case GS_MENU:                        /* TURNIEJ -> ustawienia, CREDITS -> plansza tworcow */
         if (state_timer > FPS / 4) {
             UBYTE pick = ui_menu_update();
             if (pick == 1) { player1_port(input_menu_fire_port()); enter(GS_SETUP); }
