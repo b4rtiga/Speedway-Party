@@ -914,8 +914,10 @@ static COLD void draw_options(UBYTE *b)
         text_draw(b, 168, opt_row_y(i), s, U_GOLD, U_SHADOW);
     }
     text_draw_center(b, opt_row_y(OPT_BACK), T("POWRÓT", "BACK"), opt_row == OPT_BACK ? U_RAINBOW : U_WHITE, U_SHADOW);
-    text_draw_center(b, 188, opt_row == OPT_TEAM && g_tour.series ? T("3 RUNDY, PUNKTY SIĘ SUMUJĄ", "3 ROUNDS, POINTS ADD UP")
-                                                                   : about[opt_row], U_GREY, 0);
+    text_draw_center(b, 188, opt_row != OPT_TEAM ? about[opt_row]                  /* opis wybranego rodzaju zawodow */
+                             : g_tour.series ? T("3 RUNDY, PUNKTY SIĘ SUMUJĄ", "3 ROUNDS, POINTS ADD UP")
+                             : g_tour.team_mode ? about[OPT_TEAM]
+                             : T("KAŻDY ZA SIEBIE: 15 BIEGÓW I PODIUM", "EACH RIDER ALONE: 15 HEATS, PODIUM"), U_GREY, 0);
     text_draw_small_center(b, 216, T("GÓRA/DÓŁ: WYBÓR  LEWO/PRAWO: ZMIANA", "UP/DOWN: SELECT  LEFT/RIGHT: CHANGE"), U_GREY);
     text_draw_small_center(b, 227, T("FIRE: ZMIANA / POWRÓT", "FIRE: CHANGE / BACK"), U_GREY);
     text_draw_small_center(b, 238, T("ESC - POWRÓT", "ESC - BACK"), U_GREY);
