@@ -95,6 +95,8 @@ After each heat – results with points and the time. After heats 4, 7, 11 and 1
 
 ![A defect: the engine coughs and smokes (yellow bike)](../art/en/screen_27_defekt.png)
 
+![A fall: the heat is stopped and the faller excluded](../art/en/screen_31_upadek.png)
+
 ![The newspaper after the meeting](../art/en/screen_23_gazeta.png)
 
 ### Track records
@@ -116,6 +118,7 @@ The tables are saved to `halloffame.dat` next to the game (the previous version 
 - **Nominated heats (14 and 15):** the leader of the table picks a gate first, then the others.
 - **Run-off:** a tie on points for a podium place is decided by an extra heat between the tied riders, with random gates. A tie outside the podium is decided by heat wins.
 - **Defects** (an option in the settings, on by default): before every points heat each rider has a 2% chance of a defect – a machine failure – at most one per tournament; on average about one defect per tournament. At a random moment the engine starts to cough and smoke, dies after 1.5 s, and the rider rolls onto the infield and stays there until the end of the heat. The rider scores 0 points, shown as “D” in the table and “DEF” in the heat result. A rider who reaches the line before the engine dies finishes normally. There are no defects in a run-off.
+- **Falls:** hitting the fence at high speed or running hard into a rival from behind sometimes ends in a fall. The bike goes down and slides along the track, the referee shows the red flag and the heat is rerun from the tape without the faller, who is excluded (“X”). A fall during the leader's last lap no longer stops the heat – the faller simply does not finish.
 - **Helmet colour** stays with a rider for the whole tournament (red, blue, white, yellow). The starting gate changes every heat.
 - **Bots:** Rookie (late at the tape, slides too hard, hugs the kerb), Professional (quick reactions, “shuts the door” when you try to pass on the inside), Master (reads the track grip, doses the slide, can go wide).
 
@@ -124,7 +127,7 @@ The tables are saved to `halloffame.dat` next to the game (the previous version 
 | Flag | Meaning |
 |---|---|
 | chequered | end of the heat: from the leader entering the last straight until the last rider crosses the line |
-| red | heat stopped, e.g. after someone touches the tape |
+| red | heat stopped, e.g. after someone touches the tape or after a fall |
 | black | rider excluded (e.g. a second tape offence in a heat) |
 | yellow with a black cross | last lap |
 | national | emergency flag start after a starting gate failure |

@@ -75,7 +75,7 @@ void tournament_reset(void)
     for (i = 0; i < MAX_RIDERS; i++) g_tour.runoff_rank[i] = RUNOFF_NONE;
     {
         TourStats *st = &g_tour.stats;          /* fakty do gazety: od zera na kazdy turniej */
-        st->false_starts = st->exclusions = st->records = st->defects = 0;
+        st->false_starts = st->exclusions = st->records = st->defects = st->falls = 0;
         for (i = 0; i < MAX_RIDERS; i++) st->starts[i] = st->excluded[i] = st->defected[i] = 0;
         st->rec_heat_holder = st->rec_lap_holder = 0xFF;
         st->title_runoff = st->other_runoff = FALSE;
@@ -104,7 +104,7 @@ void tournament_award_points(void)
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
         if (b->empty) continue;
-        g_tour.riders[b->rider].heat_points[hn] = b->state == BIKE_EXCLUDED ? HP_EXCLUDED :      /* nieukonczeni = 0 */
+        g_tour.riders[b->rider].heat_points[hn] = (b->state == BIKE_EXCLUDED || b->state == BIKE_FALLEN) ? HP_EXCLUDED :
                                                   b->state == BIKE_DEFECT ? HP_DEFECT : 0;
         g_tour.stats.starts[b->rider]++;                 /* start w biegu punktowanym (gazeta) */
     }

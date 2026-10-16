@@ -560,7 +560,7 @@ static const char *const news_body[5][2] = {
     { T("W KAŻDYM SWOIM STARCIE", "THE WINNER WON"),         T("ZWYCIĘZCA BYŁ PIERWSZY.", "EVERY SINGLE RACE.") },
     { T("TAK NIEWIELE DZIELIŁO PIERWSZE", "ONLY THE SMALLEST MARGIN"), T("I DRUGIE MIEJSCE.", "SEPARATED FIRST AND SECOND.") },
     { T("TURNIEJ ROZSTRZYGNIĘTY.", "THE TOURNAMENT IS DECIDED."),        T("OTO KOŃCOWA KLASYFIKACJA.", "HERE ARE THE FINAL STANDINGS.") } };
-static const char *const news_fact[5] = { T("FALSTARTY: ", "FALSE STARTS: "), T("WYKLUCZENIA: ", "EXCLUSIONS: "), T("ZWYCIĘSTWA LIDERA: ", "WINNER'S HEAT WINS: "), T("GRACZE PRZY STOLE: ", "HUMAN PLAYERS: "), T("DEFEKTY: ", "DEFECTS: ") };
+static const char *const news_fact[6] = { T("FALSTARTY: ", "FALSE STARTS: "), T("WYKLUCZENIA: ", "EXCLUSIONS: "), T("ZWYCIĘSTWA LIDERA: ", "WINNER'S HEAT WINS: "), T("GRACZE PRZY STOLE: ", "HUMAN PLAYERS: "), T("DEFEKTY: ", "DEFECTS: "), T("UPADKI: ", "FALLS: ") };
 
 /* liczba wyrownana do prawej krawedzi x1 */
 static COLD void text_uint_right(UBYTE *b, WORD x1, WORD y, ULONG v, UBYTE c)
@@ -1536,13 +1536,13 @@ static COLD void draw_false_start(UBYTE *b)
     char s[48], *p;
 
     panel(b, PANEL_X, PANEL_Y, PANEL_W, PANEL_H, U_PANEL, U_RED);
-    text_draw_big_center(b, PANEL_Y + 12, T("TAŚMA!", "TAPE!"), U_RED, U_SHADOW);
+    text_draw_big_center(b, PANEL_Y + 12, h->stop_fall ? T("UPADEK!", "FALL!") : T("TAŚMA!", "TAPE!"), U_RED, U_SHADOW);
     helmet_box(b, 80, PANEL_Y + 48, bk->rider);
     name_trunc(s, r->name, NAME_EDIT_MAX);
     text_draw(b, 104, PANEL_Y + 49, s, U_WHITE, U_SHADOW);
     text_draw_center(b, PANEL_Y + 68, bk->state == BIKE_EXCLUDED ? T("WYKLUCZENIE!", "EXCLUDED!") : T("OSTRZEŻENIE", "WARNING"),
                      bk->state == BIKE_EXCLUDED ? U_RED : U_GOLD, U_SHADOW);
-    p = text_cat(s, T("POWTÓRKA STARTU (", "RESTART ("));
+    p = text_cat(s, h->stop_fall ? T("POWTÓRKA BIEGU (", "HEAT RERUN (") : T("POWTÓRKA STARTU (", "RESTART ("));
     p = text_uint(p, h->restarts, 1);
     text_cat(p, ")");
     text_draw_center(b, PANEL_Y + 90, s, U_GREY, 0);
@@ -1582,7 +1582,7 @@ static COLD void draw_result(UBYTE *b)
             name_trunc(s, g_tour.riders[bk->rider].name, 10);
             text_draw(b, 104, y + 1, s, U_WHITE, U_SHADOW);
             if (g_tour.current_heat != RUNOFF_HEAT || !fin)     /* bieg dodatkowy: bez punktow */
-                text_draw(b, 200, y + 1, fin ? pts_txt[line] : bk->state == BIKE_EXCLUDED ? T("W", "EXC") :
+                text_draw(b, 200, y + 1, fin ? pts_txt[line] : (bk->state == BIKE_EXCLUDED || bk->state == BIKE_FALLEN) ? T("W", "EXC") :
                                          bk->state == BIKE_DEFECT ? T("D", "DEF") : T("NU", "DNF"),
                           line == 0 && fin ? U_GOLD : U_WHITE, U_SHADOW);
         }

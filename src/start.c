@@ -7,7 +7,8 @@
  *                  rozmyta -> gruba przerywana -> strzepy -> punkty -> brak
  *                  Start = PUSZCZENIE przycisku. Czas reakcji = klatki od zielonego.
  *                  Trzymanie > WHEELSPIN_FRAMES po zielonym = mielenie kolem w miejscu.
- *  HEAT_FALSE_START czerwona flaga sedziego, 3 s, ostrzezenie; druga tasma = wykluczenie. */
+ *  HEAT_FALSE_START czerwona flaga sedziego, 3 s, ostrzezenie; druga tasma = wykluczenie.
+ *                  Tez po upadku (race.c): upadly wykluczony, bieg od nowa spod tasmy. */
 #include "game.h"
 
 #define PRE_FRAMES        50
@@ -70,6 +71,7 @@ static void call_false_start(UBYTE bike_idx)
     h->phase = HEAT_FALSE_START;
     h->phase_timer = 0;
     h->false_starter = bike_idx;
+    h->stop_fall = 0;
     h->restarts++;
     g_tour.stats.false_starts++;      /* raz na zdarzenie (gazeta) */
     if (++r->warnings >= MAX_WARNINGS) {
@@ -77,6 +79,24 @@ static void call_false_start(UBYTE bike_idx)
         g_tour.stats.exclusions++;
         g_tour.stats.excluded[b->rider]++;
     }
+    sfx_whistle();
+}
+
+/* Upadek w biegu: czerwona flaga, upadly wykluczony (W, jak po drugiej tasmie - race_init_heat
+ * go nie ustawi), po FALSE_START_SHOW bieg od nowa spod tasmy bez niego. */
+void start_stop_fall(UBYTE bike_idx)
+{
+    Heat *h = &g_tour.heat;
+    Bike *b = &g_tour.bikes[bike_idx];
+    h->phase = HEAT_FALSE_START;
+    h->phase_timer = 0;
+    h->false_starter = bike_idx;
+    h->stop_fall = 1;
+    h->restarts++;
+    g_tour.riders[b->rider].warnings = MAX_WARNINGS;
+    b->state = BIKE_EXCLUDED;
+    g_tour.stats.exclusions++;
+    g_tour.stats.excluded[b->rider]++;
     sfx_whistle();
 }
 

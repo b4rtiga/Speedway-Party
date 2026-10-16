@@ -41,6 +41,15 @@ BOOL g_defects_enabled = TRUE;
 #define DRY_EVERY       (10 * FPS)
 
 static UWORD winner_frame;
+/* Upadek: uderzenie w bande z duza predkoscia albo mocne najechanie na rywala - czasem upadek.
+ * Lezacy sunie po torze, pozostali zwalniaja, po FALL_STOP sedzia przerywa bieg (start.c:
+ * start_stop_fall). Na ostatnim okrazeniu prowadzacego bieg toczy sie dalej, upadly nie konczy. */
+#define FALL_WALL_SPEED 82                 /* bandy: od 82% predkosci maks. ... */
+#define FALL_WALL_CHANCE 35                /* ... 35% szansy na upadek */
+#define FALL_HIT_SPEED  18                 /* najechanie: roznica predkosci od 18% maks. ... */
+#define FALL_HIT_CHANCE 30                 /* ... 30% szansy (upada najezdzajacy) */
+#define FALL_STOP       (FPS * 3 / 2)      /* po 1,5 s czerwona flaga */
+static UBYTE fall_bike = 0xFF, fall_timer;
 static UBYTE end_wait;                   /* odliczanie od przejazdu ostatniego przez mete */
 #define END_WAIT_FRAMES (2 * FPS)
 
@@ -55,6 +64,8 @@ void race_init_heat(void)
     h->danger_timer = 0;
     winner_frame = 0;
     end_wait = 0;
+    fall_bike = 0xFF;
+    fall_timer = 0;
     for (g = 0; g < 4; g++) {
         Bike *b = &g_tour.bikes[g];
         UBYTE r = h->gate_rider[g];
@@ -104,7 +115,7 @@ LONG race_leader_distance(void)
     UBYTE i;
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
-        if (b->state == BIKE_EXCLUDED || b->state == BIKE_DEFECT || b->empty) continue;
+        if (b->state >= BIKE_EXCLUDED || b->empty) continue;            /* wykluczony, defekt, upadek */
         if (b->race_distance > lead) lead = b->race_distance;
     }
     return lead;
@@ -116,6 +127,39 @@ LONG race_straight_entry(UBYTE lap)
 {
     const Track *t = &g_tour.track;
     return (LONG)lap * t->lap_length - t->tape_s;
+}
+
+BOOL race_fall_active(void) { return (BOOL)(fall_bike != 0xFF && g_tour.bikes[fall_bike].state == BIKE_FALLEN); }
+
+/* ostatnie okrazenie prowadzacego - upadek juz nie przerywa biegu */
+static BOOL last_lap(void) { return (BOOL)(g_tour.heat.finished_count || race_leader_distance() >= race_straight_entry(LAPS_PER_HEAT)); }
+
+static void try_fall(Bike *b, UBYTE chance)
+{
+    if (fall_bike != 0xFF || b->state != BIKE_RACING || rng_range(0, 99) >= chance) return;
+    b->state = BIKE_FALLEN;
+    b->heading = (angle8)(b->heading + 56);          /* motocykl bokiem */
+    b->sprite_frame = ANGLE_TO_FRAME(b->heading);
+    b->skid_frame = 2;
+    b->drift = 0;
+    fall_bike = (UBYTE)(b - g_tour.bikes);
+    fall_timer = 0;
+    g_tour.stats.falls++;
+    if (last_lap()) fall_bike = 0xFF;                /* bieg dalej, upadly nie konczy (W) */
+}
+
+/* lezacy sunie po torze i hamuje; banda go zatrzymuje */
+static void slide_fallen(Bike *b)
+{
+    angle8 travel = (angle8)(b->course88 >> 8);
+    b->speed -= (b->speed >> 3) + (b->speed ? 1 : 0);
+    if (b->speed < 0) b->speed = 0;
+    b->x += ((b->speed >> 6) * COS(travel)) >> 8;
+    b->y += ((b->speed >> 6) * SIN(travel)) >> 8;
+    if (track_lateral(FIX2INT(b->x), FIX2INT(b->y)) > OUTER_LIMIT) {
+        track_snap_lateral(&b->x, &b->y, OUTER_LIMIT - 1);
+        b->speed = 0;
+    }
 }
 
 void race_launch(Bike *b)
@@ -158,6 +202,8 @@ static void update_bike(Bike *b)
     if (b->state == BIKE_DEFECT) {
         in = 0;                             /* silnik zgasl: motocykl sie toczy i staje */
         cap = 0;
+    } else if (fall_bike != 0xFF) {
+        cap = (fix16)(cap / 3);             /* upadek: czerwona - wszyscy zwalniaja */
     } else if (b->defect_timer) {
         /* krztuszenie: coraz mniej mocy i przerwy w zaplonie */
         cap = (fix16)(cap / DEFECT_SPUTTER * (DEFECT_SPUTTER - b->defect_timer) / 2);
@@ -227,6 +273,7 @@ static void update_bike(Bike *b)
     /* --- banda i kraweznik --- */
     lat = track_lateral(FIX2INT(b->x), FIX2INT(b->y));
     if (lat > OUTER_LIMIT) {
+        if (b->speed > FIXPCT(MAX_SPEED, FALL_WALL_SPEED)) try_fall(b, FALL_WALL_CHANCE);   /* uderzenie w bande */
         b->speed -= b->speed >> 2;            /* -25% */
         b->drift = 0;
         push_to_lateral(b, OUTER_LIMIT - 1);
@@ -344,11 +391,14 @@ static void collisions(void)
             Bike *a = &g_tour.bikes[i], *b = &g_tour.bikes[j];
             LONG dx, dy;
             if (a->state < BIKE_WHEELSPIN || b->state < BIKE_WHEELSPIN) continue;
-            if (a->state >= BIKE_EXCLUDED || b->state >= BIKE_EXCLUDED) continue;   /* wykluczony, defekt */
+            if (a->state >= BIKE_EXCLUDED || b->state >= BIKE_EXCLUDED) continue;   /* wykluczony, defekt, upadek */
             dx = FIX2INT(a->x - b->x);
             dy = FIX2INT(a->y - b->y);
             if (dx * dx + dy * dy >= BUMP_DIST2) continue;
             if (!a->bump_cooldown && !b->bump_cooldown) {
+                /* mocne najechanie z tylu: najezdzajacy (dalej z tylu i szybszy) moze upasc */
+                Bike *hit = a->race_distance < b->race_distance ? a : b, *other = hit == a ? b : a;
+                if (hit->speed - other->speed > FIXPCT(MAX_SPEED, FALL_HIT_SPEED)) try_fall(hit, FALL_HIT_CHANCE);
                 a->speed -= FIXPCT(a->speed, 8);
                 b->speed -= FIXPCT(b->speed, 8);
                 a->bump_cooldown = b->bump_cooldown = BUMP_COOLDOWN;
@@ -362,7 +412,8 @@ static void collisions(void)
 /* grupy w kolejnosci: na mecie, jadacy, defekt, wykluczony */
 static UBYTE pos_group(const Bike *b)
 {
-    return (UBYTE)(b->state == BIKE_FINISHED ? 0 : b->state == BIKE_DEFECT ? 2 : b->state == BIKE_EXCLUDED ? 3 : 1);
+    return (UBYTE)(b->state == BIKE_FINISHED ? 0 : (b->state == BIKE_DEFECT || b->state == BIKE_FALLEN) ? 2 :
+                   b->state == BIKE_EXCLUDED ? 3 : 1);
 }
 
 static void update_positions(void)
@@ -400,8 +451,9 @@ void race_update(void)
         update_defect(b);
         if (b->state == BIKE_RACING || b->state == BIKE_FINISHED) update_bike(b);
         else if (b->state == BIKE_DEFECT) roll_to_park(b);
+        else if (b->state == BIKE_FALLEN) slide_fallen(b);
         else if (b->state == BIKE_WHEELSPIN) b->speed = 0;
-        if (b->state != BIKE_EXCLUDED && b->state != BIKE_DEFECT) active++;
+        if (b->state != BIKE_EXCLUDED && b->state != BIKE_DEFECT && b->state != BIKE_FALLEN) active++;
         if (b->state == BIKE_FINISHED) done++;
     }
 #ifdef SHOW_LAG
@@ -414,6 +466,12 @@ void race_update(void)
     p2 = hw_vpos();
 #endif
 
+    if (fall_bike != 0xFF && ++fall_timer >= FALL_STOP) {   /* sedzia przerywa bieg */
+        UBYTE f = fall_bike;
+        fall_bike = 0xFF;
+        start_stop_fall(f);
+        return;
+    }
     if (h->race_frames % DRY_EVERY == 0) track_dry_step();
     /* W biegu tylko przyczepnosc (tania); ciemnienie wyjezdzonych sciezek gra dorysowuje miedzy
      * biegami (wyniki, program) - na A1200 bez Fast RAM nawet 2 wiersze komorki na klatke to

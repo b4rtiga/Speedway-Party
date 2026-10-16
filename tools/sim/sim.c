@@ -137,6 +137,7 @@ int main(int argc, char **argv)
     }
     printf("średnio %.1f s na bieg (z procedurą startową)\n", total_frames / 50.0 / heats);
     printf("defekty: %d\n", g_tour.stats.defects);
+    printf("upadki: %d\n", g_tour.stats.falls);
     {
         FILE *w = fopen("tools/sim/wear.csv", "w");
         int gx, gy;

@@ -7,6 +7,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 
 - **Zawody w nocy:** nowa opcja PORA: DZIEŃ / NOC. W nocy tor oświetlają cztery maszty z reflektorami – łuki w ciepłym świetle, proste w półmroku.
 - **Defekty motocykli:** w losowej chwili biegu silnik krztusi się, dymi i gaśnie, a zawodnik zjeżdża na murawę i czeka tam do końca biegu – dostaje 0 punktów („D”). Średnio jeden defekt na turniej, najwyżej jeden na zawodnika; można je wyłączyć.
+- **Upadki:** uderzenie w bandę z dużą prędkością albo mocne najechanie na rywala czasem kończy się upadkiem – czerwona flaga, upadły wykluczony, bieg powtarzany spod taśmy.
 - **Równe szanse z każdego pola:** boty łamią motocykl przed łukiem na czas i każdy jedzie w biegu trochę inną linią. Wcześniej z czterech jednakowych botów pole C wygrywało 59% biegów, a pole A 1%; teraz każde pole wygrywa od 20 do 34%.
 - **Gra pamięta ustawienia:** nazwiska i sterowanie graczy, poziomy botów oraz stan toru, porę, defekty i muzykę – po ponownym uruchomieniu wszystko jest jak ostatnio (plik `settings.dat` obok gry).
 - **Nowy ekran USTAWIENIA** (z ekranu turnieju): stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc), defekty i muzyka. Pod listą zawodników widać skrót wybranych ustawień.

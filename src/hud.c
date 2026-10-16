@@ -177,7 +177,7 @@ static BOOL kosa_shown(void)
     }
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
-        if (b->state != BIKE_EXCLUDED && b->state != BIKE_DEFECT && !b->empty && b->lap < LAPS_PER_HEAT) all_in = FALSE;
+        if (b->state < BIKE_EXCLUDED && !b->empty && b->lap < LAPS_PER_HEAT) all_in = FALSE;
     }
     if (!all_in) { all_in_frame = 0; return TRUE; }
     if (!all_in_frame) all_in_frame = (UWORD)(h->race_frames ? h->race_frames : 1);
@@ -396,7 +396,7 @@ void hud_update(void)
         UBYTE pos, n = 0;
         for (pos = 0; pos < MAX_RIDERS; pos++) {
             const Bike *b = &g_tour.bikes[h->order[pos]];
-            if (b->state == BIKE_EXCLUDED || b->state == BIKE_DEFECT || b->empty) continue;
+            if (b->state >= BIKE_EXCLUDED || b->empty) continue;
             if (n == 0) lap = b->lap;
             order[n++] = (UBYTE)(b->rider | (b->rider << 4));      /* kolor kasku = zawodnik */
         }
@@ -405,12 +405,13 @@ void hud_update(void)
     if (lap > LAPS_PER_HEAT) lap = LAPS_PER_HEAT;
 
     /* 1 czerwone, 2 zielone, 3 schowane: 2 s po starcie i po biegu (w biegu juz niepotrzebne) */
-    lights = (h->phase == HEAT_FINISHED || (h->phase == HEAT_RACING && h->race_frames >= 2 * FPS)) ? 3 :
+    lights = (h->phase == HEAT_FINISHED || (h->phase == HEAT_RACING && h->race_frames >= 2 * FPS) ||
+              (h->phase == HEAT_FALSE_START && h->stop_fall)) ? 3 :            /* upadek: bieg juz trwal */
              h->emergency ? 0 :                              /* awaria: swiatla nie dzialaja */
              h->phase == HEAT_RED_LIGHT ? 1 : (h->phase == HEAT_TAPE_UP || h->phase == HEAT_RACING) ? 2 : 0;
     flag = FLAG_NONE;
     wave = (UBYTE)((h->phase_timer >> 4) & 1);       /* machniecie co 16 klatek */
-    if (h->phase == HEAT_FALSE_START) {
+    if (h->phase == HEAT_FALSE_START || race_fall_active()) {
         /* czerwona: przerwanie biegu; potem czarna, jesli tasma skonczyla sie wykluczeniem */
         BOOL excl = h->false_starter < MAX_RIDERS && g_tour.bikes[h->false_starter].state == BIKE_EXCLUDED;
         flag = (excl && h->phase_timer > 75) ? FLAG_BLACK : FLAG_RED;

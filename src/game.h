@@ -84,7 +84,8 @@ typedef enum {
     BIKE_RACING,
     BIKE_FINISHED,
     BIKE_EXCLUDED,      /* wykluczony (np. druga tasma) */
-    BIKE_DEFECT         /* defekt: silnik zgasl, zawodnik nie konczy biegu (0 pkt, "D") */
+    BIKE_DEFECT,        /* defekt: silnik zgasl, zawodnik nie konczy biegu (0 pkt, "D") */
+    BIKE_FALLEN         /* upadek: lezy na torze; bieg przerwany i powtorzony bez niego (W) */
 } BikeState;
 
 typedef struct Bike {
@@ -208,6 +209,7 @@ typedef struct Heat {
     UWORD     race_frames;
     UBYTE     danger_timer;         /* >0: zolta flaga (ktos uderzyl w bande) */
     UBYTE     emergency;            /* awaria maszyny startowej: start z flagi narodowej */
+    UBYTE     stop_fall;            /* przerwanie (HEAT_FALSE_START) z powodu upadku, nie tasmy */
 } Heat;
 
 /* ------------------------- REKORDY -------------------------------- */
@@ -246,6 +248,7 @@ typedef struct TourStats {
     UBYTE false_starts;                    /* tasmy (falstarty) w calym turnieju */
     UBYTE exclusions;                      /* wykluczenia za druga tasme */
     UBYTE defects;                         /* defekty (awarie motocykli) w calym turnieju */
+    UBYTE falls;                           /* upadki */
     UBYTE defected[MAX_RIDERS];            /* zawodnik mial juz defekt - najwyzej jeden na turniej */
     UBYTE starts[MAX_RIDERS];              /* starty w biegach punktowanych */
     UBYTE excluded[MAX_RIDERS];            /* wykluczenia zawodnika */
@@ -310,7 +313,7 @@ typedef struct NewsSummary {             /* niezmienna migawka zakonczonego turn
     UBYTE    facts[2], fact_value[2];    /* NEWS_FACT_* i wartosc; 0xFF = brak */
 } NewsSummary;
 enum { NEWS_FACT_FALSE_STARTS = 0, NEWS_FACT_EXCLUSIONS, NEWS_FACT_WINNER_WINS, NEWS_FACT_HUMANS, NEWS_FACT_DEFECTS,
-       NEWS_FACT_NONE = 0xFF };
+       NEWS_FACT_FALLS, NEWS_FACT_NONE = 0xFF };
 NewsRule news_pick_rule(const NewsFacts *f);   /* pierwsza spelniona regula wg priorytetu */
 void     news_build(void);                     /* migawka po ostatnim rozstrzygnietym biegu */
 const NewsSummary *news_summary(void);
@@ -321,6 +324,7 @@ UBYTE tournament_ai_choose_gate(UBYTE rider);
 
 /* start.c */
 void start_begin(void);
+void start_stop_fall(UBYTE bike);   /* upadek: czerwona flaga, upadly wykluczony, powtorka biegu */
 void start_update(void);   /* wywolywane co klatke w fazach przed HEAT_RACING */
 
 /* race.c */
@@ -329,6 +333,7 @@ extern BOOL g_defects_enabled;                   /* opcja DEFEKTY w ustawieniach
 void race_init_heat(void);
 void race_update(void);
 LONG race_leader_distance(void);                 /* dystans najdalej jadacego */
+BOOL race_fall_active(void);                     /* ktos lezy, sedzia zaraz przerwie bieg (czerwona) */
 LONG race_straight_entry(UBYTE lap);             /* wjazd na prosta startowa konczaca okrazenie lap */
 void race_launch(Bike *b);
 

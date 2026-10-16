@@ -433,6 +433,26 @@ static int screenshots(void)
         g_tour.heat.restarts = 1;
         g_tour.heat.phase_timer = 8;
         render(); hud_update(); shot("06_false_start", FALSE);
+        {
+            /* upadek: motocykl bokiem na torze (kontrola), potem tablica UPADEK! z wykluczeniem */
+            Bike *fb = &g_tour.bikes[2];
+            BikeState st = fb->state;
+            angle8 hd = fb->heading;
+            UBYTE sf = fb->sprite_frame, sk = fb->skid_frame;
+            g_tour.heat.phase = ph;
+            fb->state = BIKE_FALLEN;
+            fb->heading = (angle8)(fb->heading + 56);
+            fb->sprite_frame = ANGLE_TO_FRAME(fb->heading);
+            fb->skid_frame = 2;
+            render(); bike_sprites(); render(); hud_update(); shot("test_upadek_tor", TRUE);
+            g_tour.heat.phase = HEAT_FALSE_START;
+            g_tour.heat.false_starter = 2;
+            g_tour.heat.stop_fall = 1;
+            fb->state = BIKE_EXCLUDED;
+            render(); hud_update(); shot("31_upadek", FALSE);
+            g_tour.heat.stop_fall = 0;
+            fb->state = st; fb->heading = hd; fb->sprite_frame = sf; fb->skid_frame = sk;
+        }
         g_tour.heat.phase = ph;
     }
 
