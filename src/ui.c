@@ -648,7 +648,7 @@ static const char *yes_no(BOOL v) { return v ? T("TAK", "YES") : T("NIE", "NO");
 
 static COLD void draw_setup(UBYTE *b)
 {
-    char s[48], *p;
+    char s[80], *p;                      /* skrot ustawien: do ok. 50 bajtow (UTF-8) */
     UBYTE i;
 
     text_draw_big_center(b, 12, T("TURNIEJ", "TOURNAMENT"), U_RAINBOW, U_SHADOW);
