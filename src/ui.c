@@ -253,7 +253,7 @@ COLD UBYTE ui_menu_update(void)
 
 static COLD void draw_menu(UBYTE *b)
 {
-    static const char *items[MENU_ITEMS] = { T("TURNIEJ", "TOURNAMENT"), T("TRENING", "PRACTICE"), T("INSTRUKCJA", "HOW TO PLAY"),
+    static const char *items[MENU_ITEMS] = { T("ZAWODY", "EVENT"), T("TRENING", "PRACTICE"), T("INSTRUKCJA", "HOW TO PLAY"),
                                              T("REKORDY", "RECORDS"), "CREDITS" };
     UBYTE i;
     if (title_img) blit_copy(b, title_img, 0, 0, SCREEN_W, FULL_H);
@@ -645,7 +645,7 @@ static COLD void draw_news(UBYTE *b)
         text_uint(p, n->fact_value[i], 1);
         text_draw(b, 16, (WORD)(206 + i * 11), s, U_SHADOW, 0);
     }
-    if (blink) text_draw_center(b, 240, T("FIRE - NASTĘPNY TURNIEJ", "FIRE - NEXT TOURNAMENT"), U_RED, 0);
+    if (blink) text_draw_center(b, 240, T("FIRE - NASTĘPNE ZAWODY", "FIRE - NEXT EVENT"), U_RED, 0);
 }
 
 COLD BOOL ui_title_update(void)
@@ -684,7 +684,7 @@ static COLD void draw_setup(UBYTE *b)
     char s[80], *p;                      /* skrot ustawien: do ok. 50 bajtow (UTF-8) */
     UBYTE i;
 
-    text_draw_big_center(b, 12, T("TURNIEJ", "TOURNAMENT"), U_RAINBOW, U_SHADOW);
+    text_draw_big_center(b, 12, T("ZAWODY", "EVENT"), U_RAINBOW, U_SHADOW);
     blit_fill(b, 16, setup_row_y(setup_row) - 4, 288, 17, editing ? U_GOLD : U_CURSOR);
 
     p = text_cat(s, T("LICZBA GRACZY:   < ", "PLAYERS:         < "));
@@ -706,7 +706,7 @@ static COLD void draw_setup(UBYTE *b)
         text_draw(b, human ? 216 : 192, y, human ? port_names[r->input] : level_names[r->ai_level], U_GOLD, U_SHADOW);   /* PROFESJONALISTA = 15 znakow */
     }
     text_draw_center(b, setup_row_y(ROW_OPTIONS), T("USTAWIENIA", "SETTINGS"), setup_row == ROW_OPTIONS ? U_RAINBOW : U_WHITE, U_SHADOW);
-    text_draw_center(b, setup_row_y(ROW_START), T("START TURNIEJU", "START TOURNAMENT"), setup_row == ROW_START ? U_RAINBOW : U_WHITE, U_SHADOW);
+    text_draw_center(b, setup_row_y(ROW_START), T("START", "START"), setup_row == ROW_START ? U_RAINBOW : U_WHITE, U_SHADOW);
     /* skrot opcji pod lista */
     p = text_cat(s, track_name(g_tour.track_pick));
     p = text_cat(p, " ");
@@ -895,13 +895,13 @@ static COLD void draw_options(UBYTE *b)
                                                  T("MUZYKA:", "MUSIC:") };
     static const char *const about[OPT_ROWS] = {
         T("TOR ZAWODÓW", "THE TRACK FOR THE MEETING"),
-        T("STAN NAWIERZCHNI NA START TURNIEJU", "TRACK CONDITION AT THE START"),
+        T("STAN NAWIERZCHNI NA START ZAWODÓW", "TRACK CONDITION AT THE START"),
         T("NOC: TOR W ŚWIETLE REFLEKTORÓW", "NIGHT: TRACK UNDER FLOODLIGHTS"),
-        T("W TRAKCIE TURNIEJU ZACZNIE PADAĆ", "IT WILL START RAINING MID-EVENT"),
+        T("W TRAKCIE ZAWODÓW ZACZNIE PADAĆ", "IT WILL START RAINING MID-EVENT"),
         T("MECZ: CZERWONY+NIEBIESKI NA BIAŁY+ŻÓŁTY", "TEAMS: RED+BLUE V WHITE+YELLOW"),
-        T("AWARIE MOTOCYKLI: OK. 1 NA TURNIEJ", "ENGINE FAILURES: ABOUT 1 PER EVENT"),
+        T("AWARIE MOTOCYKLI: OK. 1 NA ZAWODY", "ENGINE FAILURES: ABOUT 1 PER EVENT"),
         T("MUZYKA W MENU", "MUSIC IN THE MENUS"),
-        T("POWRÓT DO EKRANU TURNIEJU", "BACK TO THE TOURNAMENT SCREEN") };
+        T("POWRÓT DO EKRANU ZAWODÓW", "BACK TO THE EVENT SCREEN") };
     char s[32], *p;
     UBYTE i;
     text_draw_big_center(b, 8, T("USTAWIENIA", "SETTINGS"), U_RAINBOW, U_SHADOW);
@@ -2370,7 +2370,7 @@ static void draw_blink_line(UBYTE *b)
     case GS_CREDITS: s = T("FIRE - POWRÓT", "FIRE - BACK"); break;
     case GS_RECORDS: s = T("FIRE - POWRÓT", "FIRE - BACK"); break;
     case GS_NEWS:    y = 240; s = g_tour.series ? T("FIRE - KLASYFIKACJA", "FIRE - STANDINGS")
-                                                    : T("FIRE - NASTĘPNY TURNIEJ", "FIRE - NEXT TOURNAMENT"); break;
+                                                    : T("FIRE - NASTĘPNE ZAWODY", "FIRE - NEXT EVENT"); break;
     case GS_SERIES:  s = series_final() ? T("FIRE - KONIEC MISTRZOSTW", "FIRE - END OF CHAMPIONSHIP")
                                         : T("FIRE - NASTĘPNA RUNDA", "FIRE - NEXT ROUND"); break;
     default: return;

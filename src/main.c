@@ -214,7 +214,7 @@ static void next_heat(void)
         }
         return;
     }
-    if (g_tour.current_heat >= FIXED_HEATS) {
+    if (g_tour.current_heat >= FIXED_HEATS && !g_tour.team_mode) {   /* mecz: pola z programu par */
         tournament_prepare_nominated();
         enter(GS_GATE_PICK);
         return;

@@ -56,6 +56,15 @@ COLD void tournament_defaults(void)
     }
 }
 
+/* Mecz: zawodnicy jednej druzyny zawsze na polach A+C albo B+D, na zmiane co bieg (bieg 1:
+ * gospodarze A i C), a w parze co bieg zamiana - po 4 biegach kazdy startowal z kazdego pola.
+ * [bieg % 4][pole] -> zawodnik (gospodarze 0, 1; goscie 2, 3). */
+static const UBYTE team_table[4][4] = {
+    { 0, 2, 1, 3 },
+    { 3, 1, 2, 0 },
+    { 1, 3, 0, 2 },
+    { 2, 0, 3, 1 } };
+
 void tournament_reset(void)
 {
     UBYTE i, j;
@@ -74,6 +83,10 @@ void tournament_reset(void)
     for (i = FIXED_HEATS; i <= NUM_HEATS; i++)
         for (j = 0; j < 4; j++)
             g_tour.heat_table[i][j] = 0xFF;      /* ustalane przy wyborze pol / biegu dodatkowym */
+    if (g_tour.team_mode)                         /* mecz: wszystkie 15 biegow wg par, bez wyboru pol */
+        for (i = 0; i < NUM_HEATS; i++)
+            for (j = 0; j < 4; j++)
+                g_tour.heat_table[i][j] = team_table[i % 4][j];
     for (i = 0; i < MAX_RIDERS; i++) g_tour.runoff_rank[i] = RUNOFF_NONE;
     {
         TourStats *st = &g_tour.stats;          /* fakty do gazety: od zera na kazdy turniej */

@@ -7,7 +7,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 
 - **Zawody w nocy:** nowa opcja PORA: DZIEŃ / NOC. W nocy tor oświetlają cztery maszty z reflektorami – lampy z miękką poświatą, łuki w pełnym ciepłym świetle, środki prostych trochę ciemniejsze.
 - **Defekty motocykli:** w losowej chwili biegu silnik krztusi się, dymi i gaśnie, a zawodnik zjeżdża na murawę i czeka tam do końca biegu – dostaje 0 punktów („D”). Średnio jeden defekt na turniej, najwyżej jeden na zawodnika; można je wyłączyć.
-- **Mecz drużynowy:** gospodarze (kaski czerwony i niebieski) przeciw gościom (biały i żółty) – biegi 5:1, 4:2, 3:3, wynik meczu w programie, po biegu, na ekranie końcowym i w gazecie.
+- **Mecz drużynowy:** gospodarze (kaski czerwony i niebieski) przeciw gościom (biały i żółty), para z pól A+C albo B+D na zmianę – biegi 5:1, 4:2, 3:3, wynik meczu w programie, po biegu, na ekranie końcowym i w gazecie.
 - **Trening:** nowa pozycja w menu – gracz 1 sam na torze, okrążenia bez limitu; własne ustawienia: stan toru, pora i deszcz; na murawie czas okrążenia, najlepszy czas i rekord toru.
 - **Fajerwerki na podium** i **fala na trybunach** – kibice „falują” przy zmianie prowadzącego i na mecie.
 - **Deszcz:** nowa opcja DESZCZ – w losowym biegu zaczyna padać, tor z biegu na bieg mięknie zamiast przesychać, w biegu widać krople.
@@ -18,8 +18,8 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 - **Mistrzostwa:** nowa wartość opcji ZAWODY – trzy rundy z tymi samymi zawodnikami, punkty biegowe się sumują (jak w Grand Prix). Po każdej rundzie klasyfikacja generalna, po ostatniej mistrz i fajerwerki.
 - **Pad CD32** (i pad THEA500 Mini): czerwony = FIRE, niebieski = ESC – cała gra bez klawiatury. Dla twórców: `make cd32` składa obraz płyty CD32 (wymaga własnego pliku `CD32.TM`, jeszcze nieprzetestowany).
 - **Mniej pamięci na dźwięk:** muzyka w menu w 4-bitowym ADPCM (Black Motor 104 KiB zamiast 208; gra dekoduje ją w trakcie grania) i gwizdek sędziego w 11 kHz (9 KiB zamiast 17) – razem o ok. 113 KiB mniej Chip RAM.
-- **Nowy ekran USTAWIENIA** (z ekranu turnieju): stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc), deszcz, zawody indywidualne, drużynowe albo mistrzostwa, defekty i muzyka. Pod listą zawodników widać skrót wybranych ustawień.
-- **Menu:** TURNIEJ zamiast JEDZIEMY! i nowa pozycja TRENING; ekran zawodników nazywa się TURNIEJ.
+- **Nowy ekran USTAWIENIA** (z ekranu zawodów): stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc), deszcz, zawody indywidualne, drużynowe albo mistrzostwa, defekty i muzyka. Pod listą zawodników widać skrót wybranych ustawień.
+- **Menu:** ZAWODY zamiast JEDZIEMY! i nowa pozycja TRENING; ekran zawodników nazywa się ZAWODY, a przycisk startu – START.
 - **Podprowadzające:** nowe wypukłe tablice w kolorach kasków z logo sponsorów (3DPJOY, DEV84), płynne kołysanie całej sylwetki z tablicą i buziaki z odlatującym serduszkiem.
 - **Pasek na dole ekranu:** światła startowe gasną 2 s po starcie.
 - **Plansza tytułowa** bez napisu o turnieju; podpowiedzi o klawiszach mniejszą czcionką.
