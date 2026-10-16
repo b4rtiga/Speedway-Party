@@ -137,6 +137,7 @@ typedef struct Bike {
     UWORD   ai_timer;
     BYTE    ai_line_offset;   /* preferowany tor jazdy: - krawężnik, + banda */
     BYTE    ai_target;        /* docelowy uslizg (przeliczany co 4 klatki - oszczednosc CPU) */
+    BYTE    ai_line_bias;     /* przesuniecie ulubionej linii w tym biegu (-10..10 px) - rozne boty, rozne linie */
 } Bike;
 
 /* ----------------------- CZASTECZKI (szpryca) --------------------- */

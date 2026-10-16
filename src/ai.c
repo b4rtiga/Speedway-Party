@@ -3,6 +3,7 @@
 #include "game.h"
 
 /* linie jazdy zaprojektowane dla toru o polowie szerokosci 28 px - skalowane do wybranego */
+#define BEND_AHEAD 20            /* luk przewidywany 20 px wczesniej - motocykl lamany na czas */
 #define LW(v) ((WORD)((v) * TRACK_HALF_WIDTH / 28))
 
 /* Reakcja na tasme (klatki po 20 ms). Ujemna = antycypacja -> tasma. */
@@ -110,6 +111,7 @@ UBYTE ai_steer(Bike *b)
     case AI_PRO:     lat = pro_line(b, s); break;
     default:         lat = master_line(b, ahead); break;
     }
+    lat = (WORD)(lat + (b->lap <= 1 ? b->ai_line_bias : b->ai_line_bias / 2));   /* ulubiona linia tego bota */
     /* linia zmienia sie stopniowo (2 px na decyzje): po starcie bot zjezdza ze swojego pola
      * do kraweznika lagodnie, zamiast ciac przez caly tor */
     if (lat > b->ai_line_offset + 2) lat = (WORD)(b->ai_line_offset + 2);
@@ -121,12 +123,19 @@ UBYTE ai_steer(Bike *b)
 
     tw = (WORD)(-err * t->gain4 / 4);
     if (t->ff4)
-        tw += (WORD)(feedforward_drift(b, track_bend_radius(s + 12, lat),
+        tw += (WORD)(feedforward_drift(b, track_bend_radius(s + 12 + BEND_AHEAD, lat),
                                        track_grip_at(FIX2INT(b->x), FIX2INT(b->y))) * t->ff4 / 4);
     {
         /* Mistrz dozuje uslizg do przyczepnosci: na mokrym potrzeba go wiecej */
-        WORD cap = t->cap;
+        WORD cap = t->cap, wide;
         if (lvl == AI_MASTER) cap = (WORD)(cap + (220 - (WORD)track_grip_at(FIX2INT(b->x), FIX2INT(b->y))) / 6);
+        /* Wynosi go szerzej niz linia - lam mocniej, az do pelnego zlamania. Dawniej limit trzymal,
+         * wiec prowadzacy (najszybszy, bez szprycy) wyplywal w luku pod bande, a jadacy za nim
+         * wchodzili mu od wewnatrz: pole A (najczesciej pierwsze w 1. luku) wygrywalo 1% biegow,
+         * pole C 59% (tools/sim/start_test). */
+        wide = (WORD)(track_lateral(FIX2INT(b->x), FIX2INT(b->y)) - lat);
+        if (wide > 2) cap = (WORD)(cap + (wide - 2) * 2);
+        if (cap > 28) cap = 28;
         if (tw > cap) tw = cap;
     }
     if (tw < -10) tw = -10;                             /* kontra ograniczona jak w race.c */

@@ -72,6 +72,9 @@ void race_init_heat(void)
         b->drift = 0;
         b->lap = 0;
         b->ai_line_offset = (BYTE)track_lateral(t->gate_x, t->gate_y[g]);   /* bot rusza ze swojego pola */
+        /* kazdy bot w kazdym biegu jedzie troche inna linia (bez zuzycia losowan: z ziarna) - jednakowe
+         * boty na jednej linii dawaly przewage jednemu polu (tools/sim/start_test) */
+        b->ai_line_bias = (BYTE)((WORD)((g_rng >> (g * 7 + 3)) % 21) - 10);
         b->race_distance = track_progress(t->gate_x, t->gate_y[g]) - t->tape_s;
         if (b->race_distance < 0) b->race_distance += t->lap_length;
         b->skid_frame = 0;

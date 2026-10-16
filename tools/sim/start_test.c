@@ -11,7 +11,7 @@ void stubs_init(void);
 int main(int argc, char **argv)
 {
     int tours = argc > 1 ? atoi(argv[1]) : 40;
-    long heats = 0, wins[4] = {0}, bend_pos[4] = {0}, fin_pos[4] = {0};
+    long heats = 0, wins[4] = {0}, bend_pos[4] = {0}, fin_pos[4] = {0}, lap_pos[4][4] = {{0}};
     double v1s[4] = {0};
     long roost[4] = {0}, kerb[4] = {0}, frames_race[4] = {0}, latsum[4] = {0}, spd[4] = {0};
     int t, h, g;
@@ -31,8 +31,8 @@ int main(int argc, char **argv)
             Heat *ht = &g_tour.heat;
             const Track *tr = &g_tour.track;
             LONG bend = tr->lap_length + 2 * 60 - tr->tape_s;      /* wjazd w 1. luk (koniec prostej, HALF_L 60) */
-            int frame = 0, race = -1, got_bend = 0, i, ok = 1;
-            UBYTE pos_at_bend[4];
+            int frame = 0, race = -1, got_bend = 0, i, ok = 1, laps_seen = 0;
+            UBYTE pos_at_bend[4], pos_lap[4][4];
             g_tour.current_heat = (UBYTE)h;
             ht->number = (UBYTE)(h + 1);
             ht->restarts = 0;
@@ -47,13 +47,29 @@ int main(int argc, char **argv)
                         const Bike *bk = &g_tour.bikes[g];
                         WORD lat;
                         if (bk->state != BIKE_RACING) continue;
+                        if (getenv("LAP1") && bk->lap > 1) continue;      /* tylko 1. okrazenie */
                         lat = track_lateral(FIX2INT(bk->x), FIX2INT(bk->y));
                         frames_race[g]++; latsum[g] += lat; spd[g] += bk->speed >> 8;
                         if (bk->in_roost) roost[g]++;
                         if (lat < -TRACK_HALF_WIDTH + 3) kerb[g]++;
                     }
+                /* TRACE=1: slad 1. biegu co 10 klatek - linia, predkosc, uslizg, przyczepnosc, miejsce */
+                if (getenv("TRACE") && t == 0 && h == 0 && race >= 0 && ((frame - race) % 10) == 0 && frame - race < 500) {
+                    printf("%4d", frame - race);
+                    for (g = 0; g < 4; g++) {
+                        const Bike *bk = &g_tour.bikes[g];
+                        printf("  %c lat%+4d v%3d d%+3d g%3d pos%d", 'A' + g, track_lateral(FIX2INT(bk->x), FIX2INT(bk->y)),
+                               (int)(bk->speed * 100 / BIKE_MAX_SPEED), bk->drift, track_grip_at(FIX2INT(bk->x), FIX2INT(bk->y)), bk->position);
+                    }
+                    printf("\n");
+                }
                 if (race >= 0 && frame == race + 50)
                     for (g = 0; g < 4; g++) v1s[g] += g_tour.bikes[g].speed / (double)BIKE_MAX_SPEED;
+                /* miejsce po kazdym okrazeniu prowadzacego (dystans liczony od tasmy) */
+                while (race >= 0 && laps_seen < 4 && race_leader_distance() >= (LONG)(laps_seen + 2) * tr->lap_length - tr->tape_s) {
+                    for (g = 0; g < 4; g++) pos_lap[laps_seen][g] = g_tour.bikes[g].position;
+                    laps_seen++;
+                }
                 if (!got_bend && race >= 0) {
                     for (g = 0; g < 4; g++)
                         if (g_tour.bikes[g].race_distance >= bend) got_bend = 1;
@@ -63,10 +79,11 @@ int main(int argc, char **argv)
             }
             for (g = 0; g < 4; g++) if (g_tour.bikes[g].state != BIKE_FINISHED) ok = 0;
             tournament_award_points();
-            if (!ok || !got_bend) continue;
+            if (!ok || !got_bend || laps_seen < 4) continue;
             heats++;
             for (g = 0; g < 4; g++) {                                  /* bikes[g] = pole g */
                 bend_pos[g] += pos_at_bend[g];
+                for (i = 0; i < 4; i++) lap_pos[i][g] += pos_lap[i][g];
                 fin_pos[g] += g_tour.bikes[g].position;
                 if (g_tour.bikes[g].position == 0) wins[g]++;
             }
@@ -79,6 +96,10 @@ int main(int argc, char **argv)
         printf("  %c    %5.1f%%        %4.2f               %4.2f          %5.1f%%\n", 'A' + g,
                100.0 * v1s[g] / heats, 1.0 + (double)bend_pos[g] / heats, 1.0 + (double)fin_pos[g] / heats,
                100.0 * wins[g] / heats);
+    printf("miejsce po okrazeniu 1-4 (prowadzacy):\n");
+    for (g = 0; g < 4; g++)
+        printf("  %c    %4.2f  %4.2f  %4.2f  %4.2f\n", 'A' + g, 1.0 + (double)lap_pos[0][g] / heats,
+               1.0 + (double)lap_pos[1][g] / heats, 1.0 + (double)lap_pos[2][g] / heats, 1.0 + (double)lap_pos[3][g] / heats);
     if (getenv("DIAG"))
         for (g = 0; g < 4; g++)
             printf("  %c: w szprycy %4.1f%% klatek, przy krawezniku %4.1f%%, srednio %+5.1f px od osi, sr. predkosc %5.1f%%\n", 'A' + g,
