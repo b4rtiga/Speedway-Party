@@ -20,6 +20,9 @@ Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
 | ![Podium](art/screen_10_podium.png) | ![Wybór po planszy tytułowej](art/screen_18_menu.png) | ![Twórcy](art/screen_19_credits.png) |
 | ![Instrukcja: zasady](art/screen_20_instrukcja_1.png) | ![Instrukcja: start i sterowanie](art/screen_21_instrukcja_2.png) | ![Instrukcja: idealna linia](art/screen_22_instrukcja_3.png) |
 | ![Gazeta po zawodach](art/screen_23_gazeta.png) | ![Wpis imienia](art/screen_24_imie.png) | ![Rekordy toru](art/screen_25_rekordy.png) |
+| ![Zawody w nocy](art/screen_30_noc.png) | ![Deszcz](art/screen_33_deszcz.png) | ![Ustawienia zawodów](art/screen_29_opcje.png) |
+| ![Mecz drużynowy](art/screen_35_mecz.png) | ![Mistrzostwa](art/screen_38_mistrzostwa.png) | ![Fotofinisz](art/screen_32_fotofinisz.png) |
+| ![Defekt motocykla](art/screen_27_defekt.png) | ![Upadek](art/screen_31_upadek.png) | ![Trening](art/screen_34_trening.png) |
 
 
 **Nowości:** [CHANGELOG.md](CHANGELOG.md) (English: [CHANGELOG_EN.md](CHANGELOG_EN.md)).
@@ -89,7 +92,7 @@ Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko za
 
 Po podium wychodzi gazeta **„GŁOS OWALU”** (wydanie specjalne): nagłówek dobrany do przebiegu zawodów (tytuł po dogrywce, zwycięstwo z rekordem toru, komplet zwycięstw, jeden punkt różnicy albo po prostu „owal ma zwycięzcę”), krótki komentarz, końcowa tabela i dwa fakty, np. liczba falstartów. Gazeta pisze tylko to, co wynika z wyników. FIRE zaczyna nowy turniej.
 
-Przy starcie z dyskietki gra najpierw pokazuje planszę tytułową z napisem „WCZYTYWANIE…”, a resztę danych doczytuje w tle. Plansza tytułowa czeka na FIRE, potem wybierasz **ZAWODY**, **TRENING**, **INSTRUKCJA** (3 strony: zasady, start i sterowanie, linia jazdy ze schematem toru; LEWO/PRAWO zmienia stronę), **REKORDY** (tabele toru) albo **CREDITS** (plansza twórców). Z instrukcji, rekordów i twórców FIRE albo ESC wraca. Przed turniejem w ustawieniach wybierasz liczbę graczy (0–4), poziom botów, stan toru i muzykę, a kursor stoi od razu na START. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz ZAWODY: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
+Przy starcie z dyskietki gra najpierw pokazuje planszę tytułową z napisem „WCZYTYWANIE…”, a resztę danych doczytuje w tle. Plansza tytułowa czeka na FIRE, potem wybierasz **ZAWODY**, **TRENING**, **INSTRUKCJA** (3 strony: zasady, start i sterowanie, linia jazdy ze schematem toru; LEWO/PRAWO zmienia stronę), **REKORDY** (tabele toru) albo **CREDITS** (plansza twórców). Z instrukcji, rekordów i twórców FIRE albo ESC wraca. Przed zawodami wybierasz liczbę graczy (0–4) i poziom botów, a w USTAWIENIACH rodzaj zawodów, stan toru, porę, deszcz, defekty i muzykę; kursor stoi od razu na START. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz ZAWODY: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
 
 **Rekordy toru:** 5 najlepszych biegów i 5 najlepszych okrążeń graczy (boty nie wchodzą do tabel). Gracz, który w turnieju wjedzie do piątki, wpisuje imię raz, po zawodach (po gazecie) – trafia ono do wszystkich jego miejsc; między biegami gra nie przerywa. Imię ma do 7 znaków (domyślnie pierwsze słowo nazwiska): GÓRA/DÓŁ zmienia znak, LEWO/PRAWO pozycję, można też pisać z klawiatury; FIRE albo Return zapisuje. Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zostaje jako `halloffame.bak`) przy wyjściu z gry: ESC na ekranie wyboru i ESC jeszcze raz. Reset albo wyłączenie Amigi w trakcie gry traci wyniki z tej sesji, a na zabezpieczonej dyskietce zapis się po cichu nie udaje. Rekordy graczy ze starego pliku `records.dat` są przenoszone raz, przy pierwszym starcie.
 
@@ -154,6 +157,21 @@ Po biegach 4, 7, 11 i 13 na tor wyjeżdżają **traktory**: jeden równa nawierz
 Każdy motocykl w uślizgu sypie spod tylnego koła **szprycę**, czyli wachlarz nawierzchni lecący do tyłu i na zewnątrz łuku.
 
 Jedziesz tuż za rywalem? Dostajesz nią prosto w twarz i tracisz prędkość, metr po metrze. Siedzenie komuś na kole nic nie da: trzeba znaleźć **czystą linię**, wyjść z jego szprycy i zaatakować z boku. Tak samo jak na prawdziwym torze.
+
+### 🌙 Noc, deszcz, mecz i mistrzostwa
+W **USTAWIENIACH** zawodów wybierasz, jak ma wyglądać wieczór na stadionie:
+
+- **Zawody:** turniej indywidualny, **mecz drużynowy** (gospodarze w kaskach czerwonym i niebieskim przeciw gościom w białym i żółtym; para drużyny startuje z pól A+C albo B+D na zmianę, biegi kończą się 5:1, 4:2 albo 3:3) albo **mistrzostwa** – trzy rundy z tymi samymi zawodnikami, punkty się sumują jak w Grand Prix, a po ostatniej rundzie mistrz i fajerwerki.
+- **Pora:** w **nocy** tor oświetlają cztery maszty z reflektorami, lampy świecą z miękką poświatą, a łuki są w pełnym, ciepłym świetle.
+- **Deszcz:** w losowym biegu (2.–5.) zaczyna padać. Tor przestaje przesychać i z biegu na bieg mięknie i trzyma coraz gorzej.
+- **Defekty:** raz na jakiś czas silnik krztusi się, dymi i gaśnie, a zawodnik zjeżdża na murawę – 0 punktów („D”).
+- **Stan toru** na start i **muzyka** w menu.
+
+W biegu może się zdarzyć **upadek**: mocne uderzenie w bandę, dłuższa jazda tuż przy bandzie albo najechanie na rywala. Sędzia daje czerwoną flagę, upadły jest wykluczony, a bieg jest powtarzany spod taśmy. Gdy drugi zawodnik minie metę najwyżej 0,1 s za zwycięzcą, gra pokazuje **fotofinisz**: końcówkę w zwolnionym tempie i stopklatkę na linii.
+
+**TRENING** w menu: sam na torze, okrążenia bez limitu, na murawie czas okrążenia, najlepszy czas i rekord toru. Warunki (stan toru, porę i deszcz) wybierasz na osobnym ekranie przed startem.
+
+Gra pamięta nazwiska, sterowanie, poziom botów i wszystkie ustawienia (plik `settings.dat` obok gry).
 
 ---
 
@@ -258,6 +276,7 @@ Każdy gracz ma tylko **LEWO i PRAWO**. Gaz jest automatyczny.
 - **Szeroka niesie:** pod bandą, z pełną prędkością i w lekkim uślizgu motocykl dostaje dodatkowe przyspieszenie. Za wolno pod bandą motocykl się zakopuje.
 - **Szpryca:** jazda tuż za rywalem w uślizgu lekko spowalnia. Szukaj czystej linii.
 - **Menu:** joystick w porcie 1 albo 0 (góra/dół/lewo/prawo, FIRE = zatwierdź) albo strzałki i Return. **Drugi przycisk** joysticka działa jak ESC (pauza z pytaniem, powrót z instrukcji i twórców).
+- **Pad CD32** (także pad THEA500 Mini): czerwony = FIRE, niebieski = ESC. Całą grę obsłużysz bez klawiatury.
 - **Joystick w porcie 0** musi być w emulatorze ustawiony w trybie joysticka, nie myszy (WinUAE: *Game ports*). Zawodnicy nazywają się na start GRACZ 1, GRACZ 2… (sterowani przez ludzi) i CPU 2, CPU 3… (boty), zależnie od liczby graczy. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
 - Liczbę graczy zmieniasz w pierwszym wierszu ekranu ustawień (LEWO/PRAWO).
 

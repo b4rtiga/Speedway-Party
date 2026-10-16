@@ -3,7 +3,7 @@
 What is new in each version of the game, newest first. Polish version: [CHANGELOG.md](CHANGELOG.md).
 Each version is a `## version – date` heading (or “in preparation”) with a list of changes, so the game's website can show them.
 
-## 0.88 – in preparation
+## 0.95 – 2026-10-17
 
 - **Night meetings:** a new TIME: DAY / NIGHT option. At night four floodlight masts light the track – lamps with a soft glow, the bends in full warm light, the middle of the straights a little darker.
 - **Machine defects:** at a random moment of a heat an engine coughs, smokes and dies, and the rider rolls onto the infield and waits there until the end of the heat – 0 points (“D”). About one defect per tournament, at most one per rider; they can be switched off.

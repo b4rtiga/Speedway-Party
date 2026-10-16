@@ -3,7 +3,7 @@
 Nowości w kolejnych wersjach gry, od najnowszej. Wersja angielska: [CHANGELOG_EN.md](CHANGELOG_EN.md).
 Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i lista zmian – tak, żeby strona gry mogła je pokazywać.
 
-## 0.88 – w przygotowaniu
+## 0.95 – 2026-10-17
 
 - **Zawody w nocy:** nowa opcja PORA: DZIEŃ / NOC. W nocy tor oświetlają cztery maszty z reflektorami – lampy z miękką poświatą, łuki w pełnym ciepłym świetle, środki prostych trochę ciemniejsze.
 - **Defekty motocykli:** w losowej chwili biegu silnik krztusi się, dymi i gaśnie, a zawodnik zjeżdża na murawę i czeka tam do końca biegu – dostaje 0 punktów („D”). Średnio jeden defekt na turniej, najwyżej jeden na zawodnika; można je wyłączyć.
