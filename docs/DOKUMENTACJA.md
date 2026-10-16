@@ -183,7 +183,7 @@ Stan toru na start jest domyślnie losowany (można go ustawić w ustawieniach t
 
 ### Deszcz
 
-W ustawieniach turnieju DESZCZ: TAK – w losowym biegu (od 3. do 9.) zaczyna padać. Od tej chwili tor nie przesycha, tylko z biegu na bieg mięknie i trzyma coraz gorzej, a w biegu widać krople. W tabeli programu przy stanie toru pojawia się „PADA”.
+W ustawieniach turnieju DESZCZ: TAK – w losowym biegu (od 2. do 5.) zaczyna padać. Od tej chwili tor nie przesycha, tylko z biegu na bieg mięknie i trzyma coraz gorzej, a w biegu widać krople. W tabeli programu przy stanie toru pojawia się „PADA”.
 
 ![Deszcz](../art/screen_33_deszcz.png)
 

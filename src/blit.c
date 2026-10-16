@@ -86,6 +86,10 @@ void blit_copy(UBYTE *dst, const UBYTE *src, WORD x, WORD y, WORD w, WORD h)
 #define DOT_WORDS      2
 
 static UWORD *mask_big, *mask_small, *color_pat;     /* Chip RAM */
+static UWORD *mask_rain, *rain_pat;                  /* kreska deszczu i jej wzor koloru (Chip RAM) */
+static UWORD  rain_color = 0xFFFF;                   /* kolor we wzorze rain_pat */
+#define DOT_ROWS_RAIN  (4 * PLAY_DEPTH)
+#define RAIN_BYTES     (DOT_ROWS_RAIN * DOT_WORDS * 2)
 #define MASK_BYTES  (DOT_ROWS_BIG * DOT_WORDS * 2)
 #define PAT_WORDS   (DOT_ROWS_BIG * DOT_WORDS)
 #define PAT_BYTES   (256UL * PAT_WORDS * 2)
@@ -93,14 +97,19 @@ static UWORD *mask_big, *mask_small, *color_pat;     /* Chip RAM */
 BOOL blit_init(void)
 {
     UWORD r, c;
-    mask_big   = AllocMem(MASK_BYTES * 2 + PAT_BYTES, MEMF_CHIP | MEMF_CLEAR);
+    mask_big   = AllocMem(MASK_BYTES * 2 + PAT_BYTES + RAIN_BYTES * 2, MEMF_CHIP | MEMF_CLEAR);
     if (!mask_big) return FALSE;
     mask_small = mask_big + MASK_BYTES / 2;
     color_pat  = mask_small + MASK_BYTES / 2;
+    mask_rain  = color_pat + PAT_BYTES / 2;
+    rain_pat   = mask_rain + RAIN_BYTES / 2;
+    rain_color = 0xFFFF;
     for (r = 0; r < DOT_ROWS_BIG; r++) {
         mask_big[r * DOT_WORDS] = 0xC000;
         mask_small[r * DOT_WORDS] = 0x8000;
     }
+    for (r = 0; r < DOT_ROWS_RAIN; r++)                  /* kreska: 2 linie w x, 2 linie w x+1 */
+        mask_rain[r * DOT_WORDS] = (UWORD)(r < 2 * PLAY_DEPTH ? 0x8000 : 0x4000);
     for (c = 0; c < 256; c++)
         for (r = 0; r < DOT_ROWS_BIG; r++) {
             UWORD v = (UWORD)((c >> (r % PLAY_DEPTH)) & 1 ? 0xFFFF : 0x0000);
@@ -112,7 +121,7 @@ BOOL blit_init(void)
 
 void blit_free(void)
 {
-    if (mask_big) FreeMem(mask_big, MASK_BYTES * 2 + PAT_BYTES);
+    if (mask_big) FreeMem(mask_big, MASK_BYTES * 2 + PAT_BYTES + RAIN_BYTES * 2);
 }
 
 /* Serie blitow czasteczek: rejestry wspolne ustawiane raz (blit_dots_begin /
@@ -130,16 +139,28 @@ void blit_dots_begin(void)
     REG16(R_BLTDMOD) = ROW_BYTES - DOT_WORDS * 2;
 }
 
-void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color)
+void blit_dot(UBYTE *buf, WORD x, WORD y, UBYTE shape, UBYTE color)
 {
     UBYTE *d = buf + (LONG)y * PLAY_STRIDE + ((x >> 4) << 1);
+    const UWORD *pat = color_pat + color * PAT_WORDS;
+    if (shape == DOT_RAIN) {
+        if (color != rain_color) {                   /* nowy kolor deszczu: wzor na 4 linie */
+            UWORD r;
+            hw_wait_blit();                          /* poprzedni blit mogl jeszcze czytac wzor */
+            rain_color = color;
+            for (r = 0; r < DOT_ROWS_RAIN; r++)
+                rain_pat[r * DOT_WORDS] = rain_pat[r * DOT_WORDS + 1] =
+                    (UWORD)((color >> (r % PLAY_DEPTH)) & 1 ? 0xFFFF : 0x0000);
+        }
+        pat = rain_pat;
+    }
     hw_wait_blit();
     REG16(R_BLTCON0) = (UWORD)(((x & 15) << 12) | 0x0F00 | 0xCA);
-    REG32(R_BLTAPT) = (ULONG)(big ? mask_big : mask_small);
-    REG32(R_BLTBPT) = (ULONG)(color_pat + color * PAT_WORDS);
+    REG32(R_BLTAPT) = (ULONG)(shape == DOT_RAIN ? mask_rain : shape == DOT_BIG ? mask_big : mask_small);
+    REG32(R_BLTBPT) = (ULONG)pat;
     REG32(R_BLTCPT) = (ULONG)d;
     REG32(R_BLTDPT) = (ULONG)d;
-    REG16(R_BLTSIZE) = (UWORD)(((big ? DOT_ROWS_BIG : PLAY_DEPTH) << 6) | DOT_WORDS);
+    REG16(R_BLTSIZE) = (UWORD)(((DOT_ROWS(shape) * PLAY_DEPTH) << 6) | DOT_WORDS);
 }
 
 void blit_restores_begin(void)
@@ -153,13 +174,13 @@ void blit_restores_begin(void)
     REG16(R_BLTDMOD) = ROW_BYTES - DOT_WORDS * 2;
 }
 
-void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, BOOL big)
+void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, UBYTE shape)
 {
     LONG o = (LONG)y * PLAY_STRIDE + ((x >> 4) << 1);
     hw_wait_blit();
     REG32(R_BLTAPT) = (ULONG)(src + o);
     REG32(R_BLTDPT) = (ULONG)(dst + o);
-    REG16(R_BLTSIZE) = (UWORD)(((big ? DOT_ROWS_BIG : PLAY_DEPTH) << 6) | DOT_WORDS);
+    REG16(R_BLTSIZE) = (UWORD)(((DOT_ROWS(shape) * PLAY_DEPTH) << 6) | DOT_WORDS);
 }
 
 void blit_wait(void) { hw_wait_blit(); }

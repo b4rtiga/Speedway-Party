@@ -183,7 +183,7 @@ The track condition at the start is random by default (you can set it in the tou
 
 ### Rain
 
-In the tournament settings choose RAIN: YES – at a random heat (from the 3rd to the 9th) it starts to rain. From then on the track does not dry out but gets softer and grips worse heat by heat, and you can see the drops during a heat. The programme shows “RAINING” next to the track condition.
+In the tournament settings choose RAIN: YES – at a random heat (from the 2nd to the 5th) it starts to rain. From then on the track does not dry out but gets softer and grips worse heat by heat, and you can see the drops during a heat. The programme shows “RAINING” next to the track condition.
 
 ![Rain](../art/en/screen_33_deszcz.png)
 

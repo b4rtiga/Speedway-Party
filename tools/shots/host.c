@@ -123,17 +123,18 @@ void blit_copy(UBYTE *dst, const UBYTE *src, WORD x, WORD y, WORD w, WORD h)
             memcpy(dst + o, src + o, (size_t)(w >> 3));
         }
 }
-void blit_dot(UBYTE *buf, WORD x, WORD y, BOOL big, UBYTE color)
+void blit_dot(UBYTE *buf, WORD x, WORD y, UBYTE shape, UBYTE color)
 {
     put_px(buf, x, y, color);
-    if (big) { put_px(buf, x + 1, y, color); put_px(buf, x, y + 1, color); put_px(buf, x + 1, y + 1, color); }
+    if (shape == DOT_BIG) { put_px(buf, x + 1, y, color); put_px(buf, x, y + 1, color); put_px(buf, x + 1, y + 1, color); }
+    if (shape == DOT_RAIN) { put_px(buf, x, y + 1, color); put_px(buf, x + 1, y + 2, color); put_px(buf, x + 1, y + 3, color); }
 }
 void blit_dots_begin(void) {}
 void blit_restores_begin(void) {}
-void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, BOOL big)
+void blit_restore(UBYTE *dst, const UBYTE *src, WORD x, WORD y, UBYTE shape)
 {
     WORD r, pl;
-    for (r = 0; r < (big ? 2 : 1); r++)
+    for (r = 0; r < DOT_ROWS(shape); r++)
         for (pl = 0; pl < PLAY_DEPTH; pl++) {
             LONG o = (LONG)(y + r) * PLAY_STRIDE + pl * ROW_BYTES + ((x >> 4) << 1);
             memcpy(dst + o, src + o, 4);

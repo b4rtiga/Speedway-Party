@@ -78,28 +78,26 @@ static void emit(UBYTE owner, const Bike *b, BOOL spin)
 }
 
 #define OWNER_WATER 0xFF            /* woda z polewaczki: nikogo nie spowalnia, nie spulchnia toru, nie leci na murawe */
-#define OWNER_FX    0xFE            /* deszcz i dym: jak woda, ale takze nad murawa */
+#define OWNER_FX    0xFE            /* dym: jak woda, ale takze nad murawa */
+#define OWNER_RAIN  0xFD            /* deszcz: jak dym, ale leci rowno (bez oporu) */
 static const UBYTE water_colors[2] = { 214, 215 };
 static const UBYTE smoke_colors[3] = { 133, 134, 135 };   /* szarosci palety toru */
 
-/* deszcz: kropla w losowym miejscu toru - smuga z 2 drobin jedna nad druga, szybko w dol
- * (nikogo nie spowalnia, nie spulchnia toru) */
+/* deszcz: kropla w losowym miejscu ekranu - jasna kreska 1x4 skosnie w dol, rowno 4 px na klatke
+ * przez 6-7 klatek (nikogo nie spowalnia, nie spulchnia toru). Jeden kolor dla wszystkich kropli
+ * (Blitter ma wzor kreski tylko w jednym kolorze): w nocy - jak w swietle reflektorow nad prosta. */
 static void emit_rain(void)
 {
-    WORD x = (WORD)rng_range(4, SCREEN_W - 22), y = (WORD)rng_range(4, PLAY_H - 10), k;
-    UBYTE life = (UBYTE)(3 + rng_range(0, 2)), col = track_night_color(x, y, water_colors[rng_next() & 1]);
-    for (k = 0; k < 2; k++) {
-        Particle *p = &g_tour.particles[g_tour.particle_head];
-        g_tour.particle_head = (UBYTE)((g_tour.particle_head + 1) % MAX_PARTICLES);
-        p->x = INT2FIX(x);
-        p->y = INT2FIX(y - k * 2);
-        p->dx = FIX_ONE / 2;
-        p->dy = FIX_ONE * 3;
-        p->life = life;
-        p->color = col;
-        p->big = 0;
-        p->owner = OWNER_FX;
-    }
+    Particle *p = &g_tour.particles[g_tour.particle_head];
+    g_tour.particle_head = (UBYTE)((g_tour.particle_head + 1) % MAX_PARTICLES);
+    p->x = INT2FIX(rng_range(6, SCREEN_W - 24));
+    p->y = INT2FIX(rng_range(6, PLAY_H - 34));
+    p->dx = FIX_ONE;
+    p->dy = FIX_ONE * 4;
+    p->life = (UBYTE)(6 + rng_range(0, 1));
+    p->color = track_night_color(160, 40, water_colors[1]);
+    p->big = DOT_RAIN;
+    p->owner = OWNER_RAIN;
 }
 
 /* dym z krztuszacego sie silnika (defekt): w gore i do tylu, wolno */
@@ -147,18 +145,20 @@ void roost_update(BOOL bikes)
         if (!p->life) continue;
         p->x += p->dx;
         p->y += p->dy;
-        p->dx -= p->dx >> 2;              /* opor: drobina szybko opada na tor */
-        p->dy -= p->dy >> 2;
+        if (p->owner != OWNER_RAIN) {     /* opor: drobina szybko opada na tor (deszcz leci rowno) */
+            p->dx -= p->dx >> 2;
+            p->dy -= p->dy >> 2;
+        }
         p->life--;
-        if (!p->life && p->owner < OWNER_FX)
+        if (!p->life && p->owner < OWNER_RAIN)
             track_loosen(FIX2INT(p->x), FIX2INT(p->y));   /* grudka spadla na tor */
-        if (p->x < 0 || p->y < 0 || FIX2INT(p->x) > SCREEN_W - 17 || FIX2INT(p->y) > PLAY_H - 2)
+        if (p->x < 0 || p->y < 0 || FIX2INT(p->x) > SCREEN_W - 17 || FIX2INT(p->y) > PLAY_H - 4)
             p->life = 0;
         else if (p->owner == OWNER_WATER && track_lateral(FIX2INT(p->x), FIX2INT(p->y)) < -TRACK_HALF_WIDTH)
             p->life = 0;             /* woda tylko na nawierzchni, nie na murawie (panel) */
     }
     if (!bikes) return;
-    if (RAINING() && g_tour.state == GS_HEAT) { emit_rain(); emit_rain(); emit_rain(); }   /* 3 krople na klatke */
+    if (RAINING() && g_tour.state == GS_HEAT) { UBYTE k; for (k = 0; k < 5; k++) emit_rain(); }   /* 5 kropli na klatke, ~30 naraz */
 
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
@@ -183,7 +183,7 @@ UBYTE roost_hits(const Bike *b)
     for (i = 0; i < MAX_PARTICLES; i++) {
         const Particle *p = &g_tour.particles[i];
         WORD dx, dy;
-        if (p->life < HIT_MIN_LIFE || p->owner == me || p->owner >= OWNER_FX) continue;
+        if (p->life < HIT_MIN_LIFE || p->owner == me || p->owner >= OWNER_RAIN) continue;
         dx = (WORD)(FIX2INT(p->x) - fx);
         if (dx > 6 || dx < -6) continue;               /* szybkie odrzucenie bez mnozenia */
         dy = (WORD)(FIX2INT(p->y) - fy);
@@ -222,8 +222,8 @@ void roost_draw(void)
         y = FIX2INT(p->y);
         /* tylko w obrebie ekranu: drobina wyemitowana w tej klatce nie przeszla jeszcze
          * kontroli granic w roost_update, a blit poza buforem nadpisalby dane gry w Chip RAM */
-        if (x < 0 || y < 0 || x > SCREEN_W - 17 || y > PLAY_H - 2) continue;
-        if (ui_panel_covers((WORD)(x & ~15), y, 32, 2)) continue;   /* blok blit_dot/restore na panelu */
+        if (x < 0 || y < 0 || x > SCREEN_W - 17 || y > PLAY_H - DOT_ROWS(p->big)) continue;
+        if (ui_panel_covers((WORD)(x & ~15), y, 32, DOT_ROWS(p->big))) continue;   /* blok blit_dot/restore na panelu */
         blit_dot(buf, x, y, p->big, p->color);
         drawn[bi][n].x = x;
         drawn[bi][n].y = y;

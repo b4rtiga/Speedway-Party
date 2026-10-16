@@ -232,7 +232,7 @@ static void tournament_start(void)
     track_select(SERIES_TRACK());        /* tor z ustawien (geometria, tlo, palety) */
     g_tour.start_condition = g_tour.track_choice < TRACK_RANDOM ? g_tour.track_choice
                                                                  : (UBYTE)rng_range(0, 2);
-    g_tour.rain_from = g_tour.rain_opt ? (UBYTE)rng_range(2, 8) : 0xFF;   /* deszcz od biegu 3..9 */
+    g_tour.rain_from = g_tour.rain_opt ? (UBYTE)rng_range(1, 4) : 0xFF;   /* deszcz od biegu 2..5 */
     {
         static const UBYTE start_wet[3] = { 0, 130, 255 };   /* suchy / wilgotny / mokry */
         track_set_wetness(start_wet[g_tour.start_condition]);
