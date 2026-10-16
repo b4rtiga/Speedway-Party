@@ -653,6 +653,285 @@ static int screenshots(void)
     return 0;
 }
 
+/* ------------------------------------------------------------------------------
+ * Tryb "cinema": material do filmowego trailera (tools/mkcinema.py). Sceny z prawdziwego
+ * kodu gry: start spod tasmy, szpryca w 1. luku, noc, deszcz, defekt, upadek w 1. luku,
+ * fotofinisz (zwolnione tempo i stopklatka), mistrzostwa z fajerwerkami, plansza koncowa.
+ * Klatki 320x256 RGB na stdout; CINEMA_META: co klatke wiersz tekstu (scena, faza, flagi,
+ * pozycje motocykli, motocykl "w kadrze") - kamere i napisy robi mkcinema.py; TRAILER_AUDIO:
+ * rejestry silnikow jak w trybie trailer. Klatki ida przez bufor kolowy (3 s), wiec ujecie
+ * moze zaczac sie przed zdarzeniem wykrytym dopiero, gdy nastapi (upadek, meta).
+ * ------------------------------------------------------------------------------ */
+#define CIN_RING 150
+static UBYTE cin_rgb[CIN_RING][256][320][3];
+static char  cin_meta[CIN_RING][160];
+static UWORD cin_regs[CIN_RING][4];
+static int   cin_head, cin_count;
+static BOOL  cin_live;
+static FILE *cin_meta_f;
+static int   cin_scene;
+static int   cin_focus = -1;                 /* bike w centrum kadru (-1: prowadzacy) */
+static int   cin_flags;                      /* 1 powtorka, 2 stopklatka, 4 upadek/czerwona flaga */
+static long  cin_out;
+
+static void cin_write(int k)
+{
+    fwrite(cin_rgb[k], 1, sizeof(cin_rgb[k]), stdout);
+    fputs(cin_meta[k], cin_meta_f);
+    if (trailer_audio) fwrite(cin_regs[k], sizeof(cin_regs[k]), 1, trailer_audio);
+    cin_out++;
+}
+
+/* klatka gry jak tframe, ale do bufora kolowego (albo od razu na wyjscie w trybie "na zywo") */
+static void cframe(BOOL sprites)
+{
+    UBYTE i;
+    int k = (cin_head + cin_count) % CIN_RING, n = 0;
+    const Heat *h = &g_tour.heat;
+    g_frame++;
+    roost_erase();
+    ui_render();
+    roost_draw();
+    if (sprites) bike_sprites();
+    else for (i = 0; i < 8; i++) video_set_sprite(i, g_blank_sprite);
+    hud_update();
+    compose(sprites);
+    audio_update();
+    if (cin_count == CIN_RING) { cin_head = (cin_head + 1) % CIN_RING; cin_count--; k = (cin_head + cin_count) % CIN_RING; }
+    memcpy(cin_rgb[k], rgb, sizeof(rgb));
+    cin_regs[k][0] = REG16(0x0A6); cin_regs[k][1] = REG16(0x0A8); cin_regs[k][2] = REG16(0x0B6); cin_regs[k][3] = REG16(0x0B8);
+    n = sprintf(cin_meta[k], "%d %d %d %d %d", cin_scene, (int)h->phase, cin_flags | (race_fall_active() ? 4 : 0),
+                cin_focus >= 0 ? cin_focus : (int)h->order[0], (int)h->order[1]);
+    for (i = 0; i < MAX_RIDERS; i++) {
+        const Bike *b = &g_tour.bikes[i];
+        n += sprintf(cin_meta[k] + n, " %d %d %d", (int)FIX2INT(b->x), (int)FIX2INT(b->y), b->empty ? 9 : (int)b->state);
+    }
+    strcpy(cin_meta[k] + n, "\n");
+    cin_count++;
+    if (cin_live) { cin_write(k); cin_count--; }
+    g_video.front = g_video.back;
+    g_video.back ^= 1;
+}
+
+/* ostatnie pre klatek z bufora na wyjscie, potem kolejne klatki od razu */
+static void cin_go_live(int pre)
+{
+    int skip = cin_count > pre ? cin_count - pre : 0, j;
+    for (j = skip; j < cin_count; j++) cin_write((cin_head + j) % CIN_RING);
+    cin_head = cin_count = 0;
+    cin_live = TRUE;
+}
+
+static void cin_cut(void) { cin_live = FALSE; cin_head = cin_count = 0; cin_flags = 0; cin_focus = -1; }
+
+static void cin_hold(int n, BOOL sprites) { while (n-- > 0) cframe(sprites); }
+
+/* bieg w toku: krok logiki + klatka */
+static void cin_step(void)
+{
+    HeatPhase last = g_tour.heat.phase;
+    step();
+    if (g_tour.heat.phase != last) ui_invalidate();
+    cframe(TRUE);
+}
+
+/* nowy bieg na torze: oba bufory z pelnym tlem (po zmianie nocy / ekranu menu) */
+static void cin_heat(UBYTE hn)
+{
+    int i;
+    for (i = 0; i < 2; i++) { g_tour.state = GS_TABLE; render(); g_video.front = g_video.back; g_video.back ^= 1; }
+    roost_reset();
+    begin(hn);
+    tenter(GS_HEAT);
+}
+
+static void cin_fresh_tournament(ULONG seed, UBYTE wet)
+{
+    g_rng = seed;
+    tournament_reset();
+    track_reset_wear();
+    track_random_surface();
+    track_set_wetness(wet);
+    track_tick_flush();
+}
+
+/* poczatek 1. luku w dystansie biegu (jak tools/sim/start_test.c) */
+static LONG cin_bend(void) { return g_tour.track.lap_length + 2 * 60 - g_tour.track.tape_s; }
+
+static int cinema(void)
+{
+    int i, s;
+#ifdef _WIN32
+    _setmode(_fileno(stdout), _O_BINARY);
+#endif
+    host_init();
+    fixmath_init();
+    sprites_init();
+    roost_init();
+    tractors_init();
+    tournament_defaults();
+    tournament_reset();
+    track_init();
+    ui_init();
+    hud_init();
+    g_frame = 0;
+    {
+        const char *ap = getenv("TRAILER_AUDIO"), *mp = getenv("CINEMA_META");
+        if (ap) trailer_audio = fopen(ap, "wb");
+        if (trailer_audio) atexit(close_trailer_audio);
+        cin_meta_f = fopen(mp ? mp : "cinema_meta.txt", "w");
+    }
+    audio_init();
+    audio_start();
+    g_tour.num_humans = 0;
+    tournament_default_names();
+
+    /* 1-2. start spod tasmy (3 s przed zielonym, 3 s po) i szpryca w 1. luku (3 s) */
+    cin_scene = 1;
+    cin_fresh_tournament(0x5EED01u, 0);
+    cin_heat(0);
+    while (g_tour.heat.phase != HEAT_TAPE_UP) cin_step();
+    cin_go_live(150);
+    for (i = 0; i < 150; i++) cin_step();
+    cin_scene = 2;
+    for (i = 0; i < 150; i++) cin_step();
+    cin_cut();
+
+    /* 3. noc */
+    cin_scene = 3;
+    cin_fresh_tournament(0x5EED03u, 0);
+    g_tour.night = 1;
+    track_set_night(TRUE);
+    cin_heat(2);
+    while (g_tour.heat.phase != HEAT_RACING) cin_step();
+    for (i = 0; i < 260; i++) cin_step();
+    cin_go_live(0);
+    for (i = 0; i < 150; i++) cin_step();
+    cin_cut();
+    track_set_night(FALSE);
+    g_tour.night = 0;
+
+    /* 4. deszcz: mokry tor, krople */
+    cin_scene = 4;
+    cin_fresh_tournament(0x5EED04u, 200);
+    g_tour.rain_from = 0;
+    cin_heat(3);
+    while (g_tour.heat.phase != HEAT_RACING) cin_step();
+    for (i = 0; i < 400; i++) cin_step();
+    cin_go_live(0);
+    for (i = 0; i < 150; i++) cin_step();
+    cin_cut();
+    g_tour.rain_from = 0xFF;
+
+    /* 5. defekt: drugi na torze krztusi sie, dymi i zjezdza na murawe */
+    cin_scene = 5;
+    cin_fresh_tournament(0x5EED05u, 60);
+    cin_heat(4);
+    while (g_tour.heat.phase != HEAT_RACING) cin_step();
+    for (i = 0; i < 250; i++) cin_step();
+    cin_focus = g_tour.heat.order[1];
+    g_tour.bikes[cin_focus].defect_frame = (UWORD)(g_tour.heat.race_frames + 25);
+    cin_go_live(0);
+    for (i = 0; i < 200; i++) cin_step();
+    cin_cut();
+
+    /* 6. upadek w 1. luku: zawodnik z pola D jedzie w bande od wejscia w luk; ziarno, przy ktorym
+     * upada jeszcze w luku (pierwsze z kolejnych) */
+    cin_scene = 6;
+    for (s = 0; s < 60; s++) {
+        int fell = -1, f = 0, rider;
+        cin_fresh_tournament(0x5EED60u + (ULONG)s * 7919u, 0);
+        cin_heat(5);
+        rider = g_tour.heat.gate_rider[3];
+        while (g_tour.heat.phase != HEAT_RACING) cin_step();
+        while (f < 400 && fell < 0) {
+            Bike *b = &g_tour.bikes[3];
+            if (b->race_distance >= cin_bend()) {
+                g_tour.riders[rider].control = CTRL_HUMAN;
+                b->input = BTN_RIGHT;
+            }
+            cin_step();
+            if (b->state == BIKE_FALLEN) fell = f;
+            f++;
+        }
+        g_tour.riders[rider].control = CTRL_AI;
+        if (fell >= 0 && g_tour.bikes[3].race_distance < cin_bend() + 200) {
+            cin_focus = 3;
+            cin_go_live(60);                     /* 1,2 s przed upadkiem */
+            for (i = 0; i < 140; i++) cin_step();
+            fprintf(stderr, "cinema: upadek (ziarno %d)\n", s);
+            break;
+        }
+        cin_cut();
+    }
+    cin_cut();
+
+    /* 7. fotofinisz: biegi do pierwszego "o wlos"; dojazd 1,2 s, powtorka w zwolnionym tempie
+     * (40 klatek przed linia, co klatka nagrania 2 razy), stopklatka na linii */
+    cin_scene = 7;
+    for (s = 0; s < 40 * NUM_HEATS; s++) {        /* kolejne biegi kolejnych turniejow */
+        if (s % NUM_HEATS == 0) cin_fresh_tournament(0x5EED07u + (ULONG)s * 104729u, 0);
+        cin_heat((UBYTE)(s % NUM_HEATS));
+        while (g_tour.heat.phase != HEAT_FINISHED && !race_photo_finish()) cin_step();
+        if (race_photo_finish() && cin_count >= 84) break;
+        cin_cut();
+    }
+    fprintf(stderr, "cinema: fotofinisz (bieg %d, roznica %d kl.)\n", s, race_photo_gap());
+    {
+        /* dojazd: ostatnie klatki przed meta zwyciezcy (z bufora - w nim tez 0,5 s po mecie) */
+        UWORD cross = race_replay_cross(), k, k0;
+        cin_go_live(60 + 24);
+        cin_live = TRUE;
+        g_tour.heat.phase = HEAT_REPLAY;
+        roost_reset();
+        ui_invalidate();
+        cin_flags = 1;
+        k0 = (UWORD)(cross > 40 ? cross - 40 : 0);
+        for (k = k0; k <= cross; k++) { race_replay_frame(k); cframe(TRUE); race_replay_frame(k); cframe(TRUE); }
+        cin_flags = 3;
+        for (i = 0; i < 300 - 84 - 2 * (cross - k0 + 1); i++) cframe(TRUE);
+        race_photo_done();
+        cin_cut();
+    }
+
+    /* 8. mistrzostwa: klasyfikacja koncowa i fajerwerki */
+    cin_scene = 8;
+    {
+        static const UBYTE pts[MAX_RIDERS][SERIES_ROUNDS] = { { 11, 13, 12 }, { 12, 9, 14 }, { 8, 10, 6 }, { 5, 4, 4 } };
+        static const UBYTE plc[MAX_RIDERS][SERIES_ROUNDS] = { { 2, 1, 2 }, { 1, 3, 1 }, { 3, 2, 3 }, { 4, 4, 4 } };
+        UBYTE r, k;
+        g_tour.series = 1;
+        g_tour.series_round = SERIES_ROUNDS - 1;
+        for (r = 0; r < MAX_RIDERS; r++)
+            for (k = 0; k < SERIES_ROUNDS; k++) { g_tour.series_pts[r][k] = pts[r][k]; g_tour.series_place[r][k] = plc[r][k]; }
+        tenter(GS_SERIES);
+        cin_live = TRUE;
+        cin_hold(150, FALSE);
+        cin_cut();
+        g_tour.series = 0;
+    }
+
+    /* 9. plansza koncowa: ilustracja tytulowa z napisem */
+    cin_scene = 9;
+    {
+        extern const char *g_endcard[2];
+#ifdef LANG_EN
+        g_endcard[0] = "SEE YOU";
+        g_endcard[1] = "AT THE TAPE!";
+#else
+        g_endcard[0] = "Z ŻUŻLOWYM";
+        g_endcard[1] = "POZDROWIENIEM!";
+#endif
+        tenter(GS_TITLE);
+        cin_live = TRUE;
+        cin_hold(150, FALSE);
+        cin_cut();
+    }
+    fclose(cin_meta_f);
+    fprintf(stderr, "cinema: %ld klatek (%.1f s)\n", cin_out, cin_out / 50.0);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     g_defects_enabled = FALSE;           /* zrzuty i trailer powtarzalne - bez losowych defektow */
@@ -660,5 +939,6 @@ int main(int argc, char **argv)
     if (argc > 1 && !strcmp(argv[1], "endcard")) return endcard();
     if (argc > 1 && !strcmp(argv[1], "present")) return present();
     if (argc > 1 && !strcmp(argv[1], "podium")) return podium();
+    if (argc > 1 && !strcmp(argv[1], "cinema")) return cinema();
     return screenshots();
 }

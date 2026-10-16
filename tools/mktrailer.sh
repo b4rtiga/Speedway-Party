@@ -1,5 +1,6 @@
 #!/bin/sh
-# Trailer gry: art/trailer.mp4 (1280x1024, 50 fps, podklad "Black Motor" + silniki).
+# Trailer "gameplay": art/trailer_gameplay.mp4 (1280x1024, 50 fps, podklad "Black Motor" + silniki) -
+# jedno ujecie jak w grze. Filmowy trailer (art/trailer.mp4): python tools/mkcinema.py.
 # Klatki rysuje prawdziwy kod gry skompilowany na PC (tools/shots, tryb "trailer"):
 # plansza tytulowa, ustawienia, program zawodow, start i 1. okrazenie biegu 1,
 # potem przejscie z efektem pikselizacji do ilustracji tytulowej z napisem Z ZUZLOWYM POZDROWIENIEM!
@@ -7,11 +8,11 @@
 # odtwarzacze pokazuja ja jako miniaturke). Silniki: rejestry Pauli z prawdziwej logiki
 # audio.c zapisywane co klatke, dzwiek z data/engine.raw sklada tools/trailer_audio.py.
 # Wymaga: pip install ziglang, ffmpeg w PATH.
-# LANG_EN=1 sh tools/mktrailer.sh - wersja angielska: art/en/trailer.mp4 (napisy gry po angielsku,
-# na koncu SEE YOU AT THE TAPE!) i miniaturka art/en/trailer_thumb.png (klatka z biegu jest bez napisow).
+# LANG_EN=1 sh tools/mktrailer.sh - wersja angielska: art/en/trailer_gameplay.mp4 (napisy gry po angielsku,
+# na koncu SEE YOU AT THE TAPE!).
 cd "$(dirname "$0")/.." || exit 1
-if [ -n "$LANG_EN" ]; then O=tools/shots/out-en; EXE=./tools/shots/shots_en.exe; MP4=art/en/trailer.mp4
-else O=tools/shots/out; EXE=./tools/shots/shots.exe; MP4=art/trailer.mp4; fi
+if [ -n "$LANG_EN" ]; then O=tools/shots/out-en; EXE=./tools/shots/shots_en.exe; MP4=art/en/trailer_gameplay.mp4
+else O=tools/shots/out; EXE=./tools/shots/shots.exe; MP4=art/trailer_gameplay.mp4; fi
 sh tools/shots/run.sh >/dev/null || exit 1
 TMP=$O/trailer.mkv
 REGS=$O/trailer_audio.bin            # okres i glosnosc kanalow silnikow co klatke
@@ -47,5 +48,4 @@ ffmpeg -v error -y -i "$TMP" -loop 1 -t "$(python -c "print($HOLD+$XF)")" -i "$T
   -map "[v]" -map "[a]" -t "$TOTAL" \
   -c:v libx264 -pix_fmt yuv420p -profile:v high -preset slow -crf 20 -tune animation -r 50 -c:a aac -b:a 160k -ac 2 -movflags +faststart "$MP4" || exit 1
 rm -f "$TMP" "$REGS" "$ENG" "$TITLE"
-[ -n "$LANG_EN" ] && cp art/trailer_thumb.png art/en/trailer_thumb.png
 echo "$MP4 ($TOTAL s)"

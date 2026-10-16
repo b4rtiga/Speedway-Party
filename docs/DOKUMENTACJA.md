@@ -345,7 +345,8 @@ Wymagają Pythona 3 z `numpy`, ffmpeg w PATH, a kontrola kodu i symulator – `p
 | `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png` |
 | `python tools/import_engine.py plik.wav` | pętla silnika z nagrania (obecnie `src/speedway_500cc_10000rpm_loop.wav`) |
 | `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry skompilowanego na PC (`art/screen_*.png`; z `LANG_EN=1` angielskie w `art/en/`) |
-| `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` |
+| `python tools/mkcinema.py` | filmowy trailer `art/trailer.mp4` (16:9, 35 s, `--en` – po angielsku): sceny z prawdziwego kodu gry (tryb `cinema` w `tools/shots`), wirtualna kamera, napisy fontem gry, dźwięk silników z logiki `audio.c` |
+| `sh tools/mktrailer.sh` | trailer „gameplay” `art/trailer_gameplay.mp4`: jedno ujęcie jak w grze |
 | `sh tools/sim/news_test.sh` | testy gazety (reguły nagłówków, podsumowanie, długie nazwiska) |
 | `sh tools/sim/settings_test.sh` | test zapisu i odczytu ustawień (`settings.dat`) na „dysku w pamięci” |
 | `sh tools/sim/music_test.sh` | test muzyki w menu: dekoder ADPCM i strumień przez bufory DMA (emulacja Pauli) – każda zagrana próbka zgodna z `tools/adpcm.py` |

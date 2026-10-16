@@ -520,13 +520,13 @@ def render_bike(dir_, skid, canvas=None, scale=None, stripe=True):
     for side in (-1, 1):
         hand_v = side * 4.4
         col[seg((-1.2, bv + side * 2.2), (4.6 + side * steer * -1.0, hand_v), 0.75)] = KEV
-    # kask: duzy, z blikiem
+    # kask: duzy, caly w kolorze zawodnika (gra przemalowuje tylko HELMET_SLOT - szary cien
+    # wygladal jak kask pomalowany w 3/4), bryle daje bialy blik
     hu, hv = 1.3, lean * 1.1
     helm = ell(hu, hv, 2.7, 2.6)
     lit = world_light(u - hu, v - hv)
     dist = np.hypot(u - hu, v - hv)
-    hc = np.where(lit < -0.75, HSHADE, HELMET_SLOT)
-    hc = np.where((lit > 0.55) & (dist > 0.8) & (dist < 1.9), WHITE, hc)
+    hc = np.where((lit > 0.55) & (dist > 0.8) & (dist < 1.9), WHITE, HELMET_SLOT)
     col[helm] = hc[helm]
 
     return downsample(col, n)
@@ -846,6 +846,9 @@ def compose_screen(palette, frames, bikes):
 
 
 def main():
+    if len(sys.argv) > 2 and sys.argv[1] == "--bikes4":     # wzorzec do tools/sim/sprites_test.sh
+        pathlib.Path(sys.argv[2]).write_bytes(sprite_blob(bike_frames(), gates=4))
+        return
     (ROOT / "data").mkdir(exist_ok=True)
     (ROOT / "art").mkdir(exist_ok=True)
     (ROOT / "build/preview").mkdir(parents=True, exist_ok=True)   # podglady robocze (poza repo)

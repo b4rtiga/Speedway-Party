@@ -310,7 +310,8 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z nagrania (obecnie `src/speedway_500cc_10000rpm_loop.wav`; `make assets` robi to sam) |
 | `python tools/mkdocs.py` | dokumentacja: `docs/DOKUMENTACJA.md` → `docs/SpeedwayParty-dokumentacja.pdf` (HTML do druku, PDF drukuje Edge albo Chrome w tle; wersja z gita) |
 | `python tools/mksocial.py` | miniaturka do podglądu linków na GitHubie, `art/social_preview.jpg` (1280×640, poniżej limitu 1 MB; wymaga ffmpeg) |
-| `sh tools/mktrailer.sh` | trailer `art/trailer.mp4` z prawdziwego kodu gry: menu, start i jedno okrążenie biegu z dźwiękiem silników (logika `audio.c`, mikser `tools/trailer_audio.py`) i przejście do ilustracji tytułowej (wymaga ffmpeg) |
+| `python tools/mkcinema.py` | filmowy trailer `art/trailer.mp4` (16:9, 35 s; `--en` – po angielsku, `--reuse` – bez ponownego renderowania gry): start spod taśmy, szpryca, noc, deszcz, defekt, upadek, fotofinisz i mistrzostwa z prawdziwego kodu gry (tryb `cinema` w `tools/shots`), wirtualna kamera za motocyklami, napisy fontem gry, silniki z logiki `audio.c` |
+| `sh tools/mktrailer.sh` | trailer „gameplay” `art/trailer_gameplay.mp4` z prawdziwego kodu gry: menu, start i jedno okrążenie biegu z dźwiękiem silników (logika `audio.c`, mikser `tools/trailer_audio.py`) i przejście do ilustracji tytułowej (wymaga ffmpeg) |
 | `make dist EXTRA=-DAUTOPLAY` | wersja testowa bez klawiatury: sama przechodzi przez menu i rozgrywa turniej botów (do sprawdzania w emulatorze) |
 | `make dist EXTRA=-DSHOW_LAG` | wersja pomiarowa: w HUD zgubione klatki biegu i szczytowy czas (w liniach obrazu z 313) części logiki biegu: motocykle i boty, szpryca, tor, cała logika |
 | `make dist EXTRA="-DSHOW_LAG -DSHOW_START"` | pomiar startu spod taśmy: zgubione klatki w oknie odlotu taśmy i szczytowe czasy logiki, rysowania oraz duszków+HUD w tym oknie |

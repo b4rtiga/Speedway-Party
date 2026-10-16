@@ -349,7 +349,8 @@ They need Python 3 with `numpy`, ffmpeg in PATH, and for the code check and the 
 | `python tools/gengirls.py` | the start girls from `src/girls.png` |
 | `python tools/import_engine.py file.wav` | the engine loop from a recording (currently `src/speedway_500cc_10000rpm_loop.wav`) |
 | `sh tools/shots/run.sh` | screenshots from the real game code compiled for the PC (`art/screen_*.png`; with `LANG_EN=1` English ones in `art/en/`) |
-| `sh tools/mktrailer.sh` | the trailer `art/trailer.mp4` |
+| `python tools/mkcinema.py` | the cinematic trailer `art/trailer.mp4` (16:9, 35 s, `--en` – English): scenes from the real game code (`cinema` mode in `tools/shots`), a virtual camera, captions in the game font, engine sound from the `audio.c` logic |
+| `sh tools/mktrailer.sh` | the “gameplay” trailer `art/trailer_gameplay.mp4`: one shot as in the game |
 | `sh tools/sim/news_test.sh` | newspaper tests (headline rules, summary, long names) |
 | `sh tools/sim/settings_test.sh` | test of saving and loading the settings (`settings.dat`) on an “in-memory disk” |
 | `sh tools/sim/music_test.sh` | menu music test: the ADPCM decoder and streaming through the DMA buffers (emulated Paula) – every played sample matches `tools/adpcm.py` |

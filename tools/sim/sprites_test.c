@@ -1,6 +1,6 @@
 /* sprites_test.c - test kopii klatek motocykli na PC: biblioteka z jednym kompletem
  * (data/bikes.spr) + przemalowanie kasku przy kopiowaniu musi dac dokladnie te same dane,
- * co dawny plik z 4 kompletami kaskow (sciezka w argumencie, np. z git show v0.84:data/bikes.spr).
+ * co plik z 4 kompletami kaskow (sciezka w argumencie: python tools/genart.py --bikes4 plik).
  *   sh tools/sim/sprites_test.sh */
 #include <stdio.h>
 #include <stdlib.h>
