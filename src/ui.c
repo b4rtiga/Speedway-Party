@@ -138,7 +138,6 @@ COLD void ui_loading_screen(void)
     text_draw_big_center(b, 38, "PARTY", U_GOLD, U_SHADOW);
     text_draw_center(b, 64, "AMIGA 1200", U_WHITE, U_SHADOW);
     text_draw_center(b, 206, T("WCZYTYWANIE...", "LOADING..."), U_WHITE, U_SHADOW);
-    text_draw_center(b, 224, T("TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", "15-HEAT TOURNAMENT FOR 1-4 PLAYERS"), U_WHITE, U_SHADOW);
     text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GREY, 0);
     video_set_menu(TRUE);
     update_line_colors();                        /* gradient tla i teczowe napisy (lista "back") */
@@ -230,7 +229,6 @@ static COLD void draw_title(UBYTE *b)
     text_draw_big_center(b, 38, "PARTY", U_GOLD, U_SHADOW);
     text_draw_center(b, 64, "AMIGA 1200", U_WHITE, U_SHADOW);
     if (blink) text_draw_center(b, 206, T("NACIŚNIJ FIRE", "PRESS FIRE"), U_RAINBOW, U_SHADOW);
-    text_draw_center(b, 224, T("TURNIEJ 15 BIEGÓW DLA 1-4 GRACZY", "15-HEAT TOURNAMENT FOR 1-4 PLAYERS"), U_WHITE, U_SHADOW);
     text_draw_center(b, 240, "MIT © 2026 b4rtiga", U_GREY, 0);
 }
 
@@ -979,31 +977,22 @@ static COLD void draw_table(UBYTE *b)
  *
  * Postac i tablica maja kolor kasku zawodnika; kazda stoi na polu, z ktorego startuje jej
  * zawodnik, i kolysze biodrami: wiersze w pasie bioder przesuniete w bok o -2..2 px
- * (glowa, rece z tablica i stopy w miejscu), kazda w innej fazie. Wychylenie wiersza to
- * sinus fazy razy waga wiersza - gladka krzywa (1 - cos), wiec sylwetka wygina sie lukiem,
- * bez zalamania w biodrach; cykl 1,6 s. Przerysowywany tylko ten pas i tylko przy zmianie fazy. */
+ * (glowa, rece z tablica i stopy w miejscu), kazda w innej fazie; cykl 1 s, 5 wychylen jak
+ * klatki animacji (sway_tab, sway_dx). Przerysowywany tylko ten pas i tylko przy zmianie wychylenia. */
 #define PRES_Y      72                      /* gora postaci */
 #define PRES_TIME   (3 * FPS)               /* prezentacja: 3 s albo FIRE */
 #define SWAY_Y0     30                      /* pas bioder (wiersze postaci) */
 #define SWAY_Y1     88
-#define SWAY_PHASES 80                      /* faza zmienia sie co klatke (80 = 1,6 s) */
-#define SWAY_AMP    5                       /* wychylenie bioder w polowkach piksela (2.5 px) */
+#define SWAY_PHASES 50                      /* cykl kolysania: 1 s */
 static UWORD present_t;                     /* klatki od wejscia na ekran prezentacji */
-static UBYTE present_drawn[2][4];           /* faza narysowana w buforze (0xFF = brak) */
-static const BYTE sway_tab[SWAY_PHASES] = {     /* 64 sin */
-    0, 5, 10, 15, 20, 24, 29, 33, 38, 42, 45, 49, 52, 55, 57, 59, 61, 62, 63, 64,
-    64, 64, 63, 62, 61, 59, 57, 55, 52, 49, 45, 42, 38, 33, 29, 24, 20, 15, 10, 5,
-    0, -5, -10, -15, -20, -24, -29, -33, -38, -42, -45, -49, -52, -55, -57, -59, -61, -62, -63, -64,
-    -64, -64, -63, -62, -61, -59, -57, -55, -52, -49, -45, -42, -38, -33, -29, -24, -20, -15, -10, -5 };
-/* waga wychylenia wierszy SWAY_Y0..SWAY_Y1 postaci: 255 * (1 - cos) / 2, najwiecej w biodrach */
-static const UBYTE sway_w[SWAY_Y1 - SWAY_Y0 + 1] = {
-    0, 1, 3, 7, 12, 18, 26, 35, 45, 56, 68, 80, 93, 107, 121, 134, 148, 162, 175, 187,
-    199, 210, 220, 229, 237, 243, 248, 252, 254, 255, 254, 252, 248, 243, 237, 229, 220, 210, 199, 187,
-    175, 162, 148, 134, 121, 107, 93, 80, 68, 56, 45, 35, 26, 18, 12, 7, 3, 1, 0 };
-
+static UBYTE present_drawn[2][4];           /* wychylenie narysowane w buforze (0xFF = brak) */
+/* Wychylenie bioder w pikselach (-2..2) w kolejnych klatkach cyklu: 5 faz jak klatki animacji,
+ * w skrajnych dluzej. Caly pas przesuwa sie razem, wiec sylwetka nie "faluje" wiersz po wierszu. */
+static const BYTE sway_tab[SWAY_PHASES] = {
+    0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, -1, -1, -1, -1, -1, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -1, -1, -1, -1, -1 };
 static WORD gate_x(UBYTE g) { return (WORD)(16 + g * 80); }
 /* faza podprowadzajacej g: kazda w innym miejscu cyklu */
-static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t + g * 27) % SWAY_PHASES); }
+static UBYTE sway_phase(UBYTE g) { return (UBYTE)((present_t + g * 13) % SWAY_PHASES); }
 
 void ui_present_start(void)
 {
@@ -1019,14 +1008,14 @@ BOOL ui_present_update(void)
     return (BOOL)(present_t >= PRES_TIME);
 }
 
-/* przesuniecie wiersza y przy fazie kolysania amp (64 * sin): waga wiersza z sway_w, zaokraglenie
- * do najblizszego piksela */
+/* przesuniecie wiersza y przy wychyleniu amp (piksele): talia, biodra i spodniczka (37..60) o cale
+ * wychylenie, przejscia do klatki piersiowej (31..36) i kolan (61..72) o polowe, reszta stoi -
+ * granice schodkow sa stale, wiec po sylwetce nie przesuwaja sie poziome paski */
 static WORD sway_dx(WORD y, BYTE amp)
 {
-    LONG v;
-    if (y <= SWAY_Y0 || y >= SWAY_Y1) return 0;
-    v = (LONG)amp * sway_w[y - SWAY_Y0] * SWAY_AMP;             /* w 1/(64*255*2) piksela */
-    return (WORD)((v + (v >= 0 ? 64L * 255 : -64L * 255)) / (64L * 255 * 2));
+    if (y <= SWAY_Y0 || y > 72) return 0;
+    if (y >= 37 && y <= 60) return amp;
+    return (WORD)(amp / 2);
 }
 
 /* wiersze y0..y1-1 postaci (x0 podzielne przez 8), kazdy przesuniety o sway_dx */
@@ -1155,10 +1144,10 @@ static void present_girls(UBYTE *b, UBYTE bi)
     UBYTE hn = g_tour.current_heat, g;
     if (!girls_img) return;
     for (g = 0; g < 4; g++) {
-        UBYTE ph = sway_phase(g);
-        if (g_tour.heat_table[hn][g] == 0xFF || present_drawn[bi][g] == ph) continue;
-        band_rows(b, gate_x(g), PRES_Y, g_tour.heat_table[hn][g], SWAY_Y0 + 1, SWAY_Y1, sway_tab[ph]);
-        present_drawn[bi][g] = ph;
+        BYTE amp = sway_tab[sway_phase(g)];
+        if (g_tour.heat_table[hn][g] == 0xFF || present_drawn[bi][g] == (UBYTE)amp) continue;
+        band_rows(b, gate_x(g), PRES_Y, g_tour.heat_table[hn][g], SWAY_Y0 + 1, SWAY_Y1, amp);
+        present_drawn[bi][g] = (UBYTE)amp;          /* przerysowanie tylko przy zmianie wychylenia */
     }
 }
 
@@ -1174,7 +1163,7 @@ static COLD void draw_present(UBYTE *b, UBYTE bi)
         UBYTE r = g_tour.heat_table[hn][g];
         if (r == 0xFF) continue;                         /* puste pole (bieg dodatkowy) */
         draw_girl(b, gate_x(g), PRES_Y, r, sway_tab[sway_phase(g)]);
-        present_drawn[bi][g] = sway_phase(g);
+        present_drawn[bi][g] = (UBYTE)sway_tab[sway_phase(g)];
         name_trunc(s, g_tour.riders[r].name, 9);
         text_draw(b, (WORD)(cx - text_len(s) * 4), PRES_Y + GIRL_H + 8, s, U_WHITE, U_SHADOW);
         s[0] = gate_letter[g]; s[1] = 0;

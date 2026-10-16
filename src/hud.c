@@ -136,6 +136,10 @@ static void draw_lights(void)
 #ifdef SHOW_LAG
     return;                              /* diagnostyka: w miejscu swiatel profil */
 #endif
+    if (shown.lights == 3) {             /* w biegu swiatla juz niepotrzebne - tlo HUD */
+        hrect(171, HUD_TOP + 7, 45, 21, 0);
+        return;
+    }
     hlamp(181, HUD_TOP + 17, shown.lights == 1, H_RED_ON, H_RED_OFF);
     hlamp(205, HUD_TOP + 17, shown.lights == 2, H_GREEN_ON, H_GREEN_OFF);
 }
@@ -400,7 +404,9 @@ void hud_update(void)
     if (lap < 1) lap = 1;
     if (lap > LAPS_PER_HEAT) lap = LAPS_PER_HEAT;
 
-    lights = h->emergency ? 0 :                              /* awaria: swiatla nie dzialaja */
+    /* 1 czerwone, 2 zielone, 3 schowane: 2 s po starcie i po biegu (w biegu juz niepotrzebne) */
+    lights = (h->phase == HEAT_FINISHED || (h->phase == HEAT_RACING && h->race_frames >= 2 * FPS)) ? 3 :
+             h->emergency ? 0 :                              /* awaria: swiatla nie dzialaja */
              h->phase == HEAT_RED_LIGHT ? 1 : (h->phase == HEAT_TAPE_UP || h->phase == HEAT_RACING) ? 2 : 0;
     flag = FLAG_NONE;
     wave = (UBYTE)((h->phase_timer >> 4) & 1);       /* machniecie co 16 klatek */

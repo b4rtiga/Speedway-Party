@@ -81,7 +81,7 @@ Before each heat the programme shows who starts from which gate, the points tabl
 
 ### The heat
 
-At the bottom of the screen there is a bar: helmet colours in race order, the lap number, round start lights and the referee with a flag. During the start, in the middle of the screen on the infield (above the riders on the straight), a starting gate window with a lamp and the tape is shown.
+At the bottom of the screen there is a bar: helmet colours in race order, the lap number, round start lights (they disappear 2 s after the start – not needed during the heat) and the referee with a flag. During the start, in the middle of the screen on the infield (above the riders on the straight), a starting gate window with a lamp and the tape is shown.
 
 ![The tape start](../art/en/screen_04_gate_red.png)
 
