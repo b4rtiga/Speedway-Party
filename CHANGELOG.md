@@ -5,7 +5,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 
 ## 0.96 – w przygotowaniu
 
-- **Płynniej w emulatorach:** gra czeka na kolejną klatkę instrukcją STOP zamiast pustej pętli, napisy w menu mają stały kolor zamiast przesuwającej się tęczy, a ruch kursora przerysowuje tylko dwa wiersze zamiast całego ekranu – emulator (np. THEA500 Mini) ma dużo mniej pracy. W biegu: mniej drobin naraz (jak przed deszczem) i lżejsza fala na trybunach – pierwszy łuk nie zwalnia.
+- **Płynniej w emulatorach:** gra czeka na kolejną klatkę instrukcją STOP zamiast pustej pętli, napisy w menu mają stały kolor zamiast przesuwającej się tęczy, a ruch kursora przerysowuje tylko dwa wiersze zamiast całego ekranu – emulator (np. THEA500 Mini) ma dużo mniej pracy. W biegu: mniej drobin naraz (jak przed deszczem) i lżejsza fala na trybunach – mniej pracy w pierwszym łuku.
 - **Jedna plansza wczytywania** – od razu z ilustracją (wcześniej najpierw mignął sam napis na gradiencie).
 - **Muzyka w menu znów w PCM** – gra nie musi jej dekodować w trakcie grania, więc nie przycina w emulatorach na słabszym sprzęcie (np. THEA500 Mini). ADPCM można włączyć w `build.cfg`.
 - **Trening:** na murawie trzy czasy – bieżące okrążenie liczone na żywo, ostatnie okrążenie i rekord; trybuny krzyczą tylko przy pobiciu rekordu (wcześniej co 4. okrążenie).
