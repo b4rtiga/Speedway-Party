@@ -224,7 +224,7 @@ MUSIC_ADPCM = NIE
 
 | Wartość | Utwór |
 |---|---|
-| `BlackMotor` | „Black Motor”, 13,3 s, 208 KiB w PCM, 104 KiB w ADPCM (domyślnie) |
+| `BlackMotor` | „Black Motor”, 13,3 s, 208 KiB w PCM, 104 KiB w ADPCM – domyślny utwór |
 | `NightGrid` | „Night Grid”, 27,4 s, 428 KiB w PCM, 214 KiB w ADPCM |
 | `BRAK` | gra bez muzyki, oszczędza Chip RAM |
 
@@ -383,7 +383,8 @@ tools/          generatory, sprawdzanie kodu, symulator
 ## Znane ograniczenia / do zrobienia
 
 ### Stan
-- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS): plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Menu i bieg chodzą w 50 FPS: według pomiaru w WinUAE bieg zajmuje średnio ok. 60% klatki i gubi ok. 0,3% klatek (wersja pomiarowa: `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"`). Gra działa też na THEA500 Mini.
+- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS): plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Menu i bieg chodzą w 50 FPS: według pomiaru w WinUAE bieg zajmuje średnio ok. 60% klatki i gubi ok. 0,3% klatek (wersja pomiarowa: `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"`).
+- **Przetestowana na THEA500 Mini** (dyskietka ADF z pendrive'a, model A1200, Kickstart 3.1, 50 Hz): gra działa dobrze – menu, muzyka, biegi i dźwięk.
 - **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
 - Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
 - Gra zajmuje ok. 1,05–1,25 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka: 208 KiB „Black Motor” albo 428 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Klatki motocykli to jeden komplet (51 KiB) – kolor kasku zawodnika gra nadaje przy kopiowaniu klatki. Na Amidze z Fast RAM muzyka i klatki motocykli lądują w Fast RAM.

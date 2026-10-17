@@ -222,7 +222,7 @@ MUSIC_ADPCM = NIE
 
 | Value | Track |
 |---|---|
-| `BlackMotor` | "Black Motor", 13.3 s, 208 KiB in PCM, 104 KiB in ADPCM (default) |
+| `BlackMotor` | "Black Motor", 13.3 s, 208 KiB in PCM, 104 KiB in ADPCM – the default track |
 | `NightGrid` | "Night Grid", 27.4 s, 428 KiB in PCM, 214 KiB in ADPCM |
 | `BRAK` | no music, saves Chip RAM |
 
@@ -383,7 +383,8 @@ The code comments and the tools' messages are in Polish.
 ## Known limitations / to do
 
 ### Status
-- The game compiles with Bebbo GCC 6.5.0b without warnings and runs in WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, AROS ROM): title screen, menus, tournament, heats, watering, sound and menu music. The menus and heats run at 50 FPS: measured in WinUAE, a heat takes about 60% of a frame on average and drops about 0.3% of frames (measurement build: `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"`). The game also runs on THEA500 Mini.
+- The game compiles with Bebbo GCC 6.5.0b without warnings and runs in WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, AROS ROM): title screen, menus, tournament, heats, watering, sound and menu music. The menus and heats run at 50 FPS: measured in WinUAE, a heat takes about 60% of a frame on average and drops about 0.3% of frames (measurement build: `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"`).
+- **Tested on THEA500 Mini** (the ADF floppy from a USB stick, A1200 model, Kickstart 3.1, 50 Hz): the game runs fine – menus, music, heats and sound.
 - **It hasn't been tested on a real A1200 or with the original Kickstart 3.1 yet.** Reports from real hardware are very welcome.
 - The logic (physics, bots, tournament) is checked by the simulator on a PC (`make sim`). Real players will judge how the two-button control feels in the hands, and the riding parameters may still change.
 - The game uses about 1.05–1.25 MB of Chip RAM (track, bikes, tractors, title screen, sound and music: 208 KiB "Black Motor" or 428 KiB "Night Grid"), so it needs an A1200 with 2 MB Chip. The bike frames are one set (51 KiB) – the game applies the rider's helmet colour when copying a frame. On an Amiga with Fast RAM the music and bike frames go to Fast RAM.
