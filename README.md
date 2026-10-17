@@ -2,6 +2,8 @@
 
 Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. Turniej 15 biegów dla 1–4 graczy na jednej kanapie, wolne miejsca zajmują boty. Kod w C (Bebbo GCC, NDK 3.9).
 
+**🌐 Strona gry: [b4rtiga.pl/speedway-party](https://b4rtiga.pl/speedway-party/)** – zagraj od razu w przeglądarce (emulator Amigi 1200), zrzuty ekranu, trailer i pliki do pobrania. *English: [b4rtiga.pl/speedway-party/?lang=en](https://b4rtiga.pl/speedway-party/?lang=en) – play it in your browser.*
+
 | ![Bieg](art/screen_05_racing.png) | ![Plansza tytułowa](art/screen_01_title.png) |
 |---|---|
 
