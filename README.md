@@ -62,7 +62,8 @@ Gra powinna ruszyć na:
 - Amidze 1200 – także na „gołej”, bez Fast RAM (2 MB Chip RAM) – z dyskietki albo z dysku twardego / karty CF,
 - Amidze 1200 z kartą turbo (68030/040/060) i Fast RAM,
 - Amidze 4000 i innych komputerach z chipsetem AGA i Kickstartem 3.0, 3.1 lub 3.2,
-- emulatorach Amigi w konfiguracji A1200: WinUAE, FS-UAE, EmulatorJS (PUAE).
+- emulatorach Amigi w konfiguracji A1200: WinUAE, FS-UAE, EmulatorJS (PUAE),
+- THEA500 Mini – dyskietka ADF z pendrive'a, w ustawieniach gry model A1200.
 
 ## Spis treści
 1. [Mechanika gry](#mechanika-gry)

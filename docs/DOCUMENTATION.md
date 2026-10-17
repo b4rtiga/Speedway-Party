@@ -31,7 +31,8 @@ The game should run on:
 - an Amiga 1200 – also a bare one without Fast RAM (2 MB Chip RAM) – from floppy or from a hard disk / CF card,
 - an Amiga 1200 with an accelerator card (68030/040/060) and Fast RAM,
 - an Amiga 4000 and other machines with the AGA chipset and Kickstart 3.0, 3.1 or 3.2,
-- Amiga emulators set up as an A1200: WinUAE, FS-UAE, EmulatorJS (PUAE).
+- Amiga emulators set up as an A1200: WinUAE, FS-UAE, EmulatorJS (PUAE),
+- THEA500 Mini – the ADF floppy from a USB stick, with the A1200 model in the game settings.
 
 **ESC** (or the second joystick button) opens a pause with a question at any time: during a tournament – whether to go back to the menu, on the title screen – whether to quit the game. In the settings ESC goes straight back to the title screen. A second ESC means “yes”, FIRE returns to the game.
 

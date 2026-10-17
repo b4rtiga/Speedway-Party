@@ -3,9 +3,10 @@
 Nowości w kolejnych wersjach gry, od najnowszej. Wersja angielska: [CHANGELOG_EN.md](CHANGELOG_EN.md).
 Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i lista zmian – tak, żeby strona gry mogła je pokazywać.
 
-## 0.96 – w przygotowaniu
+## 0.96 – 2026-10-17
 
-- **Płynniej w emulatorach:** gra czeka na kolejną klatkę instrukcją STOP zamiast pustej pętli, napisy w menu mają stały kolor zamiast przesuwającej się tęczy, a ruch kursora, zmiana opcji i wpisywanie nazwiska przerysowują tylko swoje wiersze zamiast całego ekranu, a lista Coppera nie zmienia kolorów (ani banku palety AGA) w każdej linii ekranu, gdy są stałe – emulator (np. THEA500 Mini) ma dużo mniej pracy. W biegu: szpryca to najwyżej 24 drobiny rysowane procesorem (było 64 – zajmowały ponad połowę klatki), fala na trybunach w pierwszym okrążeniu tylko raz i lżejsza. Pomiar w WinUAE (A1200 bez Fast RAM): zgubione klatki w biegu spadły z ok. 8% do ok. 0,3%.
+- **Płynniej na THEA500 Mini i w innych emulatorach:** gra czeka na kolejną klatkę instrukcją STOP zamiast pustej pętli, a lista Coppera nie zmienia już w każdej linii ekranu kolorów, które są stałe. W menu napisy mają stały kolor zamiast przesuwającej się tęczy, a ruch kursora, zmiana opcji i wpisywanie nazwiska przerysowują tylko swoje wiersze, nie cały ekran.
+- **Szybszy bieg:** szpryca to najwyżej 24 drobiny rysowane procesorem (64 zajmowały ponad połowę klatki), a fala na trybunach w pierwszym okrążeniu rusza tylko raz. Na A1200 bez Fast RAM (pomiar w WinUAE) zgubione klatki w biegu spadły z ok. 8% do ok. 0,3%.
 - **Dźwięk bez drżenia:** ton gwaru „faluje” płynnie zamiast skakać 50 razy na sekundę (słychać było ciche „tytyty”), a obroty silników zmieniają się łagodniej – pod taśmą i w biegu bez szybkich skoków.
 - **Jedna plansza wczytywania** – od razu z ilustracją (wcześniej najpierw mignął sam napis na gradiencie).
 - **Muzyka w menu znów w PCM** – gra nie musi jej dekodować w trakcie grania, więc nie przycina w emulatorach na słabszym sprzęcie (np. THEA500 Mini). ADPCM można włączyć w `build.cfg`.
