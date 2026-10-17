@@ -297,6 +297,7 @@ typedef struct Tournament {
 } Tournament;
 
 extern Tournament g_tour;
+extern UBYTE g_lap_cheer;        /* trening: okrazenie z rekordem - okrzyk trybun (race.c -> audio.c) */
 extern BOOL g_training;           /* trening (main.c): gracz 1 sam, okrazenia bez limitu, bez kar */
 extern BOOL g_paused;             /* ESC: pauza z pytaniem (main.c) */
 extern BOOL g_pause_quit;         /* TRUE: pytanie o wyjscie z gry (menu glowne), FALSE: do menu */

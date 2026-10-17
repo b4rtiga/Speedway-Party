@@ -3,6 +3,9 @@
 #include "game.h"
 #include "video.h"
 #include "blit.h"
+#include "hof.h"
+
+HofTrack g_hof[NUM_TRACKS];          /* rekordy toru (trening w race.c) - w symulatorze puste */
 
 Video g_video;
 BOOL  g_training;                                  /* main.c - w symulatorze zawsze turniej */

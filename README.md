@@ -169,7 +169,7 @@ W **USTAWIENIACH** zawodów wybierasz, jak ma wyglądać wieczór na stadionie:
 
 W biegu może się zdarzyć **upadek**: mocne uderzenie w bandę, dłuższa jazda tuż przy bandzie albo najechanie na rywala. Sędzia daje czerwoną flagę, upadły jest wykluczony, a bieg jest powtarzany spod taśmy. Gdy drugi zawodnik minie metę najwyżej 0,1 s za zwycięzcą, gra pokazuje **fotofinisz**: końcówkę w zwolnionym tempie i stopklatkę na linii.
 
-**TRENING** w menu: sam na torze, okrążenia bez limitu, na murawie czas okrążenia, najlepszy czas i rekord toru. Warunki (stan toru, porę i deszcz) wybierasz na osobnym ekranie przed startem.
+**TRENING** w menu: sam na torze, okrążenia bez limitu, na murawie bieżący czas okrążenia, ostatnie okrążenie i rekord toru. Warunki (stan toru, porę i deszcz) wybierasz na osobnym ekranie przed startem.
 
 Gra pamięta nazwiska, sterowanie, poziom botów i wszystkie ustawienia (plik `settings.dat` obok gry).
 
@@ -214,16 +214,16 @@ Gotowe dane (`data/`) są w repozytorium. Do budowania nie potrzebujesz Pythona.
 
 ```
 MUSIC = BlackMotor
-MUSIC_ADPCM = TAK
+MUSIC_ADPCM = NIE
 ```
 
 | Wartość | Utwór |
 |---|---|
-| `BlackMotor` | „Black Motor”, 13,3 s, 104 KiB w ADPCM, 208 KiB w PCM (domyślnie) |
-| `NightGrid` | „Night Grid”, 27,4 s, 214 KiB w ADPCM, 428 KiB w PCM |
+| `BlackMotor` | „Black Motor”, 13,3 s, 208 KiB w PCM, 104 KiB w ADPCM (domyślnie) |
+| `NightGrid` | „Night Grid”, 27,4 s, 428 KiB w PCM, 214 KiB w ADPCM |
 | `BRAK` | gra bez muzyki, oszczędza Chip RAM |
 
-Utwory leżą w `src/music/<nazwa>/` jako gotowe miksy `*_s8.raw` (PCM 8 bit mono, ~16 kHz PAL). `make dist` zapisuje wybrany jako `data/music.raw`. Przy `MUSIC_ADPCM = TAK` (domyślnie) `make` koduje utwór do 4-bitowego IMA ADPCM (`tools/adpcm.py`) – połowa pamięci, trochę więcej szumu; gra dekoduje go w trakcie grania, po kawałku na klatkę. `NIE` – oryginalny PCM. Odsłuch na PC: `python tools/adpcm.py --wav data/music.raw muzyka.wav`. Jednorazowo możesz też podać utwór w poleceniu: `make dist MUSIC=NightGrid`. Nowy utwór to nowy katalog w `src/music/` z plikiem `*_s8.raw`.
+Utwory leżą w `src/music/<nazwa>/` jako gotowe miksy `*_s8.raw` (PCM 8 bit mono, ~16 kHz PAL). `make dist` zapisuje wybrany jako `data/music.raw`. Domyślnie (`MUSIC_ADPCM = NIE`) muzyka jest w oryginalnym PCM. Przy `MUSIC_ADPCM = TAK` `make` koduje utwór do 4-bitowego IMA ADPCM (`tools/adpcm.py`) – połowa pamięci, trochę więcej szumu; gra dekoduje go w trakcie grania, po kawałku na klatkę, co w emulatorach na słabszym sprzęcie (np. THEA500 Mini) potrafiło przycinać muzykę. Odsłuch na PC: `python tools/adpcm.py --wav data/music.raw muzyka.wav`. Jednorazowo możesz też podać utwór w poleceniu: `make dist MUSIC=NightGrid`. Nowy utwór to nowy katalog w `src/music/` z plikiem `*_s8.raw`.
 
 ---
 
@@ -377,7 +377,7 @@ tools/          generatory, sprawdzanie kodu, symulator
 - Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS): plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Menu i bieg chodzą w 50 FPS: według pomiaru w WinUAE w całym biegu (4 okrążenia) gubią się pojedyncze klatki (kilka w chwili odlotu taśmy i przy zmianie flagi). Pomiar daje wersja `make dist EXTRA=-DSHOW_LAG` (liczby w HUD).
 - **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
 - Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
-- Gra zajmuje ok. 0,95–1,15 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka w ADPCM: 104 KiB „Black Motor” albo 214 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Klatki motocykli to jeden komplet (51 KiB) – kolor kasku zawodnika gra nadaje przy kopiowaniu klatki. Na Amidze z Fast RAM muzyka i klatki motocykli lądują w Fast RAM.
+- Gra zajmuje ok. 1,05–1,25 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka: 208 KiB „Black Motor” albo 428 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Klatki motocykli to jeden komplet (51 KiB) – kolor kasku zawodnika gra nadaje przy kopiowaniu klatki. Na Amidze z Fast RAM muzyka i klatki motocykli lądują w Fast RAM.
 
 ### Znane ograniczenia
 - **Silniki słychać tylko dwa naraz:** Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty. Grają dwaj najwyżej sklasyfikowani zawodnicy, którzy jeszcze jadą; ci za metą dopiero wtedy, gdy na torze zostało mniej niż dwóch.

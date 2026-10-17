@@ -15,6 +15,8 @@ volatile ULONG g_frame;
 Tournament g_tour;
 BOOL g_paused;
 ULONG g_rng = 1;
+BOOL g_training;
+UBYTE g_lap_cheer;
 static const char *music_path;
 
 APTR AllocMem(ULONG size, ULONG flags) { (void)flags; return calloc(1, size); }

@@ -58,7 +58,7 @@ Każdy gracz ma tylko dwa przyciski: **LEWO** i **PRAWO**. Gaz jest automatyczny
 Przy starcie z dyskietki wczytywanie trwa kilkadziesiąt sekund, więc gra najpierw pokazuje planszę tytułową z napisem „WCZYTYWANIE…”, a resztę danych doczytuje w tle (system działa jeszcze normalnie, gra przejmuje sprzęt dopiero po wczytaniu). Plansza tytułowa czeka na FIRE. Potem wybierasz:
 
 - **ZAWODY** – zawodnicy i ustawienia zawodów (turniej, mecz albo mistrzostwa),
-- **TRENING** – gracz 1 sam na torze. Najpierw ekran ustawień treningu (osobnych od turniejowych): stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc) i deszcz (pada od startu); START TRENINGU rusza, POWRÓT albo ESC wraca do menu. Start spod taśmy i okrążenia bez limitu; na murawie czas ostatniego i najlepszego okrążenia oraz rekord toru. Taśma czy upadek zaczynają tylko od nowa spod taśmy, defektów nie ma. Koniec: ESC i potwierdzenie – powrót do ustawień treningu,
+- **TRENING** – gracz 1 sam na torze. Najpierw ekran ustawień treningu (osobnych od turniejowych): stan toru (suchy, wilgotny, mokry albo losowy), pora (dzień albo noc) i deszcz (pada od startu); START TRENINGU rusza, POWRÓT albo ESC wraca do menu. Start spod taśmy i okrążenia bez limitu; na murawie czas bieżącego okrążenia liczony na żywo, ostatnie okrążenie i rekord (toru albo twój, gdy go pobijesz); trybuny krzyczą przy pobiciu rekordu. Taśma czy upadek zaczynają tylko od nowa spod taśmy, defektów nie ma. Koniec: ESC i potwierdzenie – powrót do ustawień treningu,
 - **INSTRUKCJA** – trzy strony: zasady turnieju i flagi, start i sterowanie, linia jazdy ze schematem toru (LEWO/PRAWO zmienia stronę),
 - **REKORDY** – tabele rekordów toru,
 - **CREDITS** – plansza twórców.
@@ -235,16 +235,16 @@ Gotowe dane (`data/`) są w repozytorium – do samego budowania gry Python nie 
 
 ```
 MUSIC = BlackMotor
-MUSIC_ADPCM = TAK
+MUSIC_ADPCM = NIE
 ```
 
 | Wartość | Utwór |
 |---|---|
-| `BlackMotor` | „Black Motor”, 13,3 s, 104 KiB w ADPCM, 208 KiB w PCM (domyślnie) |
-| `NightGrid` | „Night Grid”, 27,4 s, 214 KiB w ADPCM, 428 KiB w PCM |
+| `BlackMotor` | „Black Motor”, 13,3 s, 208 KiB w PCM, 104 KiB w ADPCM (domyślnie) |
+| `NightGrid` | „Night Grid”, 27,4 s, 428 KiB w PCM, 214 KiB w ADPCM |
 | `BRAK` | bez muzyki, oszczędza Chip RAM |
 
-Utwory leżą w `src/music/<nazwa>/` jako miksy `*_s8.raw` (PCM 8 bit mono, ~16 kHz). Jednorazowo: `make dist MUSIC=NightGrid`. Przy `MUSIC_ADPCM = TAK` (domyślnie) `make` koduje utwór do 4-bitowego IMA ADPCM (`tools/adpcm.py`) – połowa pamięci, trochę więcej szumu; gra dekoduje go w trakcie grania, po kawałku na klatkę. `NIE` – oryginalny PCM. Odsłuch na PC: `python tools/adpcm.py --wav data/music.raw muzyka.wav`.
+Utwory leżą w `src/music/<nazwa>/` jako miksy `*_s8.raw` (PCM 8 bit mono, ~16 kHz). Jednorazowo: `make dist MUSIC=NightGrid`. Domyślnie (`MUSIC_ADPCM = NIE`) muzyka jest w oryginalnym PCM. Przy `MUSIC_ADPCM = TAK` `make` koduje utwór do 4-bitowego IMA ADPCM (`tools/adpcm.py`) – połowa pamięci, trochę więcej szumu; gra dekoduje go w trakcie grania, po kawałku na klatkę, co w emulatorach na słabszym sprzęcie (np. THEA500 Mini) potrafiło przycinać muzykę. Odsłuch na PC: `python tools/adpcm.py --wav data/music.raw muzyka.wav`.
 
 ## 8. Architektura gry
 
@@ -381,7 +381,7 @@ Geometria toru jest w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS`
 
 - Gra działa w WinUAE w 50 FPS; w całym biegu gubią się pojedyncze klatki (kilka przy odlocie taśmy i zmianie flagi).
 - **Nie była jeszcze testowana na prawdziwym A1200** ani z oryginalnym Kickstartem 3.1.
-- Zajmuje ok. 0,95–1,15 MB Chip RAM, więc potrzebuje 2 MB Chip.
+- Zajmuje ok. 1,05–1,25 MB Chip RAM, więc potrzebuje 2 MB Chip.
 - Słychać tylko dwa silniki naraz (Paula ma 4 kanały): dwóch najwyżej sklasyfikowanych, którzy jeszcze jadą.
 - Dźwięk silnika pochodzi z nagrania wygenerowanego przez AI (500 cm³, 10 000 obr/min), zapętlonego narzędziem `tools/import_engine.py`.
 - Adapter 4 graczy na porcie równoległym nie był testowany.

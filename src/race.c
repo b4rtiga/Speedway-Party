@@ -8,6 +8,7 @@
  *   Im mocniej zlamany, tym nizsza predkosc maksymalna i wiekszy opor boczny.
  * Wartosci do strojenia zebrane w #define (symulator: tools/sim). */
 #include "game.h"
+#include "hof.h"
 #ifdef SHOW_LAG
 #include "hw.h"
 void prof_add(UBYTE i, UWORD a, UWORD b);
@@ -155,6 +156,8 @@ BOOL race_fall_active(void) { return (BOOL)(fall_bike != 0xFF && g_tour.bikes[fa
 
 /* ostatnie okrazenie prowadzacego - upadek juz nie przerywa biegu */
 static BOOL last_lap(void) { return (BOOL)(g_tour.heat.finished_count || race_leader_distance() >= race_straight_entry(LAPS_PER_HEAT)); }
+
+UBYTE g_lap_cheer;                         /* trening: pobity rekord - okrzyk (audio.c kasuje) */
 
 static void try_fall(Bike *b, UBYTE chance)
 {
@@ -356,6 +359,12 @@ static void update_bike(Bike *b)
         UWORD now = g_tour.heat.race_frames;
         if (b->lap >= 1) {
             UWORD lap = (UWORD)(now - b->lap_start);
+            if (g_training) {
+                /* trening: okrzyk trybun tylko za pobity rekord (toru albo wlasny, jesli lepszy) */
+                UWORD rec = g_hof[g_tour.track.type].lap[0].frames;
+                if (b->best_lap && (!rec || b->best_lap < rec)) rec = b->best_lap;
+                if (rec && lap < rec) g_lap_cheer = 1;
+            }
             if (!b->best_lap || lap < b->best_lap) b->best_lap = lap;
             b->last_lap = lap;
         }

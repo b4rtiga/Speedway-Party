@@ -58,7 +58,7 @@ Each player has just two controls: **LEFT** and **RIGHT**. The throttle is autom
 Loading from floppy takes several dozen seconds, so the game first shows the title screen with “LOADING…” and reads the rest of the data in the background (the system still runs normally; the game takes over the hardware only once everything is loaded). The title screen waits for FIRE. Then you choose:
 
 - **EVENT** – riders and event settings (tournament, team match or championship),
-- **PRACTICE** – player 1 alone on the track. First a practice settings screen (separate from the tournament ones): track condition (dry, damp, wet or random), time of day (day or night) and rain (from the start); START PRACTICE starts, BACK or ESC returns to the menu. A tape start and unlimited laps; the infield shows the last and best lap and the track record. A tape offence or a fall just restarts from the tape, there are no defects. To finish: ESC and confirm – back to the practice settings,
+- **PRACTICE** – player 1 alone on the track. First a practice settings screen (separate from the tournament ones): track condition (dry, damp, wet or random), time of day (day or night) and rain (from the start); START PRACTICE starts, BACK or ESC returns to the menu. A tape start and unlimited laps; the infield shows the current lap time counting live, the last lap and the record (the track record, or your own time once you beat it); the crowd cheers when you set a new record. A tape offence or a fall just restarts from the tape, there are no defects. To finish: ESC and confirm – back to the practice settings,
 - **HOW TO PLAY** – three pages: tournament rules and flags, start and controls, the racing line with a track diagram (LEFT/RIGHT turns the page),
 - **RECORDS** – the track record tables,
 - **CREDITS** – who made the game.
@@ -239,16 +239,16 @@ All texts shown by the game sit side by side in the code as `T("po polsku", "in 
 
 ```
 MUSIC = BlackMotor
-MUSIC_ADPCM = TAK
+MUSIC_ADPCM = NIE
 ```
 
 | Value | Track |
 |---|---|
-| `BlackMotor` | “Black Motor”, 13.3 s, 104 KiB in ADPCM, 208 KiB in PCM (default) |
-| `NightGrid` | “Night Grid”, 27.4 s, 214 KiB in ADPCM, 428 KiB in PCM |
+| `BlackMotor` | “Black Motor”, 13.3 s, 208 KiB in PCM, 104 KiB in ADPCM (default) |
+| `NightGrid` | “Night Grid”, 27.4 s, 428 KiB in PCM, 214 KiB in ADPCM |
 | `BRAK` | no music, saves Chip RAM |
 
-The tracks are in `src/music/<name>/` as `*_s8.raw` mixes (8-bit mono PCM, ~16 kHz). One-off: `make dist MUSIC=NightGrid`. With `MUSIC_ADPCM = TAK` (the default) `make` encodes the track to 4-bit IMA ADPCM (`tools/adpcm.py`) – half the memory, slightly more noise; the game decodes it while playing, a chunk per frame. `NIE` – the original PCM. To listen on a PC: `python tools/adpcm.py --wav data/music.raw music.wav`.
+The tracks are in `src/music/<name>/` as `*_s8.raw` mixes (8-bit mono PCM, ~16 kHz). One-off: `make dist MUSIC=NightGrid`. By default (`MUSIC_ADPCM = NIE`) the music is the original PCM. With `MUSIC_ADPCM = TAK` `make` encodes the track to 4-bit IMA ADPCM (`tools/adpcm.py`) – half the memory, slightly more noise; the game decodes it while playing, a chunk per frame, which made the music stutter in emulators on weaker hardware (e.g. THEA500 Mini). To listen on a PC: `python tools/adpcm.py --wav data/music.raw music.wav`.
 
 ## 8. Game architecture
 
@@ -385,7 +385,7 @@ The track geometry lives in two places: `track_defs` in `src/track.c` and `PRESE
 
 - The game runs in WinUAE at 50 FPS; over a whole heat single frames are dropped (a few when the tape flies up and when the flag changes).
 - **It has not been tested on a real A1200 yet**, nor with an original Kickstart 3.1.
-- It uses about 0.95–1.15 MB of Chip RAM, so it needs 2 MB Chip.
+- It uses about 1.05–1.25 MB of Chip RAM, so it needs 2 MB Chip.
 - Only two engines can be heard at once (Paula has 4 channels): the two highest-placed riders still racing.
 - The engine sound comes from an AI-generated recording (500 cc, 10,000 rpm), looped with `tools/import_engine.py`.
 - The 4-player parallel port adapter has not been tested.

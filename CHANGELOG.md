@@ -3,6 +3,11 @@
 Nowości w kolejnych wersjach gry, od najnowszej. Wersja angielska: [CHANGELOG_EN.md](CHANGELOG_EN.md).
 Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i lista zmian – tak, żeby strona gry mogła je pokazywać.
 
+## 0.96 – w przygotowaniu
+
+- **Muzyka w menu znów w PCM** – gra nie musi jej dekodować w trakcie grania, więc nie przycina w emulatorach na słabszym sprzęcie (np. THEA500 Mini). ADPCM można włączyć w `build.cfg`.
+- **Trening:** na murawie trzy czasy – bieżące okrążenie liczone na żywo, ostatnie okrążenie i rekord; trybuny krzyczą tylko przy pobiciu rekordu (wcześniej co 4. okrążenie).
+
 ## 0.95 – 2026-10-17
 
 - **Zawody w nocy:** nowa opcja PORA: DZIEŃ / NOC. W nocy tor oświetlają cztery maszty z reflektorami – lampy z miękką poświatą, łuki w pełnym ciepłym świetle, środki prostych trochę ciemniejsze.

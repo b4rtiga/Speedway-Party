@@ -1882,11 +1882,39 @@ static COLD void draw_false_start(UBYTE *b)
 #define TRAIN_H 40
 static UWORD train_shown[2];                /* pokazane czasy (ostatnie, najlepsze) - zmiana = odswiezenie */
 
-static void lap_line(char *s, const char *label, UWORD frames)
+static void lap_line(char *s, const char *label, UWORD frames, BOOL hundredths)
 {
     char *p = text_cat(s, label);
-    if (frames) { p = fmt_time(p, frames, TRUE); text_cat(p, " S"); }
+    if (frames) { p = fmt_time(p, frames, hundredths); text_cat(p, " S"); }
     else text_cat(p, "-.--");
+}
+
+/* trening: czas biezacego okrazenia [klatki] (0 = pomiar jeszcze nie ruszyl) i rekord do pokazania */
+static UWORD train_now(void)
+{
+    const Bike *bk = &g_tour.bikes[0];
+    return bk->lap >= 1 ? (UWORD)(g_tour.heat.race_frames - bk->lap_start) : 0;
+}
+
+static UWORD train_record(void)
+{
+    UWORD rec = g_hof[g_tour.track.type].lap[0].frames, best = g_tour.bikes[0].best_lap;
+    return (best && (!rec || best < rec)) ? best : rec;
+}
+
+#define TRAIN_TX (TRAIN_X + 16)                /* tekst od wielokrotnosci 16 - pasek biezacego czasu Blitterem */
+static UWORD train_run_drawn[2];               /* biezacy czas w dziesiatych narysowany w buforze */
+
+/* biezacy czas: sama linijka (pasek 96x8 i napis), co 1/10 s - bez przerysowania ramki */
+static void train_running(UBYTE *b, UBYTE bi, BOOL force)
+{
+    UWORD f = train_now(), tenth = (UWORD)(f / 5);
+    char s[32];
+    if (!force && tenth == train_run_drawn[bi]) return;
+    train_run_drawn[bi] = tenth;
+    blit_fill(b, TRAIN_TX, TRAIN_Y + 7, 96, 8, U_PANEL);
+    lap_line(s, T("OKR.   ", "LAP    "), f, FALSE);
+    text_draw_small(b, TRAIN_TX, TRAIN_Y + 7, s, U_WHITE);
 }
 
 static COLD void draw_train(UBYTE *b)
@@ -1895,12 +1923,11 @@ static COLD void draw_train(UBYTE *b)
     const HofEntry *rec = g_hof[g_tour.track.type].lap;
     char s[32];
     panel(b, TRAIN_X, TRAIN_Y, TRAIN_W, TRAIN_H, U_PANEL, U_BORDER);
-    lap_line(s, T("OKR.  ", "LAP   "), bk->last_lap);
-    text_draw_small(b, TRAIN_X + 10, TRAIN_Y + 7, s, U_WHITE);
-    lap_line(s, T("NAJL. ", "BEST  "), bk->best_lap);
-    text_draw_small(b, TRAIN_X + 10, TRAIN_Y + 17, s, U_GOLD);
-    lap_line(s, T("REKORD ", "RECORD "), rec[0].frames);
-    text_draw_small(b, TRAIN_X + 10, TRAIN_Y + 27, s, U_GREY);
+    (void)rec;
+    lap_line(s, T("OSTAT. ", "LAST   "), bk->last_lap, TRUE);
+    text_draw_small(b, TRAIN_TX, TRAIN_Y + 17, s, U_GOLD);
+    lap_line(s, T("REKORD ", "RECORD "), train_record(), TRUE);
+    text_draw_small(b, TRAIN_TX, TRAIN_Y + 27, s, U_GREY);
     train_shown[0] = bk->last_lap;
     train_shown[1] = bk->best_lap;
 }
@@ -2451,11 +2478,12 @@ void ui_render(void)
             case OV_PAUSE:       draw_pause(b, PANEL_Y + 10); break;
             case OV_HOLD:        draw_hold(b); break;
             case OV_PHOTO:       draw_photo(b); break;
-            case OV_TRAIN:       draw_train(b); break;
+            case OV_TRAIN:       draw_train(b); train_running(b, bi, TRUE); break;
             default: break;
             }
         }
 panel_done:
+        if (panel_ov[bi] == OV_TRAIN) train_running(b, bi, FALSE);   /* trening: czas biezacego okrazenia */
         render_tape(b);
         return;
     }

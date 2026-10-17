@@ -3,6 +3,11 @@
 What is new in each version of the game, newest first. Polish version: [CHANGELOG.md](CHANGELOG.md).
 Each version is a `## version – date` heading (or “in preparation”) with a list of changes, so the game's website can show them.
 
+## 0.96 – in preparation
+
+- **Menu music back in PCM** – the game no longer decodes it while playing, so it doesn't stutter in emulators on weaker hardware (e.g. THEA500 Mini). ADPCM can be switched on in `build.cfg`.
+- **Practice:** three times on the infield – the current lap counting live, the last lap and the record; the crowd cheers only for a new record (it used to cheer every 4th lap).
+
 ## 0.95 – 2026-10-17
 
 - **Night meetings:** a new TIME: DAY / NIGHT option. At night four floodlight masts light the track – lamps with a soft glow, the bends in full warm light, the middle of the straights a little darker.

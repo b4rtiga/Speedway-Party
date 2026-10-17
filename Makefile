@@ -51,7 +51,7 @@ endif
 DATA += data/music.raw
 endif
 
-MUSIC_ADPCM ?= TAK
+MUSIC_ADPCM ?= NIE
 data/music.raw: $(MUSIC_RAW) build.cfg tools/adpcm.py .music-$(MUSIC)-$(MUSIC_ADPCM)
 ifeq ($(MUSIC_ADPCM),TAK)
 	python3 tools/adpcm.py $(MUSIC_RAW) $@

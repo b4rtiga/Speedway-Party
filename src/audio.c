@@ -457,7 +457,9 @@ static void update_crowd(void)
                 if (last_leader != 0xFF && last_leader != i && h->race_frames > 3 * FPS) crowd_boost = g_crowd_wave = 60;
                 last_leader = i;
             }
-        if (h->phase == HEAT_RACING && !cheered) {
+        if (g_training) {                                               /* trening: tylko za rekord */
+            if (g_lap_cheer) { g_lap_cheer = 0; crowd_boost = 150; play_sfx(S_CHEER, PER_CHEER, 64); }
+        } else if (h->phase == HEAT_RACING && !cheered) {
             /* prowadzacy wjezdza na ostatnia prosta (wyjscie z ostatniego luku w ostatnim
              * okrazeniu; meta = (LAPS + 1) okrazen dystansu, prosta zaczyna sie tape_s przed nia):
              * okrzyk trybun, ok. 0.6 s przed meta */
