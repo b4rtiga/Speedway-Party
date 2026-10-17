@@ -87,6 +87,7 @@ static UBYTE  sfx_relatch;                /* klatki do podmiany LC/LEN na cisze 
 static UWORD eng_rpm[2], eng_vol[2];
 static UBYTE crowd_vol, crowd_target, crowd_boost;
 static UBYTE last_leader = 0xFF, last_finished;
+static BOOL  lap1_wave;                   /* fala w 1. okrazeniu juz byla (w 1. luku lider zmienia sie czesto) */
 UWORD g_crowd_wave;                          /* klatki "fali" na trybunach (main.c) - przy wybuchu gwaru */
 static BOOL  cheered;                     /* okrzyk na ostatniej prostej juz byl w tym biegu */
 
@@ -454,7 +455,14 @@ static void update_crowd(void)
         if (h->phase == HEAT_RED_LIGHT) crowd_target = 8;               /* cisza przed startem */
         for (i = 0; i < MAX_RIDERS; i++)                                /* zmiana lidera */
             if (g_tour.bikes[i].position == 0 && h->phase == HEAT_RACING) {
-                if (last_leader != 0xFF && last_leader != i && h->race_frames > 3 * FPS) crowd_boost = g_crowd_wave = 60;
+                if (last_leader != 0xFF && last_leader != i && h->race_frames > 3 * FPS) {
+                    BOOL lap1 = (BOOL)(g_tour.bikes[i].lap <= 1);
+                    crowd_boost = 60;
+                    if (!g_crowd_wave && !(lap1 && lap1_wave)) {        /* fala: nie od nowa, w 1. okr. raz */
+                        g_crowd_wave = 60;
+                        if (lap1) lap1_wave = TRUE;
+                    }
+                }
                 last_leader = i;
             }
         if (g_training) {                                               /* trening: tylko za rekord */
@@ -469,7 +477,7 @@ static void update_crowd(void)
                 play_sfx(S_CHEER, PER_CHEER, 64);
             }
         }
-        if (h->phase != HEAT_RACING && h->phase != HEAT_FINISHED) cheered = FALSE;   /* start / powtorka */
+        if (h->phase != HEAT_RACING && h->phase != HEAT_FINISHED) cheered = lap1_wave = FALSE;   /* start / powtorka */
         if (h->finished_count != last_finished) {                       /* meta: gwar w gore */
             if (h->finished_count == 1) crowd_boost = g_crowd_wave = 150;
             last_finished = h->finished_count;
