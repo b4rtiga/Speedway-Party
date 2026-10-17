@@ -495,8 +495,16 @@ static void update_crowd(void)
     else if (crowd_vol > crowd_target) crowd_vol--;
     if (crowd_vol > 64) crowd_vol = 64;
     REG16(AUD(CH_CROWD, A_VOL)) = crowd_vol;
-    /* lekkie "falowanie" gwaru */
-    REG16(AUD(CH_CROWD, A_PER)) = (UWORD)(PER_CROWD - 8 + (rng_next() & 15));
+    {
+        /* lekkie "falowanie" gwaru: ton plynie do nowego celu co 8 klatek, o 1 na klatke
+         * (dawniej losowy skok co klatke - 50 razy na sekunde, slychac bylo "tytyty") */
+        static WORD per_off, per_target;
+        static UBYTE per_t;
+        if (++per_t >= 8) { per_t = 0; per_target = (WORD)((rng_next() & 15) - 8); }
+        if (per_off < per_target) per_off++;
+        else if (per_off > per_target) per_off--;
+        REG16(AUD(CH_CROWD, A_PER)) = (UWORD)(PER_CROWD + per_off);
+    }
 }
 
 void audio_update(void)
