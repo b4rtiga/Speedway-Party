@@ -11,6 +11,7 @@
 #include "hw.h"
 #include "video.h"
 #include "blit.h"
+#include "text.h"
 
 #define R_BLTCON0 0x040
 #define R_BLTCON1 0x042
@@ -58,10 +59,20 @@ void blit_plot(UBYTE *buf, WORD x, WORD y, UBYTE c)
         if (c & 1) *p |= bit; else *p &= (UBYTE)~bit;
 }
 
+/* przyciecie w pionie do paska przerysowania (g_clip_y0..y1, text.c); FALSE = nic do rysowania */
+static BOOL clip_rows(WORD *y, WORD *h)
+{
+    if (*y < g_clip_y0) { *h = (WORD)(*h - (g_clip_y0 - *y)); *y = g_clip_y0; }
+    if (*y + *h > g_clip_y1) *h = (WORD)(g_clip_y1 - *y);
+    return (BOOL)(*h > 0);
+}
+
 void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE color)
 {
     UBYTE pl;
-    UBYTE *d = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
+    UBYTE *d;
+    if (!clip_rows(&y, &h)) return;
+    d = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
     for (pl = 0; pl < PLAY_DEPTH; pl++, d += ROW_BYTES, color >>= 1)
         start((UWORD)(USE_D | ((color & 1) ? 0xFF : 0x00)), 0, d, 0,
               (WORD)(PLAY_STRIDE - (w >> 3)), (UWORD)h, (UWORD)(w >> 4));
@@ -69,8 +80,10 @@ void blit_fill(UBYTE *buf, WORD x, WORD y, WORD w, WORD h, UBYTE color)
 
 void blit_copy(UBYTE *dst, const UBYTE *src, WORD x, WORD y, WORD w, WORD h)
 {
-    LONG o = (LONG)y * PLAY_STRIDE + (x >> 3);
+    LONG o;
     WORD mod = (WORD)(ROW_BYTES - (w >> 3));
+    if (!clip_rows(&y, &h)) return;
+    o = (LONG)y * PLAY_STRIDE + (x >> 3);
     start(USE_A | USE_D | 0xF0, src + o, dst + o, mod, mod, (UWORD)(h * PLAY_DEPTH), (UWORD)(w >> 4));
 }
 

@@ -15,6 +15,9 @@
 #define PL_COUNT     9
 
 extern const UBYTE g_font[FONT_GLYPHS][FONT_H];
+/* przerysowanie paskow ekranu (ui.c): napisy poza [g_clip_y0, g_clip_y1) sa pomijane,
+ * wypelnienia Blitterem (blit.c) przyciete; poza paskami 0..32767 */
+extern WORD g_clip_y0, g_clip_y1;
 #define FONT_SMALL_W 5             /* maly font: komorka 5x7, glif 4x5 + akcent i ogonek */
 #define FONT_SMALL_H 7
 extern const UBYTE g_font_small[FONT_GLYPHS][FONT_SMALL_H];

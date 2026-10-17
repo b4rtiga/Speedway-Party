@@ -64,6 +64,24 @@ static UBYTE *sw_cache;             /* tlo okienka startu bez tasmy (wiersze oki
 
 void ui_invalidate(void) { serial++; if (!serial) serial = 1; }
 
+/* Sam wybor wiersza sie zmienil (GORA/DOL w menu i ustawieniach): zamiast calego ekranu
+ * (kopia ilustracji 80 KB i wszystkie napisy, w obu buforach) tylko paski starego i nowego
+ * wiersza (i opisu) - w emulatorach na slabszym sprzecie pelne przerysowanie przycinalo muzyke. */
+#define STRIPS_MAX 6
+static WORD  strip_y[2][STRIPS_MAX], strip_h[2][STRIPS_MAX];
+static UBYTE strip_n[2];
+
+static void ui_strip(WORD y, WORD h)
+{
+    UBYTE bi;
+    for (bi = 0; bi < 2; bi++) {
+        if (strip_n[bi] == STRIPS_MAX) { ui_invalidate(); return; }   /* za duzo - caly ekran */
+        strip_y[bi][strip_n[bi]] = y;
+        strip_h[bi][strip_n[bi]] = h;
+        strip_n[bi]++;
+    }
+}
+
 BOOL ui_editing(void)    { return editing; }
 
 /* Plansza tytulowa (ilustracja i jej paleta) - wczytywana jako pierwsza, zeby pokazac ja
@@ -229,8 +247,13 @@ void ui_menu_enter(UBYTE row) { menu_row = (UBYTE)(row < MENU_ITEMS ? row : 0); 
 COLD UBYTE ui_menu_update(void)
 {
     UBYTE m = input_menu();
-    if (m & (BTN_UP | BTN_LEFT))    { menu_row = (UBYTE)((menu_row + MENU_ITEMS - 1) % MENU_ITEMS); ui_invalidate(); }
-    if (m & (BTN_DOWN | BTN_RIGHT)) { menu_row = (UBYTE)((menu_row + 1) % MENU_ITEMS); ui_invalidate(); }
+    UBYTE old = menu_row;
+    if (m & (BTN_UP | BTN_LEFT))    menu_row = (UBYTE)((menu_row + MENU_ITEMS - 1) % MENU_ITEMS);
+    if (m & (BTN_DOWN | BTN_RIGHT)) menu_row = (UBYTE)((menu_row + 1) % MENU_ITEMS);
+    if (menu_row != old) {
+        ui_strip((WORD)(MENU_Y0 + old * MENU_DY - 4), 17);
+        ui_strip((WORD)(MENU_Y0 + menu_row * MENU_DY - 4), 17);
+    }
     if (ui_confirm()) return (UBYTE)(menu_row + 1);
     return 0;
 }
@@ -810,8 +833,9 @@ COLD UBYTE ui_setup_update(void)
     }
     while (key_get() != 0xFF) ;      /* poza edycja ignorujemy pisanie */
 
-    if (m & BTN_UP)   { setup_row = (UBYTE)((setup_row + SETUP_ROWS - 1) % SETUP_ROWS); changed = TRUE; }
-    if (m & BTN_DOWN) { setup_row = (UBYTE)((setup_row + 1) % SETUP_ROWS); changed = TRUE; }
+    k = setup_row;
+    if (m & BTN_UP)   setup_row = (UBYTE)((setup_row + SETUP_ROWS - 1) % SETUP_ROWS);
+    if (m & BTN_DOWN) setup_row = (UBYTE)((setup_row + 1) % SETUP_ROWS);
 
     if (m & (BTN_LEFT | BTN_RIGHT)) {
         BYTE d = (BYTE)(m & BTN_RIGHT ? 1 : -1);
@@ -834,6 +858,10 @@ COLD UBYTE ui_setup_update(void)
         if (setup_row >= 1 && setup_row <= MAX_RIDERS) { editing = TRUE; changed = TRUE; }
     }
     if (changed) ui_invalidate();
+    else if (setup_row != k) {                       /* sam ruch kursora: dwa paski */
+        ui_strip((WORD)(setup_row_y(k) - 4), 18);
+        ui_strip((WORD)(setup_row_y(setup_row) - 4), 18);
+    }
     return 0;
 }
 
@@ -909,12 +937,12 @@ static COLD void draw_options(UBYTE *b)
 
 COLD BOOL ui_options_update(void)
 {
-    UBYTE m = input_menu();
+    UBYTE m = input_menu(), old = opt_row;
     BOOL changed = FALSE;
     BYTE d = 0;
     while (key_get() != 0xFF) ;
-    if (m & BTN_UP)   { opt_row = (UBYTE)(opt_row == OPT_FIRST ? OPT_BACK : opt_row - 1); changed = TRUE; }
-    if (m & BTN_DOWN) { opt_row = (UBYTE)(opt_row == OPT_BACK ? OPT_FIRST : opt_row + 1); changed = TRUE; }
+    if (m & BTN_UP)   opt_row = (UBYTE)(opt_row == OPT_FIRST ? OPT_BACK : opt_row - 1);
+    if (m & BTN_DOWN) opt_row = (UBYTE)(opt_row == OPT_BACK ? OPT_FIRST : opt_row + 1);
     if (m & BTN_RIGHT) d = 1;
     if (m & BTN_LEFT) d = -1;
     if (m & BTN_FIRE) {
@@ -940,6 +968,11 @@ COLD BOOL ui_options_update(void)
         else if (opt_row == OPT_MUSIC) g_music_enabled = (BOOL)!g_music_enabled;
     }
     if (changed) ui_invalidate();
+    else if (opt_row != old) {                       /* sam ruch kursora: dwa wiersze i opis */
+        ui_strip((WORD)(opt_row_y(old) - 4), 17);
+        ui_strip((WORD)(opt_row_y(opt_row) - 4), 17);
+        ui_strip(186, 13);
+    }
     return FALSE;
 }
 
@@ -992,12 +1025,12 @@ static COLD void draw_train_opts(UBYTE *b)
 
 COLD UBYTE ui_train_update(void)
 {
-    UBYTE m = input_menu();
+    UBYTE m = input_menu(), old = tr_row;
     BOOL changed = FALSE;
     BYTE d = 0;
     while (key_get() != 0xFF) ;
-    if (m & BTN_UP)   { tr_row = (UBYTE)(tr_row == TR_FIRST ? TR_BACK : tr_row - 1); changed = TRUE; }
-    if (m & BTN_DOWN) { tr_row = (UBYTE)(tr_row == TR_BACK ? TR_FIRST : tr_row + 1); changed = TRUE; }
+    if (m & BTN_UP)   tr_row = (UBYTE)(tr_row == TR_FIRST ? TR_BACK : tr_row - 1);
+    if (m & BTN_DOWN) tr_row = (UBYTE)(tr_row == TR_BACK ? TR_FIRST : tr_row + 1);
     if (m & BTN_RIGHT) d = 1;
     if (m & BTN_LEFT) d = -1;
     if (m & BTN_FIRE) {
@@ -1017,6 +1050,11 @@ COLD UBYTE ui_train_update(void)
         else g_tour.train_rain = (UBYTE)!g_tour.train_rain;
     }
     if (changed) ui_invalidate();
+    else if (tr_row != old) {                        /* sam ruch kursora: dwa wiersze i opis */
+        ui_strip((WORD)(tr_row_y(old) - 4), 17);
+        ui_strip((WORD)(tr_row_y(tr_row) - 4), 17);
+        ui_strip(186, 13);
+    }
     return 0;
 }
 
@@ -2407,6 +2445,30 @@ static void draw_blink_line(UBYTE *b)
 #endif
 }
 
+/* paski ekranu z listy (ui_strip): tlo paska (ilustracja w menu, inaczej kolor 0) i ekran
+ * narysowany z przycieciem do paska - napisy spoza paska pomijane, wypelnienia przyciete */
+static void redraw_strips(UBYTE *b, UBYTE bi)
+{
+    UBYTE k;
+    for (k = 0; k < strip_n[bi]; k++) {
+        WORD y = strip_y[bi][k], h = strip_h[bi][k];
+        if (g_tour.state == GS_MENU && title_img) blit_copy(b, title_img, 0, y, SCREEN_W, h);
+        else blit_fill(b, 0, y, SCREEN_W, h, 0);
+        g_clip_y0 = y;
+        g_clip_y1 = (WORD)(y + h);
+        switch (g_tour.state) {
+        case GS_MENU:       draw_menu(b); break;
+        case GS_SETUP:      draw_setup(b); break;
+        case GS_OPTIONS:    draw_options(b); break;
+        case GS_TRAIN_OPTS: draw_train_opts(b); break;
+        default:            break;
+        }
+        g_clip_y0 = 0;
+        g_clip_y1 = 32767;
+    }
+    strip_n[bi] = 0;
+}
+
 void ui_render(void)
 {
     UBYTE *b = video_backbuffer();
@@ -2477,6 +2539,7 @@ panel_done:
     }
 
     if (drawn_serial[bi] == serial && buf_is_track[bi] == 0) {
+        if (strip_n[bi]) redraw_strips(b, bi);
         if (blink_dirty[bi]) { blink_dirty[bi] = 0; draw_blink_line(b); }
         if (g_tour.state == GS_PRESENT) present_girls(b, bi);    /* wychodzace podprowadzajace */
         if (g_tour.state == GS_PODIUM || (g_tour.state == GS_SERIES && series_final())) {   /* fajerwerki */
@@ -2486,6 +2549,7 @@ panel_done:
         return;
     }
     blink_dirty[bi] = 0;
+    strip_n[bi] = 0;                                     /* caly ekran - paski nieaktualne */
     blit_clear(b);
     buf_is_track[bi] = 0;
     roost_forget_buffer(bi);

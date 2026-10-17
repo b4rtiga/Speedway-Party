@@ -644,11 +644,14 @@ static int game_main(void)
             /* fala na trybunach przy zmianie lidera i na mecie (nie w nocy - tam inna paleta) */
             extern UWORD g_crowd_wave;
             static BOOL waving;
+            static UBYTE wave_shift = 0xFF;
             if (g_crowd_wave && g_tour.state == GS_HEAT && !(g_training ? g_tour.train_night : g_tour.night)) {
+                UBYTE sh = (UBYTE)(g_frame >> 2);
                 g_crowd_wave--;
-                video_crowd_cycle((UBYTE)(g_frame >> 2));
+                if (sh != wave_shift) { wave_shift = sh; video_crowd_cycle(sh); }   /* co 4 klatki, nie co klatke */
                 waving = TRUE;
             } else if (waving) {
+                wave_shift = 0xFF;
                 g_crowd_wave = 0;
                 video_crowd_cycle(0);
                 waving = FALSE;

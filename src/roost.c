@@ -158,7 +158,7 @@ void roost_update(BOOL bikes)
             p->life = 0;             /* woda tylko na nawierzchni, nie na murawie (panel) */
     }
     if (!bikes) return;
-    if (RAINING() && g_tour.state == GS_HEAT) { UBYTE k; for (k = 0; k < 5; k++) emit_rain(); }   /* 5 kropli na klatke, ~30 naraz */
+    if (RAINING() && g_tour.state == GS_HEAT) { UBYTE k; for (k = 0; k < 4; k++) emit_rain(); }   /* 4 krople na klatke, ~25 naraz */
 
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];

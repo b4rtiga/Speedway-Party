@@ -76,8 +76,13 @@ static void draw_pass(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color)
     }
 }
 
+WORD g_clip_y0 = 0, g_clip_y1 = 32767;
+
+static BOOL clipped(WORD y, WORD h) { return (BOOL)(y + h <= g_clip_y0 || y >= g_clip_y1); }
+
 void text_draw(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color, UBYTE shadow)
 {
+    if (clipped(y, FONT_H + 1)) return;
     if (shadow) draw_pass(buf, x, y + 1, s, shadow);
     draw_pass(buf, x, y, s, color);
 }
@@ -116,6 +121,7 @@ static void draw_big_pass(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color
 
 void text_draw_big(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color, UBYTE shadow)
 {
+    if (clipped(y, FONT_H * 2 + 2)) return;
     if (shadow) draw_big_pass(buf, x, y + 2, s, shadow);
     draw_big_pass(buf, x, y, s, color);
 }
@@ -124,6 +130,7 @@ void text_draw_big(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color, UBYTE
 void text_draw_small(UBYTE *buf, WORD x, WORD y, const char *s, UBYTE color)
 {
     const UBYTE *p = (const UBYTE *)s;
+    if (clipped(y, FONT_SMALL_H)) return;
     hw_wait_blit();
     while (*p && x <= SCREEN_W - FONT_SMALL_W) {
         const UBYTE *g = g_font_small[next_glyph(&p)];

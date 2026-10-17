@@ -144,7 +144,7 @@ typedef struct Bike {
 } Bike;
 
 /* ----------------------- CZASTECZKI (szpryca) --------------------- */
-#define MAX_PARTICLES 96          /* kazda drobina = 2 blity na klatke; A1200 bez Fast RAM (deszcz: ~30) */
+#define MAX_PARTICLES 64          /* kazda drobina = 2 blity na klatke; A1200 bez Fast RAM (wiecej - zwalnial 1. luk) */
 typedef struct Particle {
     fix16 x, y;          /* pozycja 16.16 */
     fix16 dx, dy;        /* predkosc 16.16 px/klatke */
