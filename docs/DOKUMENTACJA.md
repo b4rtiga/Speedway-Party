@@ -277,8 +277,8 @@ Na gołym A1200 program i dane siedzą w Chip RAM, który współdzieli z układ
 - mieszanie palety toru (schnięcie, polewanie) idzie po 64 kolory na klatkę,
 - okienko maszyny startowej i fazy flagi rysowane są raz i kopiowane z pamięci,
 - kosztowne rysowanie bajtami zamiast piksel po pikselu w 8 planach,
-- szpryca: najwyżej 40 drobin naraz, rysowanych procesorem (kropka to kilka bajtów w 8 planach – blit kosztował więcej niż samo rysowanie); każdy dostęp do Chip RAM w biegu to ok. 1 µs, a 64 drobiny zajmowały ponad połowę klatki,
-- czekanie na klatkę instrukcją STOP (procesor śpi do przerwania VBL – emulatory, np. THEA500 Mini, nie wykonują wtedy pustej pętli), kolory linii menu liczone raz, ruch kursora przerysowuje tylko paski dwóch wierszy.
+- szpryca: najwyżej 24 drobiny naraz (przy 40 THEA500 Mini nie nadążał), rysowanych procesorem (kropka to kilka bajtów w 8 planach – blit kosztował więcej niż samo rysowanie); każdy dostęp do Chip RAM w biegu to ok. 1 µs, a 64 drobiny zajmowały ponad połowę klatki,
+- czekanie na klatkę instrukcją STOP (procesor śpi do przerwania VBL – emulatory, np. THEA500 Mini, nie wykonują wtedy pustej pętli), kolory linii menu liczone raz, ruch kursora, zmiana opcji i wpisywanie nazwiska przerysowują tylko paski swoich wierszy.
 
 Pomiar w WinUAE (A1200, 68020 cycle-exact, bez Fast RAM; wersja 0.96): w biegu średnio ok. 215 z 313 linii (logika ok. 90 – w tym motocykle i boty ok. 47, szpryca ok. 30; rysowanie ok. 95 – w tym drobiny ok. 88; duszki, HUD i dźwięk ok. 45), zgubionych ok. 0,3% klatek. Wersja pomiarowa: `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"`, uruchomiona z katalogu `dist/` (konfiguracja WinUAE z katalogiem jako dyskiem) – boty jadą 3 biegi, a gra przy wyjściu zapisuje `dist/prof.txt` (średnie i szczytowe czasy części klatki osobno dla menu, startu z 1. łukiem i reszty biegu).
 

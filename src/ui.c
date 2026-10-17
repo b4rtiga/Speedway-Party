@@ -828,7 +828,8 @@ COLD UBYTE ui_setup_update(void)
         name_trunc(before, r->name, NAME_LEN);
         edit_name(r, m);
         for (k = 0; k <= NAME_LEN && !changed; k++) if (before[k] != r->name[k]) changed = TRUE;
-        if (changed || was != editing) ui_invalidate();
+        if (was != editing) ui_invalidate();
+        else if (changed) ui_strip((WORD)(setup_row_y(setup_row) - 4), 18);
         return 0;
     }
     while (key_get() != 0xFF) ;      /* poza edycja ignorujemy pisanie */
@@ -839,7 +840,8 @@ COLD UBYTE ui_setup_update(void)
 
     if (m & (BTN_LEFT | BTN_RIGHT)) {
         BYTE d = (BYTE)(m & BTN_RIGHT ? 1 : -1);
-        changed = TRUE;
+        changed = (BOOL)(setup_row == 0 || setup_row > MAX_RIDERS);   /* zawodnik: sam jego wiersz */
+        if (!changed) ui_strip((WORD)(setup_row_y(setup_row) - 4), 18);
         if (setup_row == 0) {
             WORD n = g_tour.num_humans + d;
             g_tour.num_humans = (UBYTE)(n < 0 ? 0 : n > MAX_RIDERS ? MAX_RIDERS : n);   /* 0 = pokaz: same boty */
@@ -950,7 +952,8 @@ COLD BOOL ui_options_update(void)
         d = 1;
     }
     if (d) {
-        changed = TRUE;
+        changed = opt_row == OPT_ARENA;                /* tor zmienia tez dostepnosc nocy - caly ekran */
+        if (opt_row != OPT_ARENA) { ui_strip((WORD)(opt_row_y(opt_row) - 4), 17); ui_strip(186, 13); }
         if (opt_row == OPT_ARENA) {
             g_tour.track_pick = (UBYTE)((g_tour.track_pick + NUM_TRACKS + d) % NUM_TRACKS);
             track_select(g_tour.track_pick);          /* noc dostepna wg toru */
@@ -1039,7 +1042,8 @@ COLD UBYTE ui_train_update(void)
         d = 1;
     }
     if (d && tr_row < TR_START) {
-        changed = TRUE;
+        changed = tr_row == TR_ARENA;
+        if (tr_row != TR_ARENA) { ui_strip((WORD)(tr_row_y(tr_row) - 4), 17); ui_strip(186, 13); }
         if (tr_row == TR_ARENA) {
             g_tour.train_track = (UBYTE)((g_tour.train_track + NUM_TRACKS + d) % NUM_TRACKS);
             track_select(g_tour.train_track);          /* noc dostepna wg toru */
@@ -2478,7 +2482,7 @@ void ui_render(void)
     if (new_blink != blink) {
         blink = new_blink;
         /* w menu miga jeden napis - odswiezany sam pasek; kursor edycji nazwiska - caly ekran */
-        if (g_tour.state == GS_SETUP) { if (editing) ui_invalidate(); }
+        if (g_tour.state == GS_SETUP) { if (editing) ui_strip((WORD)(setup_row_y(setup_row) - 4), 18); }
         else if (g_tour.state == GS_NAME_ENTRY) ui_invalidate();             /* migajacy kursor */
         else if (!state_uses_track(g_tour.state)) blink_dirty[0] = blink_dirty[1] = 1;
     }
@@ -2550,7 +2554,8 @@ panel_done:
     }
     blink_dirty[bi] = 0;
     strip_n[bi] = 0;                                     /* caly ekran - paski nieaktualne */
-    blit_clear(b);
+    if (!(title_img && (g_tour.state == GS_MENU || g_tour.state == GS_TITLE)))
+        blit_clear(b);                                   /* menu i tytul: ilustracja zakryje caly ekran */
     buf_is_track[bi] = 0;
     roost_forget_buffer(bi);
     drawn_serial[bi] = serial;

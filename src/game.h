@@ -144,7 +144,7 @@ typedef struct Bike {
 } Bike;
 
 /* ----------------------- CZASTECZKI (szpryca) --------------------- */
-#define MAX_PARTICLES 40          /* drobina = kilkadziesiat dostepow do Chip RAM (~1 us kazdy); 64 - ok. 170 z 313 linii klatki */
+#define MAX_PARTICLES 24          /* drobina = kilkadziesiat dostepow do Chip RAM (~1 us kazdy); 64 - ok. 170 z 313 linii klatki, THEA500 Mini nie nadazal przy 40 */
 typedef struct Particle {
     fix16 x, y;          /* pozycja 16.16 */
     fix16 dx, dy;        /* predkosc 16.16 px/klatke */

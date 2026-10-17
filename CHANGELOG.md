@@ -5,7 +5,7 @@ Każda wersja to nagłówek `## wersja – data` (albo „w przygotowaniu”) i 
 
 ## 0.96 – w przygotowaniu
 
-- **Płynniej w emulatorach:** gra czeka na kolejną klatkę instrukcją STOP zamiast pustej pętli, napisy w menu mają stały kolor zamiast przesuwającej się tęczy, a ruch kursora przerysowuje tylko dwa wiersze zamiast całego ekranu – emulator (np. THEA500 Mini) ma dużo mniej pracy. W biegu: szpryca to najwyżej 40 drobin rysowanych procesorem (było 64 – zajmowały ponad połowę klatki), fala na trybunach w pierwszym okrążeniu tylko raz i lżejsza. Pomiar w WinUAE (A1200 bez Fast RAM): zgubione klatki w biegu spadły z ok. 8% do ok. 0,3%.
+- **Płynniej w emulatorach:** gra czeka na kolejną klatkę instrukcją STOP zamiast pustej pętli, napisy w menu mają stały kolor zamiast przesuwającej się tęczy, a ruch kursora, zmiana opcji i wpisywanie nazwiska przerysowują tylko swoje wiersze zamiast całego ekranu – emulator (np. THEA500 Mini) ma dużo mniej pracy. W biegu: szpryca to najwyżej 24 drobiny rysowane procesorem (było 64 – zajmowały ponad połowę klatki), fala na trybunach w pierwszym okrążeniu tylko raz i lżejsza. Pomiar w WinUAE (A1200 bez Fast RAM): zgubione klatki w biegu spadły z ok. 8% do ok. 0,3%.
 - **Jedna plansza wczytywania** – od razu z ilustracją (wcześniej najpierw mignął sam napis na gradiencie).
 - **Muzyka w menu znów w PCM** – gra nie musi jej dekodować w trakcie grania, więc nie przycina w emulatorach na słabszym sprzęcie (np. THEA500 Mini). ADPCM można włączyć w `build.cfg`.
 - **Trening:** na murawie trzy czasy – bieżące okrążenie liczone na żywo, ostatnie okrążenie i rekord; trybuny krzyczą tylko przy pobiciu rekordu (wcześniej co 4. okrążenie).

@@ -8,6 +8,8 @@ APTR AllocMem(ULONG byteSize, ULONG requirements);
 void FreeMem(APTR memoryBlock, ULONG byteSize);
 void Forbid(void); void Permit(void);
 ULONG Supervisor(ULONG (*userFunction)());
+ULONG CacheControl(ULONG cacheBits, ULONG cacheMask);
+#define CACRF_EnableI (1UL << 0)
 struct Library *OpenLibrary(CONST_STRPTR libName, ULONG version);
 void CloseLibrary(struct Library *library);
 ULONG AvailMem(ULONG req);
