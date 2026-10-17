@@ -187,11 +187,38 @@ void system_restore(void)
 
 ULONG g_lag;                    /* zgubione klatki (diagnostyka, make EXTRA=-DSHOW_LAG) */
 
+#if !defined(WHDLOAD) && !defined(__clang__)
+/* Czekanie na klatke instrukcja STOP zamiast pustej petli: procesor spi do przerwania VBL.
+ * Na Amidze bez roznicy, ale emulator (WinUAE, Amiberry w THEA500 Mini) nie musi wykonywac
+ * petli instrukcja po instrukcji - w menu, gdzie gra wiekszosc klatki czeka, to wiekszosc jego
+ * pracy (przycinala sie muzyka). Bez wyscigu: przerwania zamaskowane przed porownaniem, STOP
+ * odmaskowuje je atomowo, a VBL z miedzyczasu czeka w INTREQ i budzi od razu.
+ * Wywolanie przez exec Supervisor() (gra dziala w trybie uzytkownika), powrot przez RTE. */
+ULONG g_wait_last;
+void wait_stop(void);
+__asm__(
+"    .text\n"
+"    .even\n"
+"_wait_stop:\n"
+"    move.w  #0x2700,sr\n"
+"    move.l  _g_frame,d0\n"
+"    cmp.l   _g_wait_last,d0\n"
+"    bne.s   1f\n"
+"    stop    #0x2000\n"
+"1:  rte\n");
+#endif
+
 void system_wait_vbl(void)
 {
     static ULONG last;
+#if !defined(WHDLOAD) && !defined(__clang__)
+    g_wait_last = last;
+    while (g_frame == last)
+        Supervisor((ULONG (*)())wait_stop);
+#else
     while (g_frame == last)
         ;
+#endif
     if (last && g_frame - last > 1) g_lag += g_frame - last - 1;
     last = g_frame;
 }

@@ -2363,17 +2363,23 @@ static void update_line_colors(void)
         news_lines = TRUE;
         for (i = 0; i < FULL_H; i++) { line_bg[i] = NEWS_PAPER; line_fg[i] = NEWS_INK; }
     } else {
+        static UWORD menu_k[2] = { 0xFFFF, 0xFFFF };   /* faza teczy w liscie Coppera bufora */
         UWORD k = (UWORD)((g_frame >> 1) % 48), r = 0;
         race_lines_ok[0] = race_lines_ok[1] = 0;
         if (news_lines) { news_lines = FALSE; bg_ready = FALSE; }
         if (!bg_ready) {
             /* tlo: granat -> fiolet -> granat (stale, liczone raz) */
             bg_ready = TRUE;
+            menu_k[0] = menu_k[1] = 0xFFFF;
             for (i = 0; i < FULL_H; i++) {
                 UWORD t = (UWORD)((i < FULL_H / 2 ? i : FULL_H - 1 - i) * 13 / 16);
                 line_bg[i] = (UWORD)(((t / 26) << 8) | ((t / 52) << 4) | (2 + t / 18));
             }
         }
+        /* tecza przesuwa sie co 2 klatki - lista Coppera tego bufora juz ja ma: nic do roboty
+         * (wczesniej 256 linii przeliczanych i przepisywanych w kazdej klatce menu) */
+        if (menu_k[g_video.back] == k) return;
+        menu_k[g_video.back] = k;
         for (i = 0; i < FULL_H; i++) {
             /* tekst: przesuwajaca sie tecza (kolor co 3 linie) - bez dzielenia, co klatke */
             line_fg[i] = rainbow[k];
