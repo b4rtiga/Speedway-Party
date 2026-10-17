@@ -268,7 +268,7 @@ All the work must fit in one frame: 313 PAL lines. The `make dist EXTRA=-DSHOW_L
 
 - **Playfield:** 320×208, 8 bitplanes (256 colours, 24-bit AGA palette), interleaved bitplanes, double buffered. Underneath there is the track background (`g_video.background`) used to restore areas.
 - **HUD:** 320×48, 5 bitplanes (32 colours), single buffer. The referee, the hand with the flag (two waving phases kept in a buffer), helmet colours, round lights.
-- **Copper:** per-line colours (menu background gradient, the colour of highlighted text, the newspaper's cream paper; set once, not every frame), separate lists for the race and the menus.
+- **Copper:** the menu background gradient with one colour change per line; the colour of highlighted text, the newspaper paper and the race colours set once at the top of the screen (no AGA palette bank switching on every line – it matters for emulators); separate lists for the race and the menus.
 - **Sprites:** the bikes are attached 32 px pairs (15 colours); each bike has its own copy of the frame for each buffer, and the horizontal position is set every 1/4 pixel. Frames: 4 helmet colours × 32 directions × 3 slide angles.
 - **Blitter:** fills, copies, roost dots (“cookie-cut”). Before drawing into a buffer the CPU waits for the blit to finish (`hw_wait_blit`/`blit_wait`).
 

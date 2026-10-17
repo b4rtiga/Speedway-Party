@@ -8,8 +8,10 @@
  *   [bitplany]   BPL1PT..BPL8PT  (16 MOVE)  <- bufor tej listy
  *   [paleta]     8 bankow x (BPLCON3 + 32 MOVE hi + BPLCON3|LOCT + 32 MOVE lo)
  *                = 528 MOVE, miesci sie w wygaszaniu pionowym (linie 0..$2B)
- *   [linie 0..207, w menu 0..255] co linie: WAIT, COLOR00 (tlo), BPLCON3 bank3, COLOR100, BPLCON3 bank0
- *                -> gradient tla i "teczowy" kolor napisow w menu, 1040 instrukcji
+ *   [linie]      1. linia: WAIT, COLOR00 (tlo), BPLCON3 bank3, COLOR100 (napisy), BPLCON3 bank0;
+ *                w menu kolejne linie 1..255: WAIT, COLOR00 (gradient tla). Kolor napisow i kolory
+ *                biegu sa stale - dawniej caly blok w kazdej linii (zmiany banku palety co linie
+ *                kosztowaly emulatory, np. THEA500 Mini)
  *   WAIT $FC     poczatek HUD: BPLCON0 = 0 planow (pusta przerwa 4 linie)
  *                paleta HUD (32 kolory, bank 0), BPL1..5PT -> ekran HUD, modulo HUD
  *   WAIT $FF,$DF przejscie przez linie 255 wiazki
@@ -44,7 +46,8 @@ Video g_video;
 #endif
 
 #define COPPER_WORDS    6144
-#define LINE_WORDS      10          /* WAIT + 4 MOVE na linie */
+#define LINE_WORDS      10          /* 1. linia: WAIT + 4 MOVE (tlo, bank 3, kolor napisow, bank 0) */
+#define LINE_BG_WORDS   4           /* kolejne linie menu: WAIT + MOVE tla */
 #define UI_RAINBOW      100         /* kolor tekstu zmieniany co linie (bank 3, indeks 4) */
 #define HUD_GAP         4
 
@@ -69,7 +72,7 @@ static inline UWORD rgb_lo(const RGB24 *c) { return (UWORD)(((c->r & 15) << 8) |
 
 static UWORD *build_copper(UWORD *c, UBYTE buf, UBYTE menu)
 {
-    UWORD i, b, lines = menu ? FULL_H : PLAY_H;
+    UWORD i, b, lines = menu ? FULL_H : 1;
     ULONG pl;
 
     c = cop_move(c, R_FMODE,   BPL_FMODE | (SPRITE_W == 64 ? FMODE_SPR_4X : FMODE_SPR_2X));
@@ -110,12 +113,16 @@ static UWORD *build_copper(UWORD *c, UBYTE buf, UBYTE menu)
      * WAIT na koncu poprzedniej linii; dla linii $100 wypada WAIT $FF,$DF, a kolejne
      * (mlodszy bajt pozycji pionowej) dzialaja juz za granica 255 */
     g_video.cop_lines[menu][buf] = c;
-    for (i = 0; i < lines; i++) {
+    /* pierwsza linia: tlo i kolor napisow (bank 3); kolejne linie menu tylko tlo (gradient) -
+     * kolor napisow jest staly, wiec bez przelaczania banku palety w kazdej linii */
+    c = cop_wait(c, (UBYTE)(DISPLAY_VSTART - 1), 0xDF);
+    c = cop_move(c, R_COLOR00, 0x000);
+    c = cop_move(c, R_BPLCON3, BPLCON3_BANK(UI_RAINBOW >> 5));
+    c = cop_move(c, R_COLOR00 + (UI_RAINBOW & 31) * 2, 0xFFF);
+    c = cop_move(c, R_BPLCON3, BPLCON3_BANK(0));
+    for (i = 1; i < lines; i++) {
         c = cop_wait(c, (UBYTE)(DISPLAY_VSTART + i - 1), 0xDF);
         c = cop_move(c, R_COLOR00, 0x000);
-        c = cop_move(c, R_BPLCON3, BPLCON3_BANK(UI_RAINBOW >> 5));
-        c = cop_move(c, R_COLOR00 + (UI_RAINBOW & 31) * 2, 0xFFF);
-        c = cop_move(c, R_BPLCON3, BPLCON3_BANK(0));
     }
 
     if (menu) {                                         /* menu: caly ekran, bez HUD */
@@ -319,11 +326,10 @@ void video_set_sprite(UBYTE n, const UWORD *data)
 void video_set_lines(const UWORD *bg, const UWORD *fg)
 {
     UWORD *c = g_video.cop_lines[g_video.menu][g_video.back], i;
-    UWORD n = g_video.menu ? FULL_H : PLAY_H;
-    for (i = 0; i < n; i++, c += LINE_WORDS) {
-        c[3] = bg[i];
-        c[7] = fg[i];
-    }
+    UWORD n = g_video.menu ? FULL_H : 1;                /* bieg: kolory stale - jeden blok na gorze */
+    c[3] = bg[0];
+    c[7] = fg[0];                                       /* kolor napisow staly dla calego ekranu */
+    for (c += LINE_WORDS, i = 1; i < n; i++, c += LINE_BG_WORDS) c[3] = bg[i];
 }
 
 void video_set_menu(BOOL menu) { g_video.menu = (UBYTE)(menu ? 1 : 0); }

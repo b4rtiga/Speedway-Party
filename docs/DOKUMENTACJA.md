@@ -264,7 +264,7 @@ Cała praca musi zmieścić się w jednej klatce: 313 linii obrazu PAL. Wersja `
 
 - **Pole gry:** 320×208, 8 bitplanów (256 kolorów, paleta 24-bit AGA), bitplany przeplatane, podwójny bufor. Pod spodem jest tło toru (`g_video.background`), z którego odtwarzane są fragmenty.
 - **HUD:** 320×48, 5 bitplanów (32 kolory), pojedynczy bufor. Sędzia, ręka z flagą (dwie fazy machania zapamiętane w buforze), kolory kasków, okrągłe światła.
-- **Copper:** kolory per linia (gradient tła menu, kolor wyróżnionych napisów, kremowy papier gazety; liczone raz, nie co klatkę), osobne listy dla biegu i menu.
+- **Copper:** gradient tła menu jedną zmianą koloru na linię; kolor wyróżnionych napisów, papier gazety i kolory biegu ustawiane raz na górze ekranu (bez przełączania banku palety w każdej linii – ważne dla emulatorów); osobne listy dla biegu i menu.
 - **Duszki:** motocykle to pary attached 32 px (15 kolorów); każdy motocykl ma własną kopię klatki na każdy bufor, a pozycja w poziomie jest ustawiana co 1/4 piksela. Klatki: 4 kolory kasków × 32 kierunki × 3 stopnie uślizgu.
 - **Blitter:** wypełnianie, kopiowanie, kropki szprycy („cookie-cut”). Procesor przed rysowaniem w buforze czeka na koniec blitu (`hw_wait_blit`/`blit_wait`).
 
