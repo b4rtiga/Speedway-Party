@@ -314,6 +314,7 @@ Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip instal
 | `sh tools/mktrailer.sh` | trailer „gameplay” `art/trailer_gameplay.mp4` z prawdziwego kodu gry: menu, start i jedno okrążenie biegu z dźwiękiem silników (logika `audio.c`, mikser `tools/trailer_audio.py`) i przejście do ilustracji tytułowej (wymaga ffmpeg) |
 | `make dist EXTRA=-DAUTOPLAY` | wersja testowa bez klawiatury: sama przechodzi przez menu i rozgrywa turniej botów (do sprawdzania w emulatorze) |
 | `make dist EXTRA=-DSHOW_LAG` | wersja pomiarowa: w HUD zgubione klatki biegu i szczytowy czas (w liniach obrazu z 313) części logiki biegu: motocykle i boty, szpryca, tor, cała logika |
+| `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"` | pomiar do pliku: boty jadą 3 biegi, a gra przy wyjściu zapisuje `dist/prof.txt` (średnie i szczytowe czasy części klatki dla menu, startu z 1. łukiem i reszty biegu) |
 | `make dist EXTRA="-DSHOW_LAG -DSHOW_START"` | pomiar startu spod taśmy: zgubione klatki w oknie odlotu taśmy i szczytowe czasy logiki, rysowania oraz duszków+HUD w tym oknie |
 
 Geometria toru jest zapisana w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS` w `tools/genart.py`. Wartości (`HALF_L, R_IN, R_OUT`) muszą być identyczne.

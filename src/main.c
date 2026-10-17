@@ -34,6 +34,17 @@
 
 UWORD g_grading_progress;
 
+#ifdef PROF_LOG
+/* Pomiar (make EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG", WinUAE cycle-exact): czasy czesci klatki
+ * w liniach wiazki (313 na klatke PAL) osobno dla odcinkow, po 3 biegach wyjscie i plik
+ * PROGDIR:prof.txt. Kolumny: 0-2 czesci logiki biegu (race.c), 3 logika, 4 rysowanie,
+ * 5 duszki+HUD+dzwiek, 6 czekanie na Blitter, 7 cala praca w klatce. */
+#define PSEG 4                           /* 0 menu, 1 start i 1. luk (5 s), 2 reszta biegu, 3 bieg: inne fazy */
+#define PCOL 14
+static ULONG ps_sum[PSEG][PCOL], ps_max[PSEG][PCOL], ps_frames[PSEG], ps_lost[PSEG], ps_over[PSEG];
+static UBYTE p_seg;
+static void ps_add(UBYTE k, UWORD d) { ps_sum[p_seg][k] += d; if (d > ps_max[p_seg][k]) ps_max[p_seg][k] = d; }
+#endif
 #ifdef SHOW_LAG
 UWORD g_prof[4];                         /* maks. liczba linii z ostatnich 32 klatek */
 void prof_add(UBYTE i, UWORD a, UWORD b)
@@ -41,6 +52,9 @@ void prof_add(UBYTE i, UWORD a, UWORD b)
     static UWORD peak[4];
     static UBYTE n;
     UWORD d = (UWORD)(b >= a ? b - a : b + 313 - a);
+#ifdef PROF_LOG
+    if (i < 3) ps_add(i, d);
+#endif
     if (d > peak[i]) peak[i] = d;
     if (i == 3 && ++n >= 32) {
         UBYTE k;
@@ -243,6 +257,9 @@ static void tournament_start(void)
 /* po wyniku biegu: polewanie toru albo nastepny bieg */
 static void after_result(void)
 {
+#ifdef PROF_LOG
+    if (g_tour.current_heat >= 2) { enter(GS_QUIT); return; }   /* pomiar: 3 biegi */
+#endif
 #ifdef TEST_HOF
     if (g_tour.current_heat >= 1) { enter(GS_QUIT); return; }   /* test: po 2 biegach wyjscie i zapis */
 #endif
@@ -609,6 +626,18 @@ static int game_main(void)
 #ifdef SHOW_LAG
         v0 = hw_vpos();
 #endif
+#ifdef PROF_LOG
+        {
+            static ULONG lag0;
+            const Heat *ph = &g_tour.heat;
+            ps_lost[p_seg] += g_lag - lag0;           /* zgubione przed ta klatka - do odcinka poprzedniej */
+            lag0 = g_lag;
+            if (g_tour.state != GS_HEAT && g_tour.state != GS_HEAT_RESULT && g_tour.state != GS_TRACK_GRADING) p_seg = 0;
+            else if (g_tour.state == GS_HEAT && (ph->phase == HEAT_TAPE_UP || ph->phase == HEAT_RACING))
+                p_seg = (UBYTE)(ph->race_frames < 5 * FPS ? 1 : 2);
+            else p_seg = 3;
+        }
+#endif
 #ifdef SHOW_START
         {
             /* okno startu (zielone + 20 klatek): kolumna 0 = zgubione klatki w oknie */
@@ -632,13 +661,34 @@ static int game_main(void)
 #endif
 
         roost_erase();                  /* stare drobiny z tego bufora (sprzed 2 klatek) */
+#ifdef PROF_LOG
+        { UWORD a = hw_vpos(), b2, c2;
+#endif
         ui_render();
+#ifdef PROF_LOG
+        hw_wait_blit();                 /* blity z ui_render liczone do ui_render, nie do drobin */
+        b2 = hw_vpos();
+#endif
         roost_draw();                   /* aktualne drobiny - Blitter, cookie-cut */
+#ifdef PROF_LOG
+        hw_wait_blit(); c2 = hw_vpos();
+        { extern UWORD g_roost_drawn; ps_add(13, g_roost_drawn); }
+        ps_add(8, (UWORD)(a >= v1 ? a - v1 : a + 313 - v1)); ps_add(9, (UWORD)(b2 >= a ? b2 - a : b2 + 313 - a)); ps_add(10, (UWORD)(c2 >= b2 ? c2 - b2 : c2 + 313 - b2)); }
+#endif
 #ifdef SHOW_LAG
         v2 = hw_vpos();
 #endif
+#ifdef PROF_LOG
+        { UWORD a = hw_vpos(), b2;
+#endif
         render_sprites();
+#ifdef PROF_LOG
+        b2 = hw_vpos(); ps_add(11, (UWORD)(b2 >= a ? b2 - a : b2 + 313 - a));
+#endif
         hud_update();
+#ifdef PROF_LOG
+        a = hw_vpos(); ps_add(12, (UWORD)(a >= b2 ? a - b2 : a + 313 - b2)); }
+#endif
         audio_update();
         {
             /* fala na trybunach przy zmianie lidera i na mecie (nie w nocy - tam inna paleta) */
@@ -661,6 +711,17 @@ static int game_main(void)
         v3 = hw_vpos();
 #endif
         hw_wait_blit();                 /* bufor musi byc gotowy, zanim go pokazemy */
+#ifdef PROF_LOG
+        {
+            UWORD v4 = hw_vpos();
+#define PD(a, b) ((UWORD)((b) >= (a) ? (b) - (a) : (b) + 313 - (a)))
+            UWORD busy = PD(v0, v4);
+            ps_add(3, PD(v0, v1)); ps_add(4, PD(v1, v2)); ps_add(5, PD(v2, v3)); ps_add(6, PD(v3, v4)); ps_add(7, busy);
+            ps_frames[p_seg]++;
+            if (busy > 290) ps_over[p_seg]++;
+#undef PD
+        }
+#endif
 #ifdef SHOW_LAG
         /* profil (linie wiazki, 313 na klatke PAL): logika, rysowanie toru, duszki+HUD+dzwiek,
          * czekanie na Blitter */
@@ -686,6 +747,34 @@ static int game_main(void)
     system_restore();
     records_save();                     /* dysk dostepny dopiero po oddaniu systemu */
     settings_save();
+#ifdef PROF_LOG
+    {
+        static const char *const seg[PSEG] = { "menu", "start+1.luk", "bieg-reszta", "bieg-inne" };
+        static const char *const col[PCOL] = { "rc-motocykle", "rc-drobiny", "rc-reszta", "logika", "rysowanie", "duszki+hud+dzw", "blit-czek", "praca",
+                                               "  roost_erase", "  ui_render+blit", "  roost_draw", "  duszki", "  hud", "  drobin-rysowanych" };
+        BPTR fh = Open((CONST_STRPTR)"PROGDIR:prof.txt", MODE_NEWFILE);
+        if (fh) {
+            char line[160];
+            UBYTE s, k;
+            for (s = 0; s < PSEG; s++) {
+                char *p = line;
+                ULONG n = ps_frames[s] ? ps_frames[s] : 1;
+#define PUT(str) do { const char *q_ = (str); while (*q_) *p++ = *q_++; } while (0)
+#define NUM(v) do { char t_[12]; int j_ = 0; ULONG x_ = (v); do { t_[j_++] = (char)('0' + x_ % 10); x_ /= 10; } while (x_); while (j_) *p++ = t_[--j_]; } while (0)
+                PUT(seg[s]); PUT(" klatek="); NUM(ps_frames[s]); PUT(" zgubione="); NUM(ps_lost[s]); PUT(" ponad290="); NUM(ps_over[s]); PUT("\n");
+                Write(fh, line, p - line);
+                for (k = 0; k < PCOL; k++) {
+                    p = line;
+                    PUT("  "); PUT(col[k]); PUT(" sr="); NUM(ps_sum[s][k] / n); PUT(" max="); NUM(ps_max[s][k]); PUT("\n");
+                    Write(fh, line, p - line);
+                }
+#undef PUT
+#undef NUM
+            }
+            Close(fh);
+        }
+    }
+#endif
 out:
     system_hide_early();                /* blad przy wczytywaniu: z powrotem ekran systemu */
     audio_free();

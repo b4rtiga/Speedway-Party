@@ -28,6 +28,7 @@ static UWORD old_dmacon, old_intena;
 static APTR  old_level3;
 static volatile APTR *vbr;
 static BOOL  shown_early, taken;          /* lista Coppera gry na ekranie / sprzet przejety */
+static ULONG old_cache;                    /* stan pamieci podrecznej sprzed gry */
 
 /* movec vbr,d0 ; rte - wykonywane w trybie nadzorcy */
 static const UWORD getvbr_code[] __attribute__((aligned(4))) = { 0x4E7A, 0x0801, 0x4E73 };
@@ -141,6 +142,9 @@ BOOL system_takeover(void)
 
     OwnBlitter();
     WaitBlit();
+    /* pamiec podreczna instrukcji 68020+ wlaczona: bez Fast RAM kazda instrukcja spoza niej
+     * idzie przez szyne Chip RAM, ktora dzieli z obrazem AGA, Blitterem i dzwiekiem */
+    old_cache = CacheControl(CACRF_EnableI, CACRF_EnableI);
     Forbid();
 
     old_dmacon = REG16(R_DMACONR);
@@ -175,6 +179,7 @@ void system_restore(void)
     REG16(R_INTENA) = INTF_SETCLR | (old_intena & INTF_ALL);
 
     Permit();
+    CacheControl(old_cache, CACRF_EnableI);
     DisownBlitter();
     LoadView(old_view);
     WaitTOF();

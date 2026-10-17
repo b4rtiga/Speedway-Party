@@ -17,8 +17,8 @@
 
 #define ROOST_DRIFT     12         /* szpryca od wyraznego zlamania (ok. 17 st.) */
 #define SPEED_MIN       (FIX_ONE / 2)
-#define LIFE_MIN        7
-#define LIFE_RAND       6
+#define LIFE_MIN        6
+#define LIFE_RAND       5
 #define HIT_RADIUS2     (6 * 6)
 #define HIT_MIN_LIFE    3
 #define REAR_OFFSET     7          /* tylne kolo za srodkiem motocykla [px] */
@@ -158,7 +158,7 @@ void roost_update(BOOL bikes)
             p->life = 0;             /* woda tylko na nawierzchni, nie na murawie (panel) */
     }
     if (!bikes) return;
-    if (RAINING() && g_tour.state == GS_HEAT) { UBYTE k; for (k = 0; k < 4; k++) emit_rain(); }   /* 4 krople na klatke, ~25 naraz */
+    if (RAINING() && g_tour.state == GS_HEAT) { emit_rain(); emit_rain(); emit_rain(); }   /* 3 krople na klatke, ~20 naraz */
 
     for (i = 0; i < MAX_RIDERS; i++) {
         const Bike *b = &g_tour.bikes[i];
@@ -193,14 +193,63 @@ UBYTE roost_hits(const Bike *b)
     return hits;
 }
 
+/* Drobiny procesorem, nie Blitterem: kropka to 1-4 piksele, a blit (ustawienie rejestrow,
+ * czekanie) kosztowal kilka razy wiecej niz zmiana kilku bajtow w 8 planach. Pomiar w WinUAE
+ * (A1200 cycle-exact): zmazanie i rysowanie 64 drobin Blitterem - ok. 135 z 313 linii klatki. */
+
+/* jeden wiersz kropki w 8 planach: maska bitow w bajcie d (i nastepnym, gdy kropka na granicy) */
+static void dot_row(UBYTE *d, UWORD m, UBYTE c)
+{
+    UBYTE hi = (UBYTE)(m >> 8), lo = (UBYTE)m, pl;
+    if (!lo) {                                     /* zwykle: caly wiersz w jednym bajcie */
+        UBYTE nh = (UBYTE)~hi;
+        for (pl = PLAY_DEPTH; pl; pl--, d += ROW_BYTES, c >>= 1)
+            *d = (UBYTE)((c & 1) ? (*d | hi) : (*d & nh));
+        return;
+    }
+    for (pl = PLAY_DEPTH; pl; pl--, d += ROW_BYTES, c >>= 1) {
+        if (c & 1) { d[0] |= hi; d[1] |= lo; }
+        else { d[0] &= (UBYTE)~hi; d[1] &= (UBYTE)~lo; }
+    }
+}
+
+/* kropka: 1 px, 2x2 albo kreska deszczu (2 linie w x, 2 w x+1) */
+static void dot_put(UBYTE *buf, WORD x, WORD y, UBYTE shape, UBYTE color)
+{
+    UBYTE *d = buf + (LONG)y * PLAY_STRIDE + (x >> 3);
+    UWORD m = (UWORD)((shape == DOT_BIG ? 0xC000 : 0x8000) >> (x & 7));
+    dot_row(d, m, color);
+    if (shape == DOT_SMALL) return;
+    dot_row(d + PLAY_STRIDE, m, color);
+    if (shape != DOT_RAIN) return;
+    dot_row(d + 2 * PLAY_STRIDE, (UWORD)(m >> 1), color);
+    dot_row(d + 3 * PLAY_STRIDE, (UWORD)(m >> 1), color);
+}
+
+/* tlo pod kropka z bufora tla (2 bajty na wiersz i plan) */
+static void dot_restore(UBYTE *buf, const UBYTE *bg, WORD x, WORD y, UBYTE shape)
+{
+    UBYTE r, rows = (UBYTE)DOT_ROWS(shape), pl;
+    for (r = 0; r < rows; r++) {
+        LONG o = (LONG)(y + r) * PLAY_STRIDE + (x >> 3);
+        for (pl = 0; pl < PLAY_DEPTH; pl++, o += ROW_BYTES) {
+            buf[o] = bg[o];
+            if ((x >> 3) + 1 < ROW_BYTES) buf[o + 1] = bg[o + 1];
+        }
+    }
+}
+
+#ifdef PROF_LOG
+UWORD g_roost_drawn;                       /* pomiar: drobin narysowanych w klatce */
+#endif
+
 void roost_erase(void)
 {
     UBYTE bi = g_video.back, i;
     UBYTE *buf = g_video.play[bi];
     if (!drawn_n[bi]) return;
-    blit_restores_begin();
     for (i = 0; i < drawn_n[bi]; i++)
-        blit_restore(buf, g_video.background, drawn[bi][i].x, drawn[bi][i].y, drawn[bi][i].big);
+        dot_restore(buf, g_video.background, drawn[bi][i].x, drawn[bi][i].y, drawn[bi][i].big);
     drawn_n[bi] = 0;
 }
 
@@ -209,11 +258,13 @@ void roost_draw(void)
     UBYTE bi = g_video.back, i, n = 0;
     UBYTE *buf = g_video.play[bi];
     HeatPhase ph = g_tour.heat.phase;
+    BOOL panel;
 
     if (g_tour.state == GS_TRACK_GRADING) ph = HEAT_RACING;     /* zraszacz */
     else if (g_tour.state != GS_HEAT) return;
     if (ph == HEAT_FALSE_START || ph < HEAT_TAPE_UP) return;
-    blit_dots_begin();
+    blit_wait();                                  /* nakladki i tasma z ui_render juz w buforze */
+    panel = ui_panel_covers(0, 0, SCREEN_W, PLAY_H);   /* raz na klatke: zwykle zadnej nakladki */
     for (i = 0; i < MAX_PARTICLES; i++) {
         const Particle *p = &g_tour.particles[i];
         WORD x, y;
@@ -223,12 +274,15 @@ void roost_draw(void)
         /* tylko w obrebie ekranu: drobina wyemitowana w tej klatce nie przeszla jeszcze
          * kontroli granic w roost_update, a blit poza buforem nadpisalby dane gry w Chip RAM */
         if (x < 0 || y < 0 || x > SCREEN_W - 17 || y > PLAY_H - DOT_ROWS(p->big)) continue;
-        if (ui_panel_covers((WORD)(x & ~15), y, 32, DOT_ROWS(p->big))) continue;   /* blok blit_dot/restore na panelu */
-        blit_dot(buf, x, y, p->big, p->color);
+        if (panel && ui_panel_covers((WORD)(x & ~15), y, 32, DOT_ROWS(p->big))) continue;   /* nie na nakladce */
+        dot_put(buf, x, y, p->big, p->color);
         drawn[bi][n].x = x;
         drawn[bi][n].y = y;
         drawn[bi][n].big = p->big;
         n++;
     }
     drawn_n[bi] = n;
+#ifdef PROF_LOG
+    g_roost_drawn = n;
+#endif
 }

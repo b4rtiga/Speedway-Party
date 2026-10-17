@@ -262,7 +262,7 @@ The game takes over the system (`system.c`) and runs on its own VBL interrupt. E
 4. sets the sprites, updates the HUD and the sound,
 5. waits for the Blitter and swaps buffers (`video_swap`).
 
-All the work must fit in one frame: 313 PAL lines. The `make dist EXTRA=-DSHOW_LAG` build shows dropped frames and the time of each part in raster lines in the HUD.
+All the work must fit in one frame: 313 PAL lines. The `make dist EXTRA=-DSHOW_LAG` build shows dropped frames and the time of each part in raster lines in the HUD. The `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"` build, run from the `dist/` directory in WinUAE (A1200, 68020 cycle-exact), lets the bots ride 3 heats and writes `dist/prof.txt` on exit: average and peak times of each part of the frame for the menus, the start with the first bend and the rest of the heat. Version 0.96 uses about 215 of 313 lines on average in a heat (logic about 90, drawing about 95 – mostly the roost particles, sprites/HUD/sound about 45) and drops about 0.3% of frames. The roost is limited to 40 particles drawn by the CPU (each Chip RAM access costs about 1 µs during a heat; 64 particles took more than half a frame), the game waits for the next frame with the STOP instruction (emulators such as THEA500 Mini don't have to run an empty loop), and moving the menu cursor redraws just two rows.
 
 ### Display
 
@@ -364,6 +364,7 @@ They need Python 3 with `numpy`, ffmpeg in PATH, and for the code check and the 
 | `make dist EXTRA=-DAUTOPLAY` | a test build: goes through the menus by itself and plays a bot tournament |
 | `make dist EXTRA=-DSHOW_LAG` | measurement: dropped frames and timings in the HUD |
 | `make dist EXTRA="-DSHOW_LAG -DSHOW_START"` | measurement of the tape start alone |
+| `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"` | measurement to a file: the bots ride 3 heats, on exit `dist/prof.txt` with the frame part timings (menus, start and first bend, rest of the heat) |
 
 The track geometry lives in two places: `track_defs` in `src/track.c` and `PRESETS` in `tools/genart.py` – the values must be identical.
 
