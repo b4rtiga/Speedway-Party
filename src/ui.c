@@ -43,7 +43,7 @@ static BOOL  editing;
 static UBYTE pick_cursor, pick_prev;
 
 #define BORDER_RACE 0x334          /* 12-bit: ciemny beton trybun */
-static UWORD line_bg[FULL_H], line_fg[FULL_H], rainbow[48];
+static UWORD line_bg[FULL_H], line_fg[FULL_H];
 static UBYTE *title_img;            /* plansza tytulowa 320x256, 8 planow (Chip RAM) */
 static UBYTE *girls_img;            /* podprowadzajace (data/girls.bin) */
 #define GIRL_W      48
@@ -66,20 +66,6 @@ void ui_invalidate(void) { serial++; if (!serial) serial = 1; }
 
 BOOL ui_editing(void)    { return editing; }
 
-static void rgb12_lerp_table(void)
-{
-    /* teczowy cykl 12-bit: R->Y->G->C->B->M->R, po 8 krokow */
-    static const UBYTE key[7][3] = { {15,2,2},{15,14,2},{2,15,4},{2,14,15},{4,4,15},{14,3,15},{15,2,2} };
-    UWORD i;
-    for (i = 0; i < 48; i++) {
-        UWORD k = i / 8, t = i % 8;
-        UWORD r = (UWORD)(key[k][0] + ((WORD)key[k + 1][0] - key[k][0]) * (WORD)t / 8);
-        UWORD g = (UWORD)(key[k][1] + ((WORD)key[k + 1][1] - key[k][1]) * (WORD)t / 8);
-        UWORD b = (UWORD)(key[k][2] + ((WORD)key[k + 1][2] - key[k][2]) * (WORD)t / 8);
-        rainbow[i] = (UWORD)((r << 8) | (g << 4) | b);
-    }
-}
-
 /* Plansza tytulowa (ilustracja i jej paleta) - wczytywana jako pierwsza, zeby pokazac ja
  * z napisem WCZYTYWANIE, zanim dojdzie reszta danych z dyskietki. */
 static BOOL title_loaded;
@@ -87,7 +73,6 @@ COLD void ui_init_title(void)
 {
     if (title_loaded) return;
     title_loaded = TRUE;
-    rgb12_lerp_table();
     /* ilustracja z tools/genart.py; bez pliku plansza ma sam gradient i napisy */
     title_img = AllocMem(FULL_SIZE, MEMF_CHIP);
     if (title_img && !asset_load("PROGDIR:data/title.bpl", title_img, FULL_SIZE)) {
@@ -117,7 +102,6 @@ static void update_line_colors(void);
 COLD void ui_loading_screen(void)
 {
     UBYTE *b = video_backbuffer();
-    rgb12_lerp_table();                          /* kolory teczy dla napisow (Copper, linie) */
     if (!title_img) {
         ULONG *d = (ULONG *)b, n;
         for (n = 0; n < FULL_SIZE / 4; n++) d[n] = 0;      /* kolor 0 = gradient z Coppera */
@@ -2345,6 +2329,8 @@ static BOOL state_uses_track(GameState s)
 }
 
 static UBYTE race_lines_ok[2];          /* lista biegu ma juz stale kolory linii */
+static UBYTE menu_lines_ok[2];          /* lista menu (albo gazety) ma juz kolory linii */
+#define MENU_FG 0x5E5                   /* kolor napisow U_RAINBOW (tytuly, wybrany wiersz) */
 static BOOL  news_lines;                /* linie maja kolory gazety (papier) */
 static BOOL  bg_ready;                  /* line_bg ma gradient menu (tor i gazeta go nadpisuja) */
 
@@ -2360,31 +2346,27 @@ static void update_line_colors(void)
     } else if (g_tour.state == GS_NEWS) {
         /* gazeta: kremowy papier i grafitowy tekst; gradient menu policzy sie od nowa */
         race_lines_ok[0] = race_lines_ok[1] = 0;
-        news_lines = TRUE;
+        if (!news_lines) { news_lines = TRUE; menu_lines_ok[0] = menu_lines_ok[1] = 0; }
+        if (menu_lines_ok[g_video.back]) return;
+        menu_lines_ok[g_video.back] = 1;
         for (i = 0; i < FULL_H; i++) { line_bg[i] = NEWS_PAPER; line_fg[i] = NEWS_INK; }
     } else {
-        static UWORD menu_k[2] = { 0xFFFF, 0xFFFF };   /* faza teczy w liscie Coppera bufora */
-        UWORD k = (UWORD)((g_frame >> 1) % 48), r = 0;
         race_lines_ok[0] = race_lines_ok[1] = 0;
         if (news_lines) { news_lines = FALSE; bg_ready = FALSE; }
         if (!bg_ready) {
-            /* tlo: granat -> fiolet -> granat (stale, liczone raz) */
+            /* tlo: granat -> fiolet -> granat, napisy "teczowe" w stalym kolorze (dawniej
+             * przesuwajaca sie tecza - co klatke nowe kolory linii, a w emulatorach na slabszym
+             * sprzecie, np. THEA500 Mini, przycinala sie przez to muzyka). Liczone raz. */
             bg_ready = TRUE;
-            menu_k[0] = menu_k[1] = 0xFFFF;
+            menu_lines_ok[0] = menu_lines_ok[1] = 0;
             for (i = 0; i < FULL_H; i++) {
                 UWORD t = (UWORD)((i < FULL_H / 2 ? i : FULL_H - 1 - i) * 13 / 16);
                 line_bg[i] = (UWORD)(((t / 26) << 8) | ((t / 52) << 4) | (2 + t / 18));
+                line_fg[i] = MENU_FG;
             }
         }
-        /* tecza przesuwa sie co 2 klatki - lista Coppera tego bufora juz ja ma: nic do roboty
-         * (wczesniej 256 linii przeliczanych i przepisywanych w kazdej klatce menu) */
-        if (menu_k[g_video.back] == k) return;
-        menu_k[g_video.back] = k;
-        for (i = 0; i < FULL_H; i++) {
-            /* tekst: przesuwajaca sie tecza (kolor co 3 linie) - bez dzielenia, co klatke */
-            line_fg[i] = rainbow[k];
-            if (++r == 3) { r = 0; if (++k == 48) k = 0; }
-        }
+        if (menu_lines_ok[g_video.back]) return;   /* lista Coppera tego bufora juz je ma */
+        menu_lines_ok[g_video.back] = 1;
     }
     video_set_lines(line_bg, line_fg);
 }

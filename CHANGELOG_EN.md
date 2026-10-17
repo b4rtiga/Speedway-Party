@@ -5,6 +5,8 @@ Each version is a `## version – date` heading (or “in preparation”) with a
 
 ## 0.96 – in preparation
 
+- **Smoother in emulators:** the game waits for the next frame with the STOP instruction instead of an empty loop, and the menu text has a fixed colour instead of a scrolling rainbow – the emulator (e.g. THEA500 Mini) has much less work.
+- **One loading screen** – straight away with the illustration (before, a plain caption on the gradient flashed first).
 - **Menu music back in PCM** – the game no longer decodes it while playing, so it doesn't stutter in emulators on weaker hardware (e.g. THEA500 Mini). ADPCM can be switched on in `build.cfg`.
 - **Practice:** three times on the infield – the current lap counting live, the last lap and the record; the crowd cheers only for a new record (it used to cheer every 4th lap).
 

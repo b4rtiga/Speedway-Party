@@ -571,14 +571,11 @@ static int game_main(void)
             g_video.back ^= 1; g_video.front ^= 1;
         }
     }
-    /* z dyskietki wczytywanie trwa kilkadziesiat sekund: od razu plansza z napisem WCZYTYWANIE
-     * (system dziala dalej), po wczytaniu ilustracji - z ilustracja, potem reszta danych */
-    if (system_show_early()) {
-        ui_loading_screen();
-        ui_init_title();
-        ui_loading_screen();
-    } else
-        ui_init_title();
+    /* z dyskietki wczytywanie trwa kilkadziesiat sekund: najpierw sama ilustracja, potem plansza
+     * WCZYTYWANIE z ilustracja (system dziala dalej) i reszta danych - jedna plansza zamiast
+     * dwoch (dawniej najpierw sam napis na gradiencie, na szybkich nosnikach tylko migal) */
+    ui_init_title();
+    if (system_show_early()) ui_loading_screen();
     if (!roost_init() || !tractors_init() || !audio_init()) { rc = 20; goto out; }
 
     tournament_defaults();
