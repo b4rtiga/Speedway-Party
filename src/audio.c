@@ -369,12 +369,16 @@ static void update_music(void)
 static UWORD bike_rpm(const Bike *b)
 {
     HeatPhase ph = g_tour.heat.phase;
+    /* drgania obrotow zmieniaja sie co 8 klatek (dawniej losowo w kazdej klatce - 50 razy na
+     * sekunde, slychac bylo "tytyty"); inne dla kazdego motocykla */
+    ULONG h = (ULONG)((g_frame >> 3) + (ULONG)(b - g_tour.bikes) * 7919UL) * 2654435761UL;
+    UWORD jit = (UWORD)(h >> 21);                              /* 0..2047 */
     if (b->state == BIKE_EXCLUDED || b->state == BIKE_DEFECT || b->state == BIKE_FALLEN) return 0;
-    if (b->state == BIKE_WHEELSPIN) return (UWORD)(13000 + (rng_next() & 1023));
+    if (b->state == BIKE_WHEELSPIN) return (UWORD)(13000 + (jit & 1023));
     if (b->state == BIKE_AT_GATE) {
         if (ph == HEAT_PRE) return 5000;
-        /* pod tasma gaz wysoko (prawie jak w biegu) z blipami gazu */
-        return (UWORD)(10500 + (rng_next() & 2047) + ((rng_next() & 31) == 0 ? 2500 : 0));
+        /* pod tasma gaz wysoko (prawie jak w biegu) z blipami gazu (srednio co ok. 2,5 s) */
+        return (UWORD)(10500 + jit + ((h >> 16 & 15) == 0 ? 2500 : 0));
     }
     {
         /* 6000 + do 8000 z predkosci; uslizg = kolo sie slizga -> wyzsze obroty */
@@ -429,10 +433,10 @@ static void update_engines(void)
     }
 
     for (c = 0; c < 2; c++) {
-        /* wygladzanie: obroty 1/4 roznicy na klatke, glosnosc o 2 */
+        /* wygladzanie: obroty 1/8 roznicy na klatke (pulsowanie uslizgu bez skokow dzwieku), glosnosc o 2 */
         if (target_rpm[c]) {
             if (!eng_rpm[c]) eng_rpm[c] = target_rpm[c];
-            eng_rpm[c] = (UWORD)(eng_rpm[c] + ((WORD)(target_rpm[c] - eng_rpm[c]) >> 2));
+            eng_rpm[c] = (UWORD)(eng_rpm[c] + ((WORD)(target_rpm[c] - eng_rpm[c]) >> 3));
         }
         if (eng_vol[c] < target_vol[c]) eng_vol[c] = (UWORD)(eng_vol[c] + 2 > target_vol[c] ? target_vol[c] : eng_vol[c] + 2);
         else if (eng_vol[c] > target_vol[c]) eng_vol[c] = (UWORD)(eng_vol[c] < target_vol[c] + 2 ? target_vol[c] : eng_vol[c] - 2);
