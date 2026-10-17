@@ -1,187 +1,187 @@
 # Speedway Party
 
-Zręcznościowa gra żużlowa na **Amigę 1200 (AGA, 68EC020, 2 MB Chip RAM)**. Turniej 15 biegów dla 1–4 graczy na jednej kanapie, wolne miejsca zajmują boty. Kod w C (Bebbo GCC, NDK 3.9).
+**English** | [Polski](README_PL.md)
 
-**🌐 Strona gry: [b4rtiga.pl/speedway-party](https://b4rtiga.pl/speedway-party/)** – zagraj od razu w przeglądarce (emulator Amigi 1200), zrzuty ekranu, trailer i pliki do pobrania. *English: [b4rtiga.pl/speedway-party/?lang=en](https://b4rtiga.pl/speedway-party/?lang=en) – play it in your browser.*
+An arcade speedway racing game for the **Amiga 1200 (AGA, 68EC020, 2 MB Chip RAM)**. A 15-heat tournament for 1–4 players on one sofa, with bots filling the empty places. Written in C (Bebbo GCC, NDK 3.9).
 
-| ![Bieg](art/screen_05_racing.png) | ![Plansza tytułowa](art/screen_01_title.png) |
+**🌐 Game website: [b4rtiga.pl/speedway-party](https://b4rtiga.pl/speedway-party/?lang=en)** – play it right away in your browser (an Amiga 1200 emulator), screenshots, the trailer and downloads.
+
+| ![Heat](art/en/screen_05_racing.png) | ![Title screen](art/en/screen_01_title.png) |
 |---|---|
 
-*Ekrany z gry (A1200, 68020, AGA, 2 MB Chip)*
+*Screens from the game (A1200, 68020, AGA, 2 MB Chip)*
 
 ### 🎬 Trailer
-[![Trailer Speedway Party - kliknij, żeby obejrzeć](art/trailer_thumb.png)](art/trailer.mp4)
+[![Speedway Party trailer - click to watch](art/en/trailer_thumb.png)](art/en/trailer.mp4)
 
-Więcej ekranów (zrzuty z kodu gry skompilowanego na PC):
+More screens (captured from the game code compiled on a PC):
 
 | | | |
 |---|---|---|
-| ![Ustawienia](art/screen_02_setup.png) | ![Program zawodów i tabela](art/screen_03_table.png) | ![Prezentacja przed biegiem](art/screen_17_prezentacja.png) |
-| ![Start spod taśmy](art/screen_04_gate_red.png) | ![Taśma!](art/screen_06_false_start.png) | ![Wyniki biegu](art/screen_07_result.png) |
-| ![Przerwa na tor](art/screen_08_grading.png) | ![Wyjeżdżone ścieżki po 3 biegach](art/screen_13_sciezki.png) | ![Awaria maszyny startowej](art/screen_16_awaria.png) |
-| ![Podium](art/screen_10_podium.png) | ![Wybór po planszy tytułowej](art/screen_18_menu.png) | ![Twórcy](art/screen_19_credits.png) |
-| ![Instrukcja: zasady](art/screen_20_instrukcja_1.png) | ![Instrukcja: start i sterowanie](art/screen_21_instrukcja_2.png) | ![Instrukcja: idealna linia](art/screen_22_instrukcja_3.png) |
-| ![Gazeta po zawodach](art/screen_23_gazeta.png) | ![Wpis imienia](art/screen_24_imie.png) | ![Rekordy toru](art/screen_25_rekordy.png) |
-| ![Zawody w nocy](art/screen_30_noc.png) | ![Deszcz](art/screen_33_deszcz.png) | ![Ustawienia zawodów](art/screen_29_opcje.png) |
-| ![Mecz drużynowy](art/screen_35_mecz.png) | ![Mistrzostwa](art/screen_38_mistrzostwa.png) | ![Fotofinisz](art/screen_32_fotofinisz.png) |
-| ![Defekt motocykla](art/screen_27_defekt.png) | ![Upadek](art/screen_31_upadek.png) | ![Trening](art/screen_34_trening.png) |
+| ![Event screen](art/en/screen_02_setup.png) | ![Race programme and table](art/en/screen_03_table.png) | ![Presentation before a heat](art/en/screen_17_prezentacja.png) |
+| ![Tape start](art/en/screen_04_gate_red.png) | ![Tape!](art/en/screen_06_false_start.png) | ![Heat result](art/en/screen_07_result.png) |
+| ![Track grading](art/en/screen_08_grading.png) | ![Worn-in grooves after 3 heats](art/en/screen_13_sciezki.png) | ![Starting gate failure](art/en/screen_16_awaria.png) |
+| ![Podium](art/en/screen_10_podium.png) | ![Menu after the title screen](art/en/screen_18_menu.png) | ![Credits](art/en/screen_19_credits.png) |
+| ![How to play: rules](art/en/screen_20_instrukcja_1.png) | ![How to play: start and controls](art/en/screen_21_instrukcja_2.png) | ![How to play: racing line](art/en/screen_22_instrukcja_3.png) |
+| ![Newspaper after the meeting](art/en/screen_23_gazeta.png) | ![Name entry](art/en/screen_24_imie.png) | ![Track records](art/en/screen_25_rekordy.png) |
+| ![Night meeting](art/en/screen_30_noc.png) | ![Rain](art/en/screen_33_deszcz.png) | ![Event settings](art/en/screen_29_opcje.png) |
+| ![Team match](art/en/screen_35_mecz.png) | ![Championship](art/en/screen_38_mistrzostwa.png) | ![Photo finish](art/en/screen_32_fotofinisz.png) |
+| ![Engine failure](art/en/screen_27_defekt.png) | ![Crash](art/en/screen_31_upadek.png) | ![Practice](art/en/screen_34_trening.png) |
 
 
-**Nowości:** [CHANGELOG.md](CHANGELOG.md) (English: [CHANGELOG_EN.md](CHANGELOG_EN.md)).
+**What's new:** [CHANGELOG_EN.md](CHANGELOG_EN.md) (Polish: [CHANGELOG.md](CHANGELOG.md)).
 
-**Dokumentacja:** [docs/DOKUMENTACJA.md](docs/DOKUMENTACJA.md) (źródło do edycji) i [docs/SpeedwayParty-dokumentacja.pdf](docs/SpeedwayParty-dokumentacja.pdf) (PDF, `python tools/mkdocs.py`).
+**Manual:** [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) (source) and [docs/SpeedwayParty-documentation.pdf](docs/SpeedwayParty-documentation.pdf) (PDF, `python tools/mkdocs.py`). Polish: [docs/DOKUMENTACJA.md](docs/DOKUMENTACJA.md), [docs/SpeedwayParty-dokumentacja.pdf](docs/SpeedwayParty-dokumentacja.pdf).
 
-**English:** the game is also available in English (`SpeedwayParty_EN.adf`). Documentation in English: [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) and [docs/SpeedwayParty-documentation.pdf](docs/SpeedwayParty-documentation.pdf).
+## Download and play
 
-## Pobierz i zagraj
+The game comes in two languages: **English** and **Polish**.
 
-Gra jest w dwóch wersjach językowych: **polskiej** i **angielskiej** (*English version*).
+**[release/SpeedwayParty_EN.adf](release/SpeedwayParty_EN.adf)** and **[release/SpeedwayParty_PL.adf](release/SpeedwayParty_PL.adf)**: boot floppies (880 KB, FastFileSystem) – in English and in Polish. Put the floppy in the drive (or a Gotek, or an emulator) and the game starts by itself. Inserted into a running Workbench, it has its own disk icon with the game icon and a short manual (`README.TXT` or `CZYTAJ.TXT`). The floppy needs Kickstart 2.0 or newer.
 
-**[release/SpeedwayParty_PL.adf](release/SpeedwayParty_PL.adf)** i **[release/SpeedwayParty_EN.adf](release/SpeedwayParty_EN.adf)**: startowe dyskietki (880 KB, FastFileSystem) – po polsku i po angielsku. Wkładasz dyskietkę do stacji (albo do Gotka czy emulatora) i gra rusza sama. Włożona do działającego Workbencha ma własną ikonę dysku, a na niej ikonę gry i instrukcję (`CZYTAJ.TXT` albo `README.TXT`). Dyskietka wymaga Kickstartu 2.0 lub nowszego.
+**[release/SpeedwayParty.zip](release/SpeedwayParty.zip)**: both versions for a hard disk or a CF card. Inside is the `SpeedwayParty/` drawer:
 
-**[release/SpeedwayParty.zip](release/SpeedwayParty.zip)**: obie wersje na dysk twardy lub kartę CF. W środku jest katalog `SpeedwayParty/`:
-
-| Plik | Co to jest |
+| File | What it is |
 |---|---|
-| `SpeedwayParty_PL` | **skompilowany program dla Amigi** (plik wykonywalny AmigaOS, bez rozszerzenia) – wersja polska |
-| `SpeedwayParty_EN` | ten sam program po angielsku |
-| `SpeedwayParty_PL.info`, `SpeedwayParty_EN.info` | dwie ikony – na Workbenchu wersję uruchamia podwójne kliknięcie |
-| `data/` | grafika, dźwięk i muzyka (wspólne dla obu wersji); musi leżeć obok programu |
-| `s/startup-sequence` | uruchamia grę (po polsku) od razu po starcie Amigi, gdy katalog jest dyskiem startowym |
-| `CZYTAJ.TXT`, `README.TXT` (+ ikony) | krótka instrukcja po polsku i po angielsku |
+| `SpeedwayParty_EN` | **the compiled Amiga program** (an AmigaOS executable, no extension) – English version |
+| `SpeedwayParty_PL` | the same program in Polish |
+| `SpeedwayParty_EN.info`, `SpeedwayParty_PL.info` | two icons – double-click one on Workbench to start that version |
+| `data/` | graphics, sound and music (shared by both versions); must sit next to the program |
+| `s/startup-sequence` | starts the game (in Polish) right after the Amiga boots, when the directory is the boot disk |
+| `README.TXT`, `CZYTAJ.TXT` (+ icons) | a short manual in English and in Polish |
 
-Obok katalogu leży ikona szuflady `SpeedwayParty.info`, więc po rozpakowaniu na dysk Amigi katalog gry ma ikonę na Workbenchu. Obie wersje zapisują rekordy do tego samego pliku `halloffame.dat`.
+The drawer icon `SpeedwayParty.info` sits next to the directory, so after unpacking onto the Amiga's disk the game drawer has an icon on Workbench. Both versions save records to the same `halloffame.dat` file.
 
-Wymagania: Amiga 1200 lub inna z chipsetem AGA, 68020, 2 MB Chip RAM, Kickstart 3.x. Fast RAM nie jest potrzebny.
-- **Na Amidze:** rozpakuj na dysk i kliknij dwa razy ikonę `SpeedwayParty_PL` (albo `SpeedwayParty_EN`) w szufladzie `SpeedwayParty` – albo w Shellu wejdź do katalogu `SpeedwayParty` i uruchom `SpeedwayParty_PL`.
-- **Z dyskietki:** włóż `SpeedwayParty_PL.adf` (albo `SpeedwayParty_EN.adf`) do DF0: (w WinUAE: *Floppy drives → DF0:*) i uruchom Amigę.
-- **W emulatorze z katalogu:** rozpakuj i podepnij katalog `SpeedwayParty` jako dysk startowy (szczegóły niżej w sekcji *Uruchomienie w WinUAE*).
+Requirements: an Amiga 1200 or another AGA machine, 68020, 2 MB Chip RAM, Kickstart 3.x. Fast RAM is not needed.
+- **On an Amiga:** unpack to a disk and double-click the `SpeedwayParty_EN` icon (or `SpeedwayParty_PL`) in the `SpeedwayParty` drawer – or in the Shell go to the `SpeedwayParty` directory and run `SpeedwayParty_EN`.
+- **From a floppy:** put `SpeedwayParty_EN.adf` (or `SpeedwayParty_PL.adf`) in DF0: (in WinUAE: *Floppy drives → DF0:*) and start the Amiga.
+- **In an emulator from a directory:** unpack and mount the `SpeedwayParty` directory as the boot disk (details below in *Running in WinUAE*).
 
-### Na jakich Amigach działa
+### Which Amigas it runs on
 
-Gra powinna ruszyć na:
+The game should run on:
 
-- Amidze 1200 – także na „gołej”, bez Fast RAM (2 MB Chip RAM) – z dyskietki albo z dysku twardego / karty CF,
-- Amidze 1200 z kartą turbo (68030/040/060) i Fast RAM,
-- Amidze 4000 i innych komputerach z chipsetem AGA i Kickstartem 3.0, 3.1 lub 3.2,
-- emulatorach Amigi w konfiguracji A1200: WinUAE, FS-UAE, EmulatorJS (PUAE),
-- THEA500 Mini – dyskietka ADF z pendrive'a, w ustawieniach gry model A1200.
+- an Amiga 1200 – also a "bare" one without Fast RAM (2 MB Chip RAM) – from a floppy or from a hard disk / CF card,
+- an Amiga 1200 with an accelerator (68030/040/060) and Fast RAM,
+- an Amiga 4000 and other computers with the AGA chipset and Kickstart 3.0, 3.1 or 3.2,
+- Amiga emulators set up as an A1200: WinUAE, FS-UAE, EmulatorJS (PUAE),
+- THEA500 Mini – the ADF floppy from a USB stick, with the A1200 model in the game settings.
 
-## Spis treści
-1. [Mechanika gry](#mechanika-gry)
-2. [Budowanie](#budowanie)
-3. [Uruchomienie w WinUAE](#uruchomienie-w-winuae)
-4. [Sterowanie](#sterowanie)
-5. [Narzędzia na PC](#narzędzia-na-pc)
-6. [Struktura projektu](#struktura-projektu)
-7. [Stack technologiczny](#stack-technologiczny)
-8. [Znane ograniczenia / do zrobienia](#znane-ograniczenia--do-zrobienia)
-9. [Jak powstała gra](#jak-powstała-gra)
+## Contents
+1. [Game mechanics](#game-mechanics)
+2. [Building](#building)
+3. [Running in WinUAE](#running-in-winuae)
+4. [Controls](#controls)
+5. [PC tools](#pc-tools)
+6. [Project structure](#project-structure)
+7. [Technology stack](#technology-stack)
+8. [Known limitations / to do](#known-limitations--to-do)
+9. [How the game was made](#how-the-game-was-made)
 
 ---
 
-## Mechanika gry
+## Game mechanics
 
-> Cztery motocykle, cztery okrążenia, jedna taśma. Bez hamulców, bez biegów, bez litości.
+> Four bikes, four laps, one tape. No brakes, no gears, no mercy.
 
-### 🏁 Turniej, czyli wieczór na stadionie
-Gracie klasyczne zawody na 15 biegów, czterech zawodników w każdym. Za zwycięstwo są 3 punkty, potem 2, 1 i nic. Program jest ułożony tak, że każdy startuje z każdego pola, więc nikt nie może narzekać na losowanie.
+### 🏁 The tournament, or an evening at the stadium
+You ride a classic 15-heat meeting, four riders in every heat. A win is worth 3 points, then 2, 1 and nothing. The programme is arranged so that everyone starts from every gate, so nobody can blame the draw.
 
-Każdy zawodnik ma przez cały turniej ten sam kolor kasku: czerwony, niebieski, biały albo żółty. Pole startowe zmienia się co bieg i pokazują je podprowadzające. Przed każdym biegiem, po programie zawodów, stoją na polach A–D z tablicami w kolorach kasków zawodników, którzy z nich startują, i płynnie kołyszą biodrami (3 sekundy albo FIRE).
+Every rider keeps the same helmet colour for the whole tournament: red, blue, white or yellow. The starting gate changes every heat and the start girls show it. Before each heat, after the race programme, they stand at gates A–D holding boards in the helmet colours of the riders starting there, and sway their hips (3 seconds or FIRE).
 
-Na koniec przychodzą **biegi nominowane**. Lider tabeli wybiera pole pierwszy, a reszta bierze to, co zostało.
+At the end come the **nominated heats**. The leader of the table picks a gate first, and the rest take what is left.
 
-Remis punktowy o miejsce na podium rozstrzyga **bieg dodatkowy**: jadą tylko zawodnicy z remisu, a pola startowe są losowane. Nie ma liczenia zwycięstw ani kombinowania, decyduje tor.
+A tie on points for a podium place is settled by a **run-off**: only the tied riders take part and the gates are drawn. No counting wins, no tricks – the track decides.
 
-Po podium wychodzi gazeta **„GŁOS OWALU”** (wydanie specjalne): nagłówek dobrany do przebiegu zawodów (tytuł po dogrywce, zwycięstwo z rekordem toru, komplet zwycięstw, jeden punkt różnicy albo po prostu „owal ma zwycięzcę”), krótki komentarz, końcowa tabela i dwa fakty, np. liczba falstartów. Gazeta pisze tylko to, co wynika z wyników. FIRE zaczyna nowy turniej.
+After the podium comes the **"OVAL HERALD"** newspaper (special edition): a headline that fits how the meeting went (a title after a run-off, a win with a track record, a clean sweep, a one-point margin or simply "the oval has a winner"), a short comment, the final table and two facts, e.g. the number of false starts. The newspaper only writes what follows from the results. FIRE starts a new tournament.
 
-Przy starcie z dyskietki gra najpierw pokazuje planszę tytułową z napisem „WCZYTYWANIE…”, a resztę danych doczytuje w tle. Plansza tytułowa czeka na FIRE, potem wybierasz **ZAWODY**, **TRENING**, **INSTRUKCJA** (3 strony: zasady, start i sterowanie, linia jazdy ze schematem toru; LEWO/PRAWO zmienia stronę), **REKORDY** (tabele toru) albo **CREDITS** (plansza twórców). Z instrukcji, rekordów i twórców FIRE albo ESC wraca. Przed zawodami wybierasz liczbę graczy (0–4) i poziom botów, a w USTAWIENIACH rodzaj zawodów, stan toru, porę, deszcz, defekty i muzykę; kursor stoi od razu na START. GRACZ 1 dostaje sterowanie z tego, czym zatwierdzisz ZAWODY: joystick w porcie 0 – JOY 0, w porcie 1 – JOY 1, klawiatura (Return) – STRZAŁKI (gracz, który miał ten port, przejmuje poprzedni port gracza 1). Zawodnicy startują jako GRACZ 1, GRACZ 2… i CPU 2, CPU 3…, a każdą nazwę możesz zmienić. Po każdym biegu tabela pokazuje punkty z każdego biegu i rekordy toru.
+When started from a floppy, the game first shows the title screen with "LOADING…" and loads the rest of the data in the background. The title screen waits for FIRE, then you choose **EVENT**, **PRACTICE**, **HOW TO PLAY** (3 pages: rules, start and controls, the racing line with a track diagram; LEFT/RIGHT turns the page), **RECORDS** (the track tables) or **CREDITS**. FIRE or ESC returns from the manual, the records and the credits. Before the event you choose the number of players (0–4) and the bot skill, and in SETTINGS the event type, track condition, time of day, rain, defects and music; the cursor starts on START. PLAYER 1 gets the control you confirmed EVENT with: joystick in port 0 – JOY 0, in port 1 – JOY 1, keyboard (Return) – CURSORS (the player who had that control takes player 1's previous one). Riders start as PLAYER 1, PLAYER 2… and CPU 2, CPU 3…, and you can change every name. After each heat the table shows the points from every heat and the track records.
 
-**Rekordy toru:** 5 najlepszych biegów i 5 najlepszych okrążeń graczy (boty nie wchodzą do tabel). Gracz, który w turnieju wjedzie do piątki, wpisuje imię raz, po zawodach (po gazecie) – trafia ono do wszystkich jego miejsc; między biegami gra nie przerywa. Imię ma do 7 znaków (domyślnie pierwsze słowo nazwiska): GÓRA/DÓŁ zmienia znak, LEWO/PRAWO pozycję, można też pisać z klawiatury; FIRE albo Return zapisuje. Tabele zapisują się w pliku `halloffame.dat` obok gry (poprzednia wersja zostaje jako `halloffame.bak`) przy wyjściu z gry: ESC na ekranie wyboru i ESC jeszcze raz. Reset albo wyłączenie Amigi w trakcie gry traci wyniki z tej sesji, a na zabezpieczonej dyskietce zapis się po cichu nie udaje. Rekordy graczy ze starego pliku `records.dat` są przenoszone raz, przy pierwszym starcie.
+**Track records:** the 5 best heats and the 5 best laps by players (bots never enter the tables). A player who gets into the top five in a tournament enters a name once, after the meeting (after the newspaper) – it goes to all their places; the game doesn't interrupt between heats. The name has up to 7 characters (by default the first word of the rider's name): UP/DOWN changes the character, LEFT/RIGHT the position, and you can also type on the keyboard; FIRE or Return saves. The tables are saved to `halloffame.dat` next to the game (the previous version is kept as `halloffame.bak`) when you quit: ESC on the menu screen and ESC once more. Resetting or switching off the Amiga during play loses the session's results, and on a write-protected floppy saving silently fails. Player records from the old `records.dat` file are imported once, on the first start.
 
-Puste miejsca przy kanapie zajmują boty:
-- **Nowicjusz** zaspał pod taśmą, łamie motocykl za mocno i trzyma się krawężnika jak tonący brzytwy.
-- **Profesjonalista** ma refleks i nie zawaha się „zamknąć płotu”, gdy próbujesz go minąć po wewnętrznej.
-- **Mistrz** czyta tor jak gazetę: wie, gdzie jest przyczepność, łamie dokładnie tyle, ile trzeba, a gdy trzeba, odjeżdża szeroko pod bandą.
+Bots take the empty places on the sofa:
+- **Rookie** oversleeps at the tape, lays the bike down too hard and clings to the kerb like a drowning man to a straw.
+- **Pro** has quick reflexes and won't hesitate to "shut the door" when you try to pass on the inside.
+- **Master** reads the track like a newspaper: knows where the grip is, slides exactly as much as needed and, when it pays, goes wide by the fence.
 
-### 🚦 Start spod taśmy
-To tu wygrywa się połowę biegów. Trzymasz kierunek, ręka napięta, pali się czerwone. Czekasz sekundę, dwie, trzy, nigdy nie wiesz ile.
+### 🚦 The tape start
+This is where half the heats are won. You hold a direction, arm tense, the red light is on. You wait one second, two, three – you never know how long.
 
-Zielone, brzęczyk, trzask zwolnionej taśmy, **puszczasz**. Kto puści szybciej, ten wystrzeli spod taśmy jak z procy.
+Green, buzzer, the snap of the released tape – **let go**. Whoever lets go first shoots off the tape like a slingshot.
 
-Kto nie wytrzyma nerwowo i puści za wcześnie, usłyszy jęk zawodu trybun: **TAŚMA!** Sędzia macha czerwoną flagą, a druga taśma w biegu oznacza wykluczenie. Kto z kolei przegapi zielone, będzie mielił kołem w miejscu, patrząc na plecy rywali.
+Whoever loses their nerve and lets go too early hears the crowd groan: **TAPE!** The referee waves the red flag, and a second tape offence in a heat means exclusion. Whoever misses the green spins the wheel on the spot, watching the others' backs.
 
-Okrągłe światła startowe świecą w pasku na dole ekranu. Na środku ekranu, w okienku na murawie (nie zasłania zawodników na prostej), widzisz maszynę startową: lampkę i taśmę. Na zielonym taśma lekko się wygina i szybko odlatuje w górę za krawędź okienka (ok. 0,2 s), a potem okienko znika.
+Round start lights glow in the bar at the bottom of the screen. In the middle of the screen, in a small window on the infield (it doesn't cover the riders on the straight), you see the starting gate: the lamp and the tape. On green the tape bends a little and flies quickly up out of the window (about 0.2 s), then the window disappears.
 
-Raz na jakiś czas maszyna startowa odmawia posłuszeństwa: światła gasną, taśma znika, a sędzia startuje bieg **flagą narodową**. Trzeba wtedy patrzeć na jego rękę.
+Every now and then the starting gate fails: the lights go out, the tape disappears and the referee starts the heat with the **national flag**. Then you have to watch his hand.
 
-### 🚩 Flagi sędziego
-Sędzia w rogu ekranu, w koszulce w czarno-białe pasy, pokazuje flagi jak na prawdziwych zawodach: macha nimi uniesioną ręką. Gdy nic się nie dzieje, mruga i zerka na boki zza przyciemnianych okularów.
+### 🚩 The referee's flags
+The referee in the corner of the screen, in a black-and-white striped shirt, shows flags as at a real meeting: he waves them with a raised arm. When nothing is happening, he blinks and glances around behind his tinted glasses.
 
-| Flaga | Znaczenie |
+| Flag | Meaning |
 |---|---|
-| 🏁 szachownica | koniec biegu: od wjazdu prowadzącego na prostą startową ostatniego okrążenia, przez metę zwycięzcy, do ostatniego zawodnika. Plansza z wynikami pojawia się 2 sekundy po tym, jak metę minie ostatni |
-| 🟥 czerwona | przerwanie biegu, np. po dotknięciu taśmy |
-| ⬛ czarna | wykluczenie zawodnika (np. druga taśma w biegu) |
-| 🟨✖️ żółta z czarnym krzyżem („kosa”) | ostatnie okrążenie: od wjazdu prowadzącego na prostą startową pod koniec 3. okrążenia do 2 s po tym, jak linię minie ostatni zawodnik |
-| 🇵🇱 narodowa | awaryjny start po awarii maszyny startowej |
+| 🏁 chequered | end of the heat: from the moment the leader enters the home straight of the last lap, through the winner's finish, to the last rider. The results appear 2 seconds after the last rider crosses the line |
+| 🟥 red | the heat is stopped, e.g. after touching the tape |
+| ⬛ black | a rider is excluded (e.g. a second tape offence in a heat) |
+| 🟨✖️ yellow with a black cross ("the scythe") | last lap: from the leader entering the home straight at the end of lap 3 until 2 s after the last rider crosses the line |
+| 🇵🇱 national | emergency start after a starting gate failure |
 
-### 🏍️ Jazda: dwa przyciski i cała prawda o żużlu
-Gaz jest zawsze odkręcony do końca. Ty decydujesz tylko o jednym: **jak mocno złamać motocykl**.
+### 🏍️ Riding: two buttons and the whole truth about speedway
+The throttle is always wide open. You decide only one thing: **how hard to lay the bike down**.
 
-**LEWO** kładzie maszynę w uślizg, tylne koło ucieka na zewnątrz, a rama ustawia się w łuk, najwyżej pod kątem 40°. **PRAWO** to kontra: prostuje motocykl i pozwala delikatnie odbić od krawężnika. Prawdziwy żużlowiec w prawo nie skręca, więc i tutaj ta strona jest wyraźnie słabsza.
+**LEFT** puts the machine into a slide, the rear wheel swings out and the frame turns into the bend, up to 40°. **RIGHT** is counter-steering: it straightens the bike and lets you push gently off the kerb. A real speedway rider doesn't turn right, so here too that side is clearly weaker.
 
-Najważniejsza zasada: **każdy stopień uślizgu kosztuje prędkość**. Motocykl złamany do oporu skręci ostro, ale zwolni o jedną czwartą. Szybcy zawodnicy nie trzymają przycisku, tylko **pulsują**: łamią na wejściu, odpuszczają w środku łuku, prostują na wyjściu i znów mają pełny gaz na prostej.
+The most important rule: **every degree of slide costs speed**. A bike laid down all the way turns sharply but loses a quarter of its speed. Fast riders don't hold the button, they **pulse** it: lay down on entry, ease off in the middle of the bend, straighten on the exit and have full throttle again on the straight.
 
-Tor nie wybacza:
-- **banda** zabiera ćwierć prędkości i prostuje motocykl;
-- **krawężnik** lekko spowalnia i ustawia równolegle do toru;
-- **kontakt łokieć w łokieć** spowalnia obu zawodników, więc taranowanie nic nie daje i wygrywa czysta jazda.
+The track doesn't forgive:
+- **the fence** takes a quarter of your speed and straightens the bike;
+- **the kerb** slows you down slightly and sets you parallel to the track;
+- **elbow-to-elbow contact** slows both riders, so ramming gets you nothing and clean riding wins.
 
-### 🟤 Nawierzchnia, która żyje
-Tor nie jest jednolity. Przy krawężniku nawierzchnia jest ubita i przyczepna, środkiem biegnie wyjeżdżona koleina, a pod bandą zbiera się luźne **odsypisko**.
+### 🟤 A surface that lives
+The track is not uniform. By the kerb the surface is packed and grippy, a worn-in groove runs down the middle, and loose **dirt** gathers by the fence.
 
-To tam rodzi się najpiękniejszy manewr: **„szeroka niesie”**. Jeśli wjedziesz pod bandę z pełną prędkością i w lekkim uślizgu, odsypisko wystrzeli cię do przodu. Jeśli wjedziesz za wolno w luźne odsypisko, motocykl się w nim zakopie. Wyjeżdżona, ubita ścieżka pod bandą już nie zakopuje.
+That's where the most beautiful move is born: **"going wide"**. Enter the dirt by the fence at full speed in a light slide and it shoots you forward. Enter the loose dirt too slowly and the bike bogs down. A worn-in, packed line by the fence doesn't bog you down any more.
 
-Tor **wyjeżdża się z biegu na bieg**. Każdy przejazd rozpędzonego motocykla ubija nawierzchnię (przyczepność zmienia się od razu, a ciemniejszy pas gra dorysowuje między biegami), więc linia, którą jeździ cała stawka, z biegu na bieg ciemnieje, gładnieje, trzyma coraz lepiej i robi się najszybsza. Grudki szprycy spadające obok spulchniają tor, a równarka podczas przerwy zaciera ścieżki i wszystko zaczyna się od nowa. Po polewaniu wyjeżdżona linia przesycha pierwsza. Pytanie tylko, czy wolisz jechać sprawdzoną ścieżką za rywalem, prosto w jego szprycę, czy szukać własnej drogi.
+The track **wears in from heat to heat**. Every pass of a fast bike packs the surface (grip changes at once, and the game draws the darker strip between heats), so the line the whole field rides gets darker, smoother and grippier heat after heat and becomes the fastest. Lumps of roost landing next to it loosen the track, and the grader wipes the grooves during the break so everything starts again. After watering, the worn-in line dries first. The only question is whether you'd rather ride a proven line behind a rival, right into their roost, or look for your own way.
 
-Każdy turniej to **inny tor**: na start zawodów losują się 1–2 wyjeżdżone ścieżki w innym miejscu przekroju (przy krawężniku, środkiem albo szeroko). Ubita ścieżka trzyma lepiej i widać ją jako ciemniejszy pas, więc warto ją szybko znaleźć: to ona jest idealną linią danego turnieju. Na jej środku uślizg kosztuje do 40% mniej prędkości, a im dalej od niej, tym kara za złamanie motocykla stopniowo rośnie.
+Every tournament is **a different track**: at the start of the meeting 1–2 worn-in lines are drawn at different places across the track (by the kerb, in the middle or wide). The packed line grips better and shows as a darker strip, so it pays to find it quickly: it's the ideal line of that tournament. In its middle a slide costs up to 40% less speed, and the further from it, the higher the penalty for laying the bike down.
 
-Zawody odbywają się na klasycznym owalu z ciemnoszarą nawierzchnią z **bakałaru**, z linią startu na środku prostej. Na murawie stoją banery sponsorów: 3DPJOY i DEV84.
+The meetings are held on a classic oval with a dark grey **shale** surface, with the start line in the middle of the straight. Sponsor banners stand on the infield: 3DPJOY and DEV84.
 
-### 💧 Polewaczka, czyli tor zmienia się w trakcie zawodów
-Na start turnieju **stan toru jest losowany**: suchy, wilgotny albo mokry. Jeśli wolisz inny, zmienisz go w menu.
+### 💧 The water cart, or a track that changes during the meeting
+At the start of a tournament **the track condition is drawn**: dry, damp or wet. If you prefer another one, change it in the menu.
 
-Mokry tor ciemnieje, przy krawężniku zbierają się kałuże, a koło łapie wyraźnie gorzej. Motocykl skręca słabiej, wynosi go szerzej i trzeba łamać mocniej.
+A wet track darkens, puddles gather by the kerb, and the wheel grips clearly worse. The bike turns less, drifts wider, and you have to lay it down harder.
 
-Po biegach 4, 7, 11 i 13 na tor wyjeżdżają **traktory**: jeden równa nawierzchnię, drugi ją polewa. Potem tor z biegu na bieg **przesycha**, a przyczepność powoli wraca. Linia, która wygrywała na początku zawodów, pod koniec może już nie działać.
+After heats 4, 7, 11 and 13 **tractors** come out: one grades the surface, the other waters it. Then the track **dries** from heat to heat and the grip slowly comes back. The line that won at the beginning of the meeting may no longer work at the end.
 
-### 🌪️ Szpryca
-Każdy motocykl w uślizgu sypie spod tylnego koła **szprycę**, czyli wachlarz nawierzchni lecący do tyłu i na zewnątrz łuku.
+### 🌪️ Roost
+Every bike in a slide throws **roost** from its rear wheel – a fan of shale flying backwards and out of the bend.
 
-Jedziesz tuż za rywalem? Dostajesz nią prosto w twarz i tracisz prędkość, metr po metrze. Siedzenie komuś na kole nic nie da: trzeba znaleźć **czystą linię**, wyjść z jego szprycy i zaatakować z boku. Tak samo jak na prawdziwym torze.
+Riding right behind a rival? You get it straight in the face and lose speed, metre by metre. Sitting on someone's wheel gets you nothing: you have to find a **clean line**, get out of their roost and attack from the side. Just like on a real track.
 
-### 🌙 Noc, deszcz, mecz i mistrzostwa
-W **USTAWIENIACH** zawodów wybierasz, jak ma wyglądać wieczór na stadionie:
+### 🌙 Night, rain, team match and championship
+In the event **SETTINGS** you choose what the evening at the stadium looks like:
 
-- **Zawody:** turniej indywidualny, **mecz drużynowy** (gospodarze w kaskach czerwonym i niebieskim przeciw gościom w białym i żółtym; para drużyny startuje z pól A+C albo B+D na zmianę, biegi kończą się 5:1, 4:2 albo 3:3) albo **mistrzostwa** – trzy rundy z tymi samymi zawodnikami, punkty się sumują jak w Grand Prix, a po ostatniej rundzie mistrz i fajerwerki.
-- **Pora:** w **nocy** tor oświetlają cztery maszty z reflektorami, lampy świecą z miękką poświatą, a łuki są w pełnym, ciepłym świetle.
-- **Deszcz:** w losowym biegu (2.–5.) zaczyna padać. Tor przestaje przesychać i z biegu na bieg mięknie i trzyma coraz gorzej.
-- **Defekty:** raz na jakiś czas silnik krztusi się, dymi i gaśnie, a zawodnik zjeżdża na murawę – 0 punktów („D”).
-- **Stan toru** na start i **muzyka** w menu.
+- **Event:** an individual tournament, a **team match** (the home team in red and blue helmets against the away team in white and yellow; each team's pair starts from gates A+C or B+D in turn, heats end 5:1, 4:2 or 3:3) or a **championship** – three rounds with the same riders, points add up as in the Grand Prix, and after the last round the champion and fireworks.
+- **Time:** at **night** the track is lit by four floodlight masts, the lamps shine with a soft glow and the bends are in full, warm light.
+- **Rain:** in a random heat (2nd–5th) it starts raining. The track stops drying and gets softer and less grippy heat by heat.
+- **Defects:** now and then an engine coughs, smokes and dies, and the rider rolls onto the infield – 0 points ("DEF").
+- **Track condition** at the start and **music** in the menus.
 
-W biegu może się zdarzyć **upadek**: mocne uderzenie w bandę, dłuższa jazda tuż przy bandzie albo najechanie na rywala. Sędzia daje czerwoną flagę, upadły jest wykluczony, a bieg jest powtarzany spod taśmy. Gdy drugi zawodnik minie metę najwyżej 0,1 s za zwycięzcą, gra pokazuje **fotofinisz**: końcówkę w zwolnionym tempie i stopklatkę na linii.
+A **crash** can happen in a heat: a hard hit on the fence, riding right along the fence for long or running into a rival. The referee shows the red flag, the faller is excluded and the heat is rerun from the tape. When the runner-up crosses the line at most 0.1 s behind the winner, the game shows a **photo finish**: the end of the heat in slow motion and a freeze-frame on the line.
 
-**TRENING** w menu: sam na torze, okrążenia bez limitu, na murawie bieżący czas okrążenia, ostatnie okrążenie i rekord toru. Warunki (stan toru, porę i deszcz) wybierasz na osobnym ekranie przed startem.
+**PRACTICE** in the menu: alone on the track, unlimited laps, with the current lap time, the last lap and the track record on the infield. You choose the conditions (track condition, time of day and rain) on a separate screen before the start.
 
-Gra pamięta nazwiska, sterowanie, poziom botów i wszystkie ustawienia (plik `settings.dat` obok gry).
+The game remembers the names, controls, bot skills and all the settings (the `settings.dat` file next to the game).
 
 ---
 
-## Budowanie
+## Building
 
-### 1. Toolchain Bebbo (amiga-gcc)
-Najprościej na Windows przez **WSL2 z Ubuntu**. Sam toolchain buduje się raz, ok. 30–60 min:
+### 1. The Bebbo toolchain (amiga-gcc)
+The easiest way on Windows is **WSL2 with Ubuntu**. The toolchain itself is built once, about 30–60 min:
 
 ```bash
 sudo apt update
@@ -193,217 +193,222 @@ make all -j4 PREFIX=$HOME/amiga-gcc
 echo 'export PATH=$HOME/amiga-gcc/bin:$PATH' >> ~/.bashrc
 ```
 
-Sprawdzenie: `m68k-amigaos-gcc --version`. NDK 3.9 i libnix są w toolchainie, nic więcej nie trzeba.
+Check: `m68k-amigaos-gcc --version`. NDK 3.9 and libnix come with the toolchain, nothing else is needed.
 
-Aktualną listę zależności znajdziesz w README repozytorium [bebbo/amiga-gcc](https://github.com/bebbo/amiga-gcc).
+The current list of dependencies is in the README of the [bebbo/amiga-gcc](https://github.com/bebbo/amiga-gcc) repository.
 
-### 2. Gra
-W WSL, w katalogu projektu (np. `/mnt/e/Workshop/Speedway Party`):
+### 2. The game
+In WSL, in the project directory (e.g. `/mnt/e/Workshop/Speedway Party`):
 
 ```bash
 make dist
 ```
 
-Powstaje katalog `dist/`:
+This creates the `dist/` directory:
 ```
-dist/SpeedwayParty          plik wykonywalny
-dist/data/*                 grafika, dźwięk, muzyka - ładowane z PROGDIR:data/
-dist/s/startup-sequence     uruchamia grę od razu po starcie Amigi
+dist/SpeedwayParty          the executable
+dist/data/*                 graphics, sound, music - loaded from PROGDIR:data/
+dist/s/startup-sequence     starts the game right after the Amiga boots
 ```
 
-Gotowe dane (`data/`) są w repozytorium. Do budowania nie potrzebujesz Pythona.
+The ready data (`data/`) is in the repository. You don't need Python to build.
 
-**Muzyka w menu** jest wybierana przed kompilacją w pliku [build.cfg](build.cfg):
+**The menu music** is chosen before compiling in [build.cfg](build.cfg):
 
 ```
 MUSIC = BlackMotor
 MUSIC_ADPCM = NIE
 ```
 
-| Wartość | Utwór |
+| Value | Track |
 |---|---|
-| `BlackMotor` | „Black Motor”, 13,3 s, 208 KiB w PCM, 104 KiB w ADPCM (domyślnie) |
-| `NightGrid` | „Night Grid”, 27,4 s, 428 KiB w PCM, 214 KiB w ADPCM |
-| `BRAK` | gra bez muzyki, oszczędza Chip RAM |
+| `BlackMotor` | "Black Motor", 13.3 s, 208 KiB in PCM, 104 KiB in ADPCM (default) |
+| `NightGrid` | "Night Grid", 27.4 s, 428 KiB in PCM, 214 KiB in ADPCM |
+| `BRAK` | no music, saves Chip RAM |
 
-Utwory leżą w `src/music/<nazwa>/` jako gotowe miksy `*_s8.raw` (PCM 8 bit mono, ~16 kHz PAL). `make dist` zapisuje wybrany jako `data/music.raw`. Domyślnie (`MUSIC_ADPCM = NIE`) muzyka jest w oryginalnym PCM. Przy `MUSIC_ADPCM = TAK` `make` koduje utwór do 4-bitowego IMA ADPCM (`tools/adpcm.py`) – połowa pamięci, trochę więcej szumu; gra dekoduje go w trakcie grania, po kawałku na klatkę, co w emulatorach na słabszym sprzęcie (np. THEA500 Mini) potrafiło przycinać muzykę. Odsłuch na PC: `python tools/adpcm.py --wav data/music.raw muzyka.wav`. Jednorazowo możesz też podać utwór w poleceniu: `make dist MUSIC=NightGrid`. Nowy utwór to nowy katalog w `src/music/` z plikiem `*_s8.raw`.
+The tracks are in `src/music/<name>/` as ready `*_s8.raw` mixes (8-bit mono PCM, ~16 kHz PAL). `make dist` saves the chosen one as `data/music.raw`. By default (`MUSIC_ADPCM = NIE`) the music is the original PCM. With `MUSIC_ADPCM = TAK` `make` encodes the track to 4-bit IMA ADPCM (`tools/adpcm.py`) – half the memory, slightly more noise; the game decodes it while playing, a chunk per frame, which made the music stutter in emulators on weaker hardware (e.g. THEA500 Mini). To listen on a PC: `python tools/adpcm.py --wav data/music.raw music.wav`. For a one-off you can also give the track on the command line: `make dist MUSIC=NightGrid`. A new track is a new directory in `src/music/` with a `*_s8.raw` file.
 
 ---
 
-## Uruchomienie w WinUAE
+## Running in WinUAE
 
-1. **Quickstart → Model: A1200**, konfiguracja z Kickstartem 3.0 lub 3.1. ROM musisz mieć własny, np. z Amiga Forever.
-2. **CPU and FPU:** 68020, *cycle-exact* (najwierniejszy czas, ważny dla stałych 50 FPS). Bez FPU.
-3. **RAM:** Chip 2 MB, Slow 0, Fast 0. Testujemy bez Fast RAM, tak jak na gołym A1200.
+1. **Quickstart → Model: A1200**, a configuration with Kickstart 3.0 or 3.1. You need your own ROM, e.g. from Amiga Forever.
+2. **CPU and FPU:** 68020, *cycle-exact* (the most faithful timing, important for a steady 50 FPS). No FPU.
+3. **RAM:** Chip 2 MB, Slow 0, Fast 0. We test without Fast RAM, just like on a bare A1200.
 4. **Chipset:** AGA, PAL.
-Gotowa konfiguracja jest w [tools/winuae/SpeedwayParty-A1200.uae](tools/winuae/SpeedwayParty-A1200.uae): wpisz w niej ścieżkę do swojego `dist/` i wczytaj ją w WinUAE (*Configurations → Load*) albo uruchom `winuae64.exe -f SpeedwayParty-A1200.uae`. Ręcznie:
+A ready configuration is in [tools/winuae/SpeedwayParty-A1200.uae](tools/winuae/SpeedwayParty-A1200.uae): put the path to your `dist/` in it and load it in WinUAE (*Configurations → Load*) or run `winuae64.exe -f SpeedwayParty-A1200.uae`. By hand:
 
-5. **CD & Hard drives → Add Directory or Archive…**: wskaż katalog `dist/`.
+5. **CD & Hard drives → Add Directory or Archive…**: choose the `dist/` directory.
    - *Device name*: `DH0`, *Volume label*: `Speedway`
-   - *Boot priority*: 0 lub wyżej (katalog ma być dyskiem startowym)
-6. **Game ports:** port 1 = joystick (klawiatura lub pad), port 0 = drugi joystick (np. joystick USB) w trybie **Joystick**, nie myszy, jeśli gra 2+ graczy. **Nie zostawiaj myszy w porcie 0**, bo kursor w menu będzie skakał.
-7. Start. Kickstart uruchomi `s/startup-sequence`, a ten od razu grę. Workbench nie jest potrzebny.
-8. **Obraz na całe okno:** w szablonie konfiguracji okno ma 640×512 (obraz gry 320×256 powiększony 2×), a obraz jest wycentrowany (`gfx_center_horizontal/gfx_center_vertical=smart`; starsze nazwy `gfx_xcenter/gfx_ycenter` nowe WinUAE pomija i obraz był przesunięty o 9 pikseli w prawo z uciętą prawą krawędzią), więc gra wypełnia okno bez ramki. Ramkę wokół obrazu gra i tak wygasza (bit BRDRBLNK w AGA).
+   - *Boot priority*: 0 or higher (the directory must be the boot disk)
+6. **Game ports:** port 1 = joystick (keyboard or pad), port 0 = second joystick (e.g. a USB joystick) in **Joystick** mode, not mouse, for 2+ players. **Don't leave a mouse in port 0**, or the menu cursor will jump.
+7. Start. Kickstart runs `s/startup-sequence`, which starts the game straight away. Workbench is not needed.
+8. **Picture filling the window:** in the configuration template the window is 640×512 (the 320×256 game picture doubled) and the picture is centred (`gfx_center_horizontal/gfx_center_vertical=smart`; the older names `gfx_xcenter/gfx_ycenter` are ignored by new WinUAE, and the picture was shifted 9 pixels right with the right edge cut off), so the game fills the window without a border. The game blanks the border around the picture anyway (the AGA BRDRBLNK bit).
 
-Jeśli wolisz Workbench: podepnij `dist/` jako dodatkowy dysk i w Shellu wpisz `cd Speedway:` i `SpeedwayParty`.
+If you prefer Workbench: mount `dist/` as an extra disk and in the Shell type `cd Speedway:` and `SpeedwayParty`.
 
-**ESC** (albo drugi przycisk joysticka) to pauza z pytaniem. W trakcie turnieju gra pyta, czy wrócić do menu głównego, w ustawieniach wraca od razu do ekranu wyboru, a na ekranie wyboru i planszy tytułowej pyta, czy zakończyć grę. Drugie ESC oznacza „tak”, a FIRE wraca do gry.
+**ESC** (or the second joystick button) pauses with a question. During a tournament the game asks whether to return to the main menu, in the settings it goes straight back to the menu screen, and on the menu and title screens it asks whether to quit the game. A second ESC means "yes", FIRE returns to the game.
 
-Przy **0 graczach** cały turniej jadą boty: to tryb pokazowy.
+With **0 players** the whole tournament is ridden by bots: a demo mode.
 
-### Gdy coś nie działa
-| Objaw | Gdzie szukać |
+### When something doesn't work
+| Symptom | Where to look |
 |---|---|
-| Obraz „poszatkowany”, przesunięty o 64 px | `DDF_STOP` i `MOD_ADJ` w `src/video.c` (pobieranie bitplanów w trybie 4×). W WinUAE działa `$38/$A0`. Do testów: `make dist EXTRA=-DDDF_STOP=0xD0` |
-| Joystick w porcie 0 (JOY 0) łapie tylko lewo, nie łapie prawa, „rusza” przy puszczeniu do środka | emulator podaje joystick w porcie 0 jako mysz: ustaw dla portu 0 tryb **Joystick** (WinUAE: *Game ports*, w konfiguracji `joyport0=joy0`, `joyport0mode=djoy`, jak w szablonie; w innym emulatorze analogicznie) |
-| Menu samo się przełącza | mysz w porcie 0: menu czyta tylko port 1 i klawiaturę, ale gracz 2 ustawiony na JOY 0 będzie „jechał” myszą |
-| Zamiast grafiki są proste kształty | brak `data/` obok programu (gra wtedy rysuje grafikę zastępczą) |
-| Brak dźwięku | brak `data/*.raw` |
-| Brak muzyki w menu | `MUSIC = BRAK` w `build.cfg`, brak `data/music.raw` albo opcja MUZYKA: NIE w ustawieniach |
-| Gracze 3–4 na adapterze LPT nie reagują | bity adaptera w `src/input.c`, oznaczone „sprawdzić” |
-| Strzałki nie działają, bieg czeka na start | w szablonie WinUAE (`joyport1=kbd2`) strzałki i prawy Ctrl emulują **joystick w porcie 1**. Ustawienia **JOY 1** i **STRZAŁKI** czytają oba źródła (joystick w porcie 1 i strzałki z klawiatury), chyba że drugie wybrał inny gracz. Gdy bieg czeka na gracza, który nie trzyma kierunku, gra pokazuje podpowiedź |
+| The picture is "shredded", shifted by 64 px | `DDF_STOP` and `MOD_ADJ` in `src/video.c` (4× bitplane fetch). `$38/$A0` works in WinUAE. For testing: `make dist EXTRA=-DDDF_STOP=0xD0` |
+| The joystick in port 0 (JOY 0) only registers left, not right, and "moves" when released to the centre | the emulator gives the joystick in port 0 as a mouse: set port 0 to **Joystick** mode (WinUAE: *Game ports*, in the configuration `joyport0=joy0`, `joyport0mode=djoy`, as in the template; similarly in other emulators) |
+| The menu switches by itself | a mouse in port 0: the menu reads only port 1 and the keyboard, but player 2 set to JOY 0 will "ride" with the mouse |
+| Simple shapes instead of graphics | no `data/` next to the program (the game then draws placeholder graphics) |
+| No sound | no `data/*.raw` |
+| No menu music | `MUSIC = BRAK` in `build.cfg`, no `data/music.raw`, or the MUSIC: NO option in the settings |
+| Players 3–4 on the parallel port adapter don't respond | the adapter bits in `src/input.c`, marked "to check" |
+| Cursor keys don't work, the heat waits for the start | in the WinUAE template (`joyport1=kbd2`) the cursor keys and right Ctrl emulate the **joystick in port 1**. The **JOY 1** and **CURSORS** settings read both sources (joystick in port 1 and the keyboard cursor keys), unless another player has chosen the other one. When the heat waits for a player who isn't holding a direction, the game shows a hint |
 
 ---
 
-## Sterowanie
+## Controls
 
-Każdy gracz ma tylko **LEWO i PRAWO**. Gaz jest automatyczny.
+Every player has only **LEFT and RIGHT**. The throttle is automatic.
 
-| | Gracz 1 | Gracz 2 | Gracz 3 | Gracz 4 |
+| | Player 1 | Player 2 | Player 3 | Player 4 |
 |---|---|---|---|---|
-| domyślnie | joystick port 1 | joystick port 0 | klawisze **Z / X** | klawisze **N / M** |
-| do wyboru w menu | + adapter 4 graczy (LPT), strzałki (JOY 1 i strzałki działają zamiennie, jeśli nikt inny ich nie używa) | | | |
+| default | joystick port 1 | joystick port 0 | keys **Z / X** | keys **N / M** |
+| optional in the menu | + 4-player adapter (parallel port), cursor keys (JOY 1 and the cursor keys work interchangeably when nobody else uses them) | | | |
 
-- **Start spod taśmy:** trzymaj dowolny kierunek. Na zielonym świetle **puść**. Puszczenie przed zielonym to taśma (falstart). Trzymanie dłużej niż 0,3 s po zielonym to mielenie kołem w miejscu.
-- **Jazda:** LEWO łamie motocykl w łuk (do 40°), PRAWO to kontra (do ok. 14°, głównie prostuje). Szczegóły w sekcji [Mechanika gry](#mechanika-gry).
-- **Szeroka niesie:** pod bandą, z pełną prędkością i w lekkim uślizgu motocykl dostaje dodatkowe przyspieszenie. Za wolno pod bandą motocykl się zakopuje.
-- **Szpryca:** jazda tuż za rywalem w uślizgu lekko spowalnia. Szukaj czystej linii.
-- **Menu:** joystick w porcie 1 albo 0 (góra/dół/lewo/prawo, FIRE = zatwierdź) albo strzałki i Return. **Drugi przycisk** joysticka działa jak ESC (pauza z pytaniem, powrót z instrukcji i twórców).
-- **Pad CD32** (także pad THEA500 Mini): czerwony = FIRE, niebieski = ESC. Całą grę obsłużysz bez klawiatury.
-- **Joystick w porcie 0** musi być w emulatorze ustawiony w trybie joysticka, nie myszy (WinUAE: *Game ports*). Zawodnicy nazywają się na start GRACZ 1, GRACZ 2… (sterowani przez ludzi) i CPU 2, CPU 3… (boty), zależnie od liczby graczy. Nazwisko edytujesz z klawiatury, polskie litery przez Alt (Alt+X = Ź, Alt+Z = Ż).
-- Liczbę graczy zmieniasz w pierwszym wierszu ekranu ustawień (LEWO/PRAWO).
+- **Tape start:** hold any direction. On the green light **let go**. Letting go before green is a tape offence (false start). Holding longer than 0.3 s after green spins the wheel on the spot.
+- **Riding:** LEFT lays the bike into the bend (up to 40°), RIGHT is counter-steering (up to about 14°, mostly straightens). Details in [Game mechanics](#game-mechanics).
+- **Going wide:** by the fence, at full speed and in a light slide the bike gets an extra push. Too slow by the fence and the bike bogs down.
+- **Roost:** riding right behind a sliding rival slows you down a little. Look for a clean line.
+- **Menus:** joystick in port 1 or 0 (up/down/left/right, FIRE = confirm) or the cursor keys and Return. The **second joystick button** works like ESC (pause with a question, back from the manual and the credits).
+- **CD32 pad** (also THEA500 Mini's pad): red = FIRE, blue = ESC. The whole game works without a keyboard.
+- **The joystick in port 0** must be set to joystick mode in the emulator, not mouse (WinUAE: *Game ports*). Riders are named PLAYER 1, PLAYER 2… (human) and CPU 2, CPU 3… (bots) at first, depending on the number of players. You edit a name on the keyboard; Polish letters via Alt (Alt+X = Ź, Alt+Z = Ż).
+- You change the number of players in the first row of the event screen (LEFT/RIGHT).
 
 ---
 
-## Narzędzia na PC
+## PC tools
 
-Wymagają Pythona 3 z `numpy`, a sprawdzanie kodu i symulator także `pip install ziglang`.
+They need Python 3 with `numpy`, and the code check and simulator also need `pip install ziglang`.
 
-| Polecenie | Co robi |
+| Command | What it does |
 |---|---|
-| `make assets` | regeneruje grafikę (`tools/genart.py`, `tools/gentitle.py`, `tools/gengirls.py`), dźwięk (`tools/genaudio.py`), font (`tools/genfont.py`); robocze podglądy (makiety, arkusze klatek, WAV) trafiają do `build/preview/` poza repo |
-| `make dist-en` | katalog `dist-en/` z wersją angielską (program z `-DLANG_EN`, obiekty w `build/en/`; napisy obu wersji stoją obok siebie w kodzie jako `T("po polsku", "in English")`) |
-| `make release` | buduje paczkę `release/SpeedwayParty.zip` (obie wersje językowe) i startowe dyskietki `release/SpeedwayParty_PL.adf` i `release/SpeedwayParty_EN.adf` (`tools/mkadf.py`, bez zewnętrznych narzędzi) |
-| `python tools/mkicons.py preview` | ikony Workbencha (`tools/mkicons.py`: gra, szuflada, dysk, instrukcja; klasyczny format OS 2.x/3.x, 4 kolory) – podgląd w `build/preview/icon_*.png`; ikony do paczek dokłada `make dist` / `make release` |
-| `make whdload` | wersja WHDLoad (w przygotowaniu, nie wchodzi do wydania): gra z `-DWHDLOAD` bez systemu (`src/whd.c`, `src/whdstart.s`) i slave `tools/whdload/slave.s` w katalogu `dist-whd/`; czeka na test z oryginalnym Kickstartem 3.1 |
-| `sh tools/sim/pack_test.sh` | test rozpakowywania: pliki spakowane przez `tools/pack.py` wczytane przez `asset_load` z gry = dane z `data/`, uszkodzone odrzucone |
-| `python tools/gentitle.py` | plansza tytułowa z ilustracji `src/title.png`: kadr 320×256, własna paleta AGA i dithering (`data/title.bpl`, `data/title.pal`) |
-| `python tools/genreferee.py` | portret sędziego w HUD z ilustracji `src/referee.png`: 32×38, własne odcienie w wolnych kolorach palety HUD, oraz malowana ręka z pięścią w dwóch fazach machania flagą (`data/refarm.bin`; używa go `tools/genart.py`; wymaga ffmpeg) |
-| `python tools/gengirls.py` | podprowadzające z ilustracji `src/girls.png`: cztery postacie 48×96, wspólna paleta 31 kolorów dobrana z obrazu, kolory pól z UI, lekki dithering (`data/girls.bin`; wymaga ffmpeg) |
-| `make check` | sprawdza składnię i typy całego kodu Clangiem dla 68020 (atrapy NDK w `tools/ndkstub/`) |
-| `make sim` | symulator: te same pliki logiki gry rozgrywają turniej botów bez grafiki |
-| `make asan` | kontrola pamięci w WSL (AddressSanitizer): zrzuty PL i EN, trailer i symulator – wyłapuje za krótkie bufory i złe wskaźniki, które na Amidze po cichu psują stos |
-| `sh tools/sim/news_test.sh` | test gazety: wybór nagłówka na scenariuszach, podsumowanie turnieju, zerowanie faktów, długie nazwiska |
-| `sh tools/sim/records_test.sh` | test tabel rekordów: TOP 5, remisy, imiona, plik `halloffame.dat` (także uszkodzony i starsza wersja) |
-| `sh tools/sim/sprites_test.sh` | test klatek motocykli: jeden komplet + kolor kasku nadany przy kopiowaniu = dawne 4 komplety z `v0.84`, bit w bit |
-| `sh tools/sim/start_test.sh [turnieje]` | uczciwość startu: 4 jednakowe boty, wyniki według pola startowego A–D |
-| `sh tools/sim/batch.sh` | 5 turniejów, średnie punkty dla każdego poziomu AI (do strojenia) |
-| `python tools/sim/plot.py` | tory jazdy z symulacji na tle toru, zapis do `art/sim_lines.png` |
-| `sh tools/shots/run.sh` | zrzuty ekranu z prawdziwego kodu gry (UI, HUD, duszki, szpryca, traktory) skompilowanego na PC, zapis do `art/screen_*.png` |
-| `python tools/import_engine.py plik.wav` | robi pętlę silnika dla Pauli z nagrania (obecnie `src/speedway_500cc_10000rpm_loop.wav`; `make assets` robi to sam) |
-| `python tools/mkdocs.py` | dokumentacja: `docs/DOKUMENTACJA.md` → `docs/SpeedwayParty-dokumentacja.pdf` (HTML do druku, PDF drukuje Edge albo Chrome w tle; wersja z gita) |
-| `python tools/mksocial.py` | miniaturka do podglądu linków na GitHubie, `art/social_preview.jpg` (1280×640, poniżej limitu 1 MB; wymaga ffmpeg) |
-| `python tools/mkcinema.py` | filmowy trailer `art/trailer.mp4` (16:9, 35 s; `--en` – po angielsku, `--reuse` – bez ponownego renderowania gry): start spod taśmy, szpryca, noc, deszcz, defekt, upadek, fotofinisz i mistrzostwa z prawdziwego kodu gry (tryb `cinema` w `tools/shots`), wirtualna kamera za motocyklami, napisy fontem gry, silniki z logiki `audio.c` |
-| `sh tools/mktrailer.sh` | trailer „gameplay” `art/trailer_gameplay.mp4` z prawdziwego kodu gry: menu, start i jedno okrążenie biegu z dźwiękiem silników (logika `audio.c`, mikser `tools/trailer_audio.py`) i przejście do ilustracji tytułowej (wymaga ffmpeg) |
-| `make dist EXTRA=-DAUTOPLAY` | wersja testowa bez klawiatury: sama przechodzi przez menu i rozgrywa turniej botów (do sprawdzania w emulatorze) |
-| `make dist EXTRA=-DSHOW_LAG` | wersja pomiarowa: w HUD zgubione klatki biegu i szczytowy czas (w liniach obrazu z 313) części logiki biegu: motocykle i boty, szpryca, tor, cała logika |
-| `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"` | pomiar do pliku: boty jadą 3 biegi, a gra przy wyjściu zapisuje `dist/prof.txt` (średnie i szczytowe czasy części klatki dla menu, startu z 1. łukiem i reszty biegu) |
-| `make dist EXTRA="-DSHOW_LAG -DSHOW_START"` | pomiar startu spod taśmy: zgubione klatki w oknie odlotu taśmy i szczytowe czasy logiki, rysowania oraz duszków+HUD w tym oknie |
+| `make assets` | regenerates the graphics (`tools/genart.py`, `tools/gentitle.py`, `tools/gengirls.py`), sound (`tools/genaudio.py`) and font (`tools/genfont.py`); working previews (mock-ups, frame sheets, WAV) go to `build/preview/` outside the repo |
+| `make dist-en` | the `dist-en/` directory with the English version (the program built with `-DLANG_EN`, objects in `build/en/`; the texts of both versions sit side by side in the code as `T("po polsku", "in English")`) |
+| `make release` | builds the `release/SpeedwayParty.zip` package (both languages) and the boot floppies `release/SpeedwayParty_PL.adf` and `release/SpeedwayParty_EN.adf` (`tools/mkadf.py`, no external tools) |
+| `python tools/mkicons.py preview` | Workbench icons (`tools/mkicons.py`: game, drawer, disk, manual; classic OS 2.x/3.x format, 4 colours) – preview in `build/preview/icon_*.png`; `make dist` / `make release` add the icons to the packages |
+| `make whdload` | a WHDLoad version (in preparation, not part of the release): the game built with `-DWHDLOAD` without the OS (`src/whd.c`, `src/whdstart.s`) and the slave `tools/whdload/slave.s` in `dist-whd/`; waiting for a test with the original Kickstart 3.1 |
+| `make cd32 CD32TM=…/CD32.TM` | CD32 disc images (`tools/mkiso.py`: ISO 9660 without external tools); a CD32 boots only from a disc with the Commodore `CD32.TM` file, which is not in the repository; not tested on a CD32 yet |
+| `sh tools/sim/pack_test.sh` | unpacking test: files packed by `tools/pack.py` and loaded by the game's `asset_load` = the data in `data/`, damaged ones rejected |
+| `python tools/gentitle.py` | the title screen from the illustration `src/title.png`: 320×256 crop, its own AGA palette and dithering (`data/title.bpl`, `data/title.pal`) |
+| `python tools/genreferee.py` | the referee's portrait in the HUD from `src/referee.png`: 32×38, its own shades in free HUD palette colours, plus the painted arm with a fist in two flag-waving phases (`data/refarm.bin`; used by `tools/genart.py`; needs ffmpeg) |
+| `python tools/gengirls.py` | the start girls from `src/girls.png`: four 48×96 figures, a shared 31-colour palette taken from the picture, gate colours from the UI, light dithering (`data/girls.bin`; needs ffmpeg) |
+| `make check` | checks the syntax and types of all the code with Clang for 68020 (NDK stubs in `tools/ndkstub/`) |
+| `make sim` | simulator: the same game logic files ride a bots' tournament without graphics |
+| `make asan` | memory check in WSL (AddressSanitizer): PL and EN screenshots, the trailer and the simulator – catches too-short buffers and bad pointers that silently corrupt the stack on the Amiga |
+| `sh tools/sim/news_test.sh` | newspaper test: headline choice in scenarios, the tournament summary, resetting the facts, long names |
+| `sh tools/sim/records_test.sh` | record table test: TOP 5, ties, names, the `halloffame.dat` file (also damaged and older versions) |
+| `sh tools/sim/settings_test.sh` | test of saving and loading the settings (`settings.dat`) on an "in-memory disk" |
+| `sh tools/sim/music_test.sh` | menu music test: streaming through the DMA buffers (emulated Paula) and the ADPCM decoder – every played sample matches |
+| `sh tools/sim/sprites_test.sh` | bike frame test: one set + the helmet colour applied when copying = 4 sets made by `tools/genart.py --bikes4`, bit for bit |
+| `sh tools/sim/start_test.sh [tournaments]` | start fairness: 4 identical bots, results by starting gate A–D |
+| `sh tools/sim/batch.sh` | 5 tournaments, average points for each AI level (for tuning) |
+| `python tools/sim/plot.py` | riding lines from the simulation over the track, saved to `art/sim_lines.png` |
+| `sh tools/shots/run.sh` | screenshots from the real game code (UI, HUD, sprites, roost, tractors) compiled on a PC, saved to `art/screen_*.png` (`LANG_EN=1` – English, `art/en/`) |
+| `python tools/import_engine.py file.wav` | makes the Paula engine loop from a recording (currently `src/speedway_500cc_10000rpm_loop.wav`; `make assets` does it by itself) |
+| `python tools/mkdocs.py` | documentation: `docs/DOKUMENTACJA.md` and `docs/DOCUMENTATION.md` → PDF (print HTML; Edge or Chrome prints the PDF in the background; version from git) |
+| `python tools/mksocial.py` | the link preview image for GitHub, `art/social_preview.jpg` (1280×640, under the 1 MB limit; needs ffmpeg) |
+| `python tools/mkcinema.py` | the cinematic trailer `art/trailer.mp4` (16:9, 35 s; `--en` – English, `--reuse` – without re-rendering the game): tape start, roost, night, rain, engine failure, crash, photo finish and championship from the real game code (`cinema` mode in `tools/shots`), a virtual camera following the bikes, captions in the game font, engines from the `audio.c` logic |
+| `sh tools/mktrailer.sh` | the "gameplay" trailer `art/trailer_gameplay.mp4` from the real game code: menu, start and one lap of a heat with engine sound (`audio.c` logic, mixer `tools/trailer_audio.py`) and a transition to the title illustration (needs ffmpeg) |
+| `make dist EXTRA=-DAUTOPLAY` | a test build without a keyboard: goes through the menus by itself and rides a bots' tournament (for checking in an emulator) |
+| `make dist EXTRA=-DSHOW_LAG` | a measurement build: dropped frames in a heat and the peak time (in raster lines out of 313) of parts of the heat logic in the HUD: bikes and bots, roost, track, all the logic |
+| `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"` | measurement to a file: the bots ride 3 heats and on exit the game writes `dist/prof.txt` (average and peak times of the parts of the frame for the menus, the start with the first bend and the rest of the heat) |
+| `make dist EXTRA="-DSHOW_LAG -DSHOW_START"` | tape start measurement: dropped frames in the tape-release window and peak times of logic, drawing and sprites+HUD in that window |
 
-Geometria toru jest zapisana w dwóch miejscach: `track_defs` w `src/track.c` i `PRESETS` w `tools/genart.py`. Wartości (`HALF_L, R_IN, R_OUT`) muszą być identyczne.
+The track geometry is stored in two places: `track_defs` in `src/track.c` and `PRESETS` in `tools/genart.py`. The values (`HALF_L, R_IN, R_OUT`) must be identical.
 
 ---
 
-## Struktura projektu
+## Project structure
 
 ```
 src/
-  main.c        pętla 50 Hz, maszyna stanów turnieju
-  system.c      przejęcie i oddanie sprzętu, własne przerwanie VBL
-  video.c       Copper-listy AGA: 8 bitplanów, paleta 24-bit, kolory per linia, HUD, podwójny bufor
-  sprites.c     duszki 32 px (pary attached), klatki motocykli (1 komplet), kopia na motocykl i bufor z kolorem kasku, pozycja co 1/4 px
-  blit.c        Blitter: wypełnianie, kopiowanie, kropki „cookie-cut” (szpryca)
-  start.c       procedura startowa, taśma, refleks
-  race.c        model jazdy: auto-gaz, uślizg, banda, kontakt, okrążenia
-  ai.c          boty: Nowicjusz / Profesjonalista / Mistrz
-  roost.c       szpryca i woda z polewaczki (cząsteczki Blittera)
-  track.c       geometria owalu, mapa przyczepności, wilgotność, wyjeżdżone ścieżki (przemalowanie w kolejce)
-  tractors.c    przerwa na tor (traktory na duszkach)
-  tournament.c  tabela 15 biegów, punkty, biegi nominowane
-  ui.c, text.c  ekrany tekstowe, font z polskimi literami
-  hud.c         HUD: kolory kasków w kolejności, okrążenie, okrągłe światła, sędzia z flagą
-  audio.c       Paula: silniki, kibice, brzęczyk, jęk trybun, okrzyk trybun na ostatniej prostej, muzyka w menu
-  input.c       joysticki, adapter LPT, klawiatura (CIA)
-  assets.c      ładowanie data/ przed przejęciem sprzętu, rozpakowywanie plików spakowanych na dyskietce (tools/pack.py)
-  records.c     rekordy toru na dysku (halloffame.dat + .bak, import starego records.dat)
-  hof.c         tabele TOP 5 biegów i okrążeń, imiona graczy, format pliku (test: tools/sim/records_test.sh)
-  newspaper.c   gazeta po zawodach: migawka turnieju, wybór nagłówka i faktów
-  music/        utwory do menu (gotowe miksy *_s8.raw), wybór w build.cfg
-  banners/      logo na banery (źródło SVG)
-build.cfg       ustawienia budowania (wybór muzyki)
-data/           gotowe dane binarne (generowane narzędziami)
-art/            podglądy PNG/WAV (nie trafiają na Amigę)
-docs/           dokumentacja: DOKUMENTACJA.md (źródło) i PDF
-tools/          generatory, sprawdzanie kodu, symulator
+  main.c        50 Hz loop, tournament state machine
+  system.c      taking over and giving back the hardware, own VBL interrupt, waiting for the frame with STOP
+  video.c       AGA Copper lists: 8 bitplanes, 24-bit palette, per-line colours, HUD, double buffering
+  sprites.c     32 px sprites (attached pairs), bike frames (one set), copy per bike and buffer with the helmet colour, position in 1/4 px
+  blit.c        Blitter: filling, copying
+  start.c       start procedure, tape, reflexes
+  race.c        riding model: auto throttle, slide, fence, contact, laps, falls, photo finish
+  ai.c          bots: Rookie / Pro / Master
+  roost.c       roost, water from the water cart and rain (dots drawn by the CPU)
+  track.c       oval geometry, grip map, moisture, worn-in grooves (repaint queue), night
+  tractors.c    track break (tractors as sprites)
+  tournament.c  15-heat table, points, nominated heats, team match, championship
+  ui.c, text.c  text screens, font with Polish letters
+  hud.c         HUD: helmet colours in order, lap, round lights, referee with flags
+  audio.c       Paula: engines, crowd, buzzer, crowd groan, cheer on the last straight, menu music
+  input.c       joysticks, parallel port adapter, keyboard (CIA)
+  assets.c      loading data/ before taking over the hardware, unpacking files packed on the floppy (tools/pack.py)
+  records.c     track records on disk (halloffame.dat + .bak, import of the old records.dat), settings.dat
+  hof.c         TOP 5 tables of heats and laps, player names, file format (test: tools/sim/records_test.sh)
+  newspaper.c   the newspaper after the meeting: tournament snapshot, headline and fact choice
+  music/        menu tracks (ready *_s8.raw mixes), chosen in build.cfg
+  banners/      banner logos (SVG source)
+build.cfg       build settings (music choice)
+data/           ready binary data (generated by the tools)
+art/            PNG/WAV/MP4 previews (they don't go to the Amiga); art/en/ - English screens and trailer
+docs/           documentation: DOKUMENTACJA.md, DOCUMENTATION.md (source) and PDF
+tools/          generators, code checks, simulator, screenshots, trailers
 ```
 
+The code comments and the tools' messages are in Polish.
+
 ---
 
-## Stack technologiczny
+## Technology stack
 
-| Obszar | Czego używamy |
+| Area | What we use |
 |---|---|
-| Platforma docelowa | Amiga 1200: 68020, chipset AGA, 2 MB Chip RAM, bez Fast RAM, PAL 50 Hz, Kickstart 2.0+ (dyskietka) / 3.x |
-| Język i sprzęt | C (gnu99) bez bibliotek gry: gra przejmuje system i sama programuje układy AGA - Copper (8 bitplanów, paleta 24-bit, kolory per linia), Blitter, duszki 32 px (pary attached, pozycja co 1/4 px), Paula (4 kanały, muzyka w podwójnym buforze), CIA (klawiatura, joysticki, adapter LPT) |
-| Kompilator | Bebbo amiga-gcc 6.5.0b (`m68k-amigaos-gcc -m68020 -O2 -fbbb=- -noixemul`), NDK 3.9, libnix; `make` w WSL2 (Ubuntu) |
-| Emulator i pomiary | WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip, ROM AROS); wersje testowe `AUTOPLAY` (turniej botów bez klawiatury) i `SHOW_LAG` / `SHOW_START` (zgubione klatki i czasy w liniach obrazu w HUD) |
-| Narzędzia na PC | Python 3 + numpy: tor, motocykle, traktory, HUD, font, palety, konwersja ilustracji do palet AGA, dźwięki, dyskietka ADF i paczka zip; ffmpeg: dekodowanie PNG, trailer MP4, miniaturka JPG |
-| Sprawdzanie i testy | Clang z pakietu `ziglang`: kontrola typów kodu dla 68020 (atrapy NDK), symulator turnieju z tą samą logiką gry, zrzuty ekranu i trailer z prawdziwego kodu gry (emulacja buforów i duszków), testy gazety |
-| Grafika | pikselart toru, motocykli, traktorów i HUD generowany kodem; ilustracje (plansza tytułowa, podprowadzające, sędzia) przygotowane generatorem obrazów AI i przekonwertowane do palet gry narzędziami z repozytorium |
-| Dźwięk | silnik z nagrania wygenerowanego przez AI (pętla 8 cykli zapłonu); kibice, brzęczyk z taśmą, jęk zawodu trybun i okrzyk (gdy prowadzący wjeżdża na ostatnią prostą) generowane w Pythonie (okrzyk można podmienić nagraniem `src/crowd_cheer.wav`); utwory menu jako gotowe miksy PCM 8-bit ~16 kHz |
-| Repozytorium i praca | git, GitHub; asystenci AI: Claude (Anthropic) i GPT-6 Astra |
+| Target platform | Amiga 1200: 68020, AGA chipset, 2 MB Chip RAM, no Fast RAM, PAL 50 Hz, Kickstart 2.0+ (floppy) / 3.x |
+| Language and hardware | C (gnu99) without game libraries: the game takes over the system and programs the AGA chips itself – Copper (8 bitplanes, 24-bit palette, per-line colours), Blitter, 32 px sprites (attached pairs, position in 1/4 px), Paula (4 channels, double-buffered music), CIA (keyboard, joysticks, parallel port adapter) |
+| Compiler | Bebbo amiga-gcc 6.5.0b (`m68k-amigaos-gcc -m68020 -O2 -fbbb=- -noixemul`), NDK 3.9, libnix; `make` in WSL2 (Ubuntu) |
+| Emulator and measurements | WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip, AROS ROM); test builds `AUTOPLAY` (a bots' tournament without a keyboard), `SHOW_LAG` / `SHOW_START` (dropped frames and timings in raster lines in the HUD) and `PROF_LOG` (timings to a file) |
+| PC tools | Python 3 + numpy: track, bikes, tractors, HUD, font, palettes, converting illustrations to AGA palettes, sounds, the ADF floppy and the zip package; ffmpeg: PNG decoding, MP4 trailers, JPG thumbnail |
+| Checks and tests | Clang from the `ziglang` package: type checking of the code for 68020 (NDK stubs), a tournament simulator with the same game logic, screenshots and trailers from the real game code (buffer and sprite emulation), newspaper, records, settings and music tests |
+| Graphics | pixel art of the track, bikes, tractors and HUD generated by code; illustrations (title screen, start girls, referee) made with an AI image generator and converted to the game's palettes by tools in the repository |
+| Sound | the engine from an AI-generated recording (a loop of 8 ignition cycles); crowd, buzzer with the tape, crowd groan and cheer (when the leader enters the last straight) generated in Python (the cheer can be replaced with a recording `src/crowd_cheer.wav`); menu tracks as ready 8-bit PCM mixes ~16 kHz |
+| Repository and work | git, GitHub; AI assistants: Claude (Anthropic) and GPT-6 Astra |
 
 ---
 
-## Znane ograniczenia / do zrobienia
+## Known limitations / to do
 
-### Stan
-- Gra kompiluje się Bebbo GCC 6.5.0b bez ostrzeżeń i działa w WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, ROM AROS): plansza tytułowa, menu, turniej, biegi, polewanie, dźwięk i muzyka w menu. Menu i bieg chodzą w 50 FPS: według pomiaru w WinUAE w całym biegu (4 okrążenia) gubią się pojedyncze klatki (kilka w chwili odlotu taśmy i przy zmianie flagi). Pomiar daje wersja `make dist EXTRA=-DSHOW_LAG` (liczby w HUD).
-- **Nie była jeszcze testowana na prawdziwym A1200 ani z oryginalnym Kickstartem 3.1.** Zgłoszenia z prawdziwego sprzętu są bardzo mile widziane.
-- Logikę (fizykę, boty, turniej) sprawdza symulator na PC (`make sim`). Prawdziwi gracze dopiero ocenią, jak sterowanie dwoma przyciskami czuje się w rękach, i parametry jazdy mogą się jeszcze zmienić.
-- Gra zajmuje ok. 1,05–1,25 MB Chip RAM (tor, motocykle, traktory, plansza tytułowa, dźwięk i muzyka: 208 KiB „Black Motor” albo 428 KiB „Night Grid”), więc potrzebuje A1200 z 2 MB Chip. Klatki motocykli to jeden komplet (51 KiB) – kolor kasku zawodnika gra nadaje przy kopiowaniu klatki. Na Amidze z Fast RAM muzyka i klatki motocykli lądują w Fast RAM.
+### Status
+- The game compiles with Bebbo GCC 6.5.0b without warnings and runs in WinUAE (A1200, 68020 cycle-exact, AGA, 2 MB Chip RAM, AROS ROM): title screen, menus, tournament, heats, watering, sound and menu music. The menus and heats run at 50 FPS: measured in WinUAE, a heat takes about 60% of a frame on average and drops about 0.3% of frames (measurement build: `make dist EXTRA="-DSHOW_LAG -DAUTOPLAY -DPROF_LOG"`). The game also runs on THEA500 Mini.
+- **It hasn't been tested on a real A1200 or with the original Kickstart 3.1 yet.** Reports from real hardware are very welcome.
+- The logic (physics, bots, tournament) is checked by the simulator on a PC (`make sim`). Real players will judge how the two-button control feels in the hands, and the riding parameters may still change.
+- The game uses about 1.05–1.25 MB of Chip RAM (track, bikes, tractors, title screen, sound and music: 208 KiB "Black Motor" or 428 KiB "Night Grid"), so it needs an A1200 with 2 MB Chip. The bike frames are one set (51 KiB) – the game applies the rider's helmet colour when copying a frame. On an Amiga with Fast RAM the music and bike frames go to Fast RAM.
 
-### Znane ograniczenia
-- **Silniki słychać tylko dwa naraz:** Paula ma 4 kanały, a pozostałe dwa zajmują kibice i efekty. Grają dwaj najwyżej sklasyfikowani zawodnicy, którzy jeszcze jadą; ci za metą dopiero wtedy, gdy na torze zostało mniej niż dwóch.
-- **Dźwięk silnika** to pętla z nagrania 500 cm³ na 10 000 obr/min wygenerowanego przez AI (`src/speedway_500cc_10000rpm_loop.wav`, import: `tools/import_engine.py`). Wysokość tonu w grze zmienia Paula zależnie od obrotów.
-- **Mysz w porcie 0:** menu jej nie czyta, ale gracz 2 ustawiony na „JOY 0” z myszą zamiast joysticka będzie „jechał” ruchami myszy.
-- **Adapter 4 graczy na porcie równoległym** nie był testowany. Przypisanie bitów w `src/input.c` może wymagać poprawki.
-- **Remis punktowy poza podium** (o 4. miejsce) rozstrzygają zwycięstwa biegów. O podium zawsze rozstrzyga bieg dodatkowy.
-- **Boty** jeżdżą głównie wewnętrzną połową toru. Szeroka linia pod bandą to szansa dla ludzi.
-- Tylko **PAL** (50 Hz).
+### Known limitations
+- **Only two engines can be heard at once:** Paula has 4 channels, and the other two are taken by the crowd and the effects. You hear the two highest-placed riders still racing; those past the finish only when fewer than two are left on the track.
+- **The engine sound** is a loop from an AI-generated recording of a 500 cc engine at 10,000 rpm (`src/speedway_500cc_10000rpm_loop.wav`, import: `tools/import_engine.py`). Paula changes the pitch in the game according to the revs.
+- **A mouse in port 0:** the menu doesn't read it, but player 2 set to "JOY 0" with a mouse instead of a joystick will "ride" with mouse movements.
+- **The 4-player adapter on the parallel port** hasn't been tested. The bit assignment in `src/input.c` may need fixing.
+- **A tie on points outside the podium** (for 4th place) is settled by heat wins. The podium is always settled by a run-off.
+- **Bots** ride mostly in the inner half of the track. The wide line by the fence is a chance for humans.
+- **PAL** only (50 Hz).
 
-### Do zrobienia
-- więcej torów i stadionów
-- test na prawdziwym A1200 i z oryginalnym Kickstartem 3.1
-- ostatnie zgubione klatki w chwili startu spod taśmy
-- sprawdzenie zapisu rekordów toru (`halloffame.dat`) na prawdziwej Amidze
-
----
-
-## Jak powstała gra
-Speedway Party została stworzona przez b4rtiga przy pomocy sztucznej inteligencji: **Claude** (Anthropic) oraz **GPT-6 Astra**.
+### To do
+- more tracks and stadiums
+- a test on a real A1200 and with the original Kickstart 3.1
+- the last dropped frames at the moment of the tape start
+- checking track record saving (`halloffame.dat`) on a real Amiga
 
 ---
 
-## Licencja
+## How the game was made
+Speedway Party was created by b4rtiga with the help of artificial intelligence: **Claude** (Anthropic) and **GPT-6 Astra**.
+
+---
+
+## Licence
 [MIT](LICENSE) © 2026 b4rtiga
